@@ -13,7 +13,10 @@
           "name": "Register User",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Host", "value": "{{tenantHost}}" }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Alice User\",\n  \"email\": \"alice.user@example.com\",\n  \"password\": \"Password123\",\n  \"role\": \"USER\"\n}"
@@ -39,7 +42,10 @@
           "name": "Register Admin",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Host", "value": "{{tenantHost}}" }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Admin One\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"Password123\",\n  \"role\": \"ADMIN\"\n}"
@@ -51,7 +57,10 @@
           "name": "Login",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Host", "value": "{{tenantHost}}" }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Password123\"\n}"
@@ -77,7 +86,10 @@
           "name": "Refresh Token",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Host", "value": "{{tenantHost}}" }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
@@ -108,7 +120,8 @@
             "request": {
               "method": "GET",
               "header": [
-                { "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }
+                { "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" },
+                { "key": "Host", "value": "{{tenantHost}}" }
               ],
               "url": "{{baseUrl}}/api/users/me"
             }
@@ -122,7 +135,10 @@
           "name": "List Users",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" },
+              { "key": "Host", "value": "{{tenantHost}}" }
+            ],
             "url": "{{baseUrl}}/api/admin/users"
           }
             ,
@@ -146,6 +162,7 @@
             "method": "PATCH",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" },
+              { "key": "Host", "value": "{{tenantHost}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
             "body": { "mode": "raw", "raw": "{\n  \"role\": \"HANDOVER_AGENT\"\n}" },
@@ -158,6 +175,7 @@
             "method": "PATCH",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" },
+              { "key": "Host", "value": "{{tenantHost}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
             "body": { "mode": "raw", "raw": "{\n  \"active\": false\n}" },
@@ -169,7 +187,8 @@
           "request": {
             "method": "DELETE",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }
+              { "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" },
+              { "key": "Host", "value": "{{tenantHost}}" }
             ],
             "url": "{{baseUrl}}/api/admin/users/{{userId}}"
           }
