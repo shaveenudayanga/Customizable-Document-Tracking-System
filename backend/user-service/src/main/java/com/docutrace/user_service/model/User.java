@@ -38,6 +38,10 @@ public class User {
 	@Column(nullable = false, length = 200)
 	private String password;
 
+	/** Tenant key (subdomain or tenant identifier). Phase 2: optional, will be enforced later. */
+	@Column(name = "tenant", length = 100)
+	private String tenant;
+
 	/** Role enumerating user privileges. */
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 40)

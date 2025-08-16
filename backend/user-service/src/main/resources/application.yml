@@ -10,6 +10,9 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+  flyway:
+    enabled: false # enable in prod profile
+    locations: classpath:db/migration
   jackson:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
@@ -27,6 +30,11 @@ security:
     secret: ${JWT_SECRET:change-me-super-secret-jwt-key-change-me-change-me-please-32+}
     expiration-access-minutes: ${JWT_ACCESS_MINUTES:30}
     expiration-refresh-days: ${JWT_REFRESH_DAYS:7}
+  tenant:
+    # Turn on to enforce tenant match among subdomain/JWT/user
+    enforce: ${TENANT_ENFORCE:false}
+  # When true, login is only permitted if Host tenant matches the user's stored tenant
+  login-enforce: ${TENANT_LOGIN_ENFORCE:false}
 
 ---
 # Production profile (used inside docker / k8s)
@@ -42,6 +50,9 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 logging:
   level:
     root: INFO

@@ -62,6 +62,10 @@ class UserServiceTest {
         verify(userRepository).save(captor.capture());
         assertEquals("a@test.com", captor.getValue().getEmail());
         assertEquals("hashed", captor.getValue().getPassword());
+    // Tenant is set from context; default when none
+    assertEquals(null, com.docutrace.user_service.tenant.TenantContext.getTenant());
+    // Because context is null here, the entity should store "default"
+    assertEquals("default", captor.getValue().getTenant());
     }
 
     @Test

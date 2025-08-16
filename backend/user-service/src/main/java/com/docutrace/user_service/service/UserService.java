@@ -33,6 +33,7 @@ public class UserService implements UserDetailsService {
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtService jwtService;
+	private final com.docutrace.user_service.tenant.TenantProperties tenantProperties;
 
 	/** Registers a new user. */
 	@Transactional
@@ -40,12 +41,15 @@ public class UserService implements UserDetailsService {
 		if (userRepository.existsByEmail(request.getEmail())) {
 			throw new ConflictException("Email already registered");
 		}
+		String ctxTenant = com.docutrace.user_service.tenant.TenantContext.getTenant();
+		if (ctxTenant == null || ctxTenant.isBlank()) ctxTenant = "default";
 		User user = User.builder()
 				.id(UUID.randomUUID())
 				.name(request.getName())
 				.email(request.getEmail().toLowerCase())
 				.password(passwordEncoder.encode(request.getPassword()))
 				.role(request.getRole() == null ? UserRole.USER : request.getRole())
+				.tenant(ctxTenant)
 				.active(true)
 				.build();
 		userRepository.save(user);
@@ -55,17 +59,29 @@ public class UserService implements UserDetailsService {
 
 	/** Authenticates user credentials returning access + refresh tokens. */
 	public AuthResponse authenticate(AuthRequest request) {
-		User user = userRepository.findByEmail(request.getEmail().toLowerCase())
-				.orElseThrow(() -> new UsernameNotFoundException("Invalid credentials"));
+	String email = request.getEmail().toLowerCase();
+	User user = userRepository.findByEmail(email)
+		.orElseThrow(() -> new UsernameNotFoundException("Invalid credentials"));
 		if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
 			throw new UsernameNotFoundException("Invalid credentials");
 		}
 		if (!user.isActive()) {
 			throw new UsernameNotFoundException("Account disabled");
 		}
-		String access = jwtService.generateAccessToken(user.getEmail(), java.util.Map.of(
-				"role", user.getRole().name()
-		));
+		// Optionally enforce tenant match during login
+		String ctxTenant = com.docutrace.user_service.tenant.TenantContext.getTenant();
+		if (tenantProperties != null && tenantProperties.isLoginEnforce()) {
+			String ut = user.getTenant();
+			if (ctxTenant == null || ctxTenant.isBlank() || ut == null || ut.isBlank() || !ctxTenant.equalsIgnoreCase(ut)) {
+				throw new UsernameNotFoundException("Invalid credentials");
+			}
+		}
+		java.util.Map<String, Object> claims = new java.util.HashMap<>();
+		claims.put("role", user.getRole().name());
+	if (ctxTenant != null && !ctxTenant.isBlank()) {
+			claims.put("tenant", ctxTenant);
+		}
+		String access = jwtService.generateAccessToken(user.getEmail(), claims);
 		String refresh = jwtService.generateRefreshToken(user.getEmail());
 		log.info("User authenticated: {}", user.getEmail());
 		return AuthResponse.builder().accessToken(access).refreshToken(refresh).build();
@@ -76,26 +92,41 @@ public class UserService implements UserDetailsService {
 		var claims = jwtService.parse(request.getRefreshToken()).getBody();
 		String email = claims.getSubject();
 		User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Invalid refresh"));
-		String access = jwtService.generateAccessToken(user.getEmail(), java.util.Map.of(
-				"role", user.getRole().name()
-		));
+		java.util.Map<String, Object> newClaims = new java.util.HashMap<>();
+		newClaims.put("role", user.getRole().name());
+		if (user.getTenant() != null && !user.getTenant().isBlank()) {
+			newClaims.put("tenant", user.getTenant());
+		}
+		String access = jwtService.generateAccessToken(user.getEmail(), newClaims);
 		return AuthResponse.builder().accessToken(access).refreshToken(request.getRefreshToken()).build();
 	}
 
-	/** Returns the profile of authenticated user by email. */
+	/** Returns the profile of authenticated user by email, scoped to current tenant if available. */
 	public UserResponse profile(String email) {
+		String ctxTenant = com.docutrace.user_service.tenant.TenantContext.getTenant();
+		if (ctxTenant != null && !ctxTenant.isBlank()) {
+			return toDto(userRepository.findByEmailAndTenant(email, ctxTenant)
+					.orElseThrow(() -> new NotFoundException("User not found")));
+		}
 		return toDto(userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found")));
 	}
 
 	/** Admin: list all users. */
 	public List<UserResponse> listAll() {
-		return userRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
+	String ctxTenant = com.docutrace.user_service.tenant.TenantContext.getTenant();
+	List<User> users = (ctxTenant != null && !ctxTenant.isBlank())
+		? userRepository.findAllByTenant(ctxTenant)
+		: userRepository.findAll();
+	return users.stream().map(this::toDto).collect(Collectors.toList());
 	}
 
 	/** Admin: update user role. */
 	@Transactional
 	public UserResponse updateRole(UUID id, UserRole newRole) {
-		User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
+	String ctxTenant = com.docutrace.user_service.tenant.TenantContext.getTenant();
+	User user = (ctxTenant != null && !ctxTenant.isBlank())
+		? userRepository.findByIdAndTenant(id, ctxTenant).orElseThrow(() -> new NotFoundException("User not found"))
+		: userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
 		user.setRole(newRole);
 		return toDto(user);
 	}
@@ -103,7 +134,10 @@ public class UserService implements UserDetailsService {
 	/** Admin: activate/deactivate user. */
 	@Transactional
 	public UserResponse setActive(UUID id, boolean active) {
-		User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
+	String ctxTenant = com.docutrace.user_service.tenant.TenantContext.getTenant();
+	User user = (ctxTenant != null && !ctxTenant.isBlank())
+		? userRepository.findByIdAndTenant(id, ctxTenant).orElseThrow(() -> new NotFoundException("User not found"))
+		: userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
 		user.setActive(active);
 		return toDto(user);
 	}
@@ -111,10 +145,16 @@ public class UserService implements UserDetailsService {
 	/** Admin: delete user. */
 	@Transactional
 	public void delete(UUID id) {
-		if (!userRepository.existsById(id)) {
-			throw new NotFoundException("User not found");
+		String ctxTenant = com.docutrace.user_service.tenant.TenantContext.getTenant();
+		if (ctxTenant != null && !ctxTenant.isBlank()) {
+			var u = userRepository.findByIdAndTenant(id, ctxTenant).orElseThrow(() -> new NotFoundException("User not found"));
+			userRepository.delete(u);
+		} else {
+			if (!userRepository.existsById(id)) {
+				throw new NotFoundException("User not found");
+			}
+			userRepository.deleteById(id);
 		}
-		userRepository.deleteById(id);
 	}
 
 	private UserResponse toDto(User u) {

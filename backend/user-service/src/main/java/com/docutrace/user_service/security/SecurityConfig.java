@@ -19,8 +19,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
-    public SecurityConfig(JwtAuthenticationFilter jwtFilter) {
+    private final com.docutrace.user_service.tenant.TenantResolverFilter tenantFilter;
+    private final java.util.Optional<com.docutrace.user_service.tenant.TenantEnforcementFilter> tenantEnforcementFilter;
+    public SecurityConfig(JwtAuthenticationFilter jwtFilter, com.docutrace.user_service.tenant.TenantResolverFilter tenantFilter,
+                          java.util.Optional<com.docutrace.user_service.tenant.TenantEnforcementFilter> tenantEnforcementFilter) {
         this.jwtFilter = jwtFilter;
+        this.tenantFilter = tenantFilter;
+        this.tenantEnforcementFilter = tenantEnforcementFilter;
     }
 
     @Bean
@@ -33,7 +38,9 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());
-        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+    http.addFilterBefore(tenantFilter, UsernamePasswordAuthenticationFilter.class);
+    http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+    tenantEnforcementFilter.ifPresent(f -> http.addFilterAfter(f, UsernamePasswordAuthenticationFilter.class));
         return http.build();
     }
 

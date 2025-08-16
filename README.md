@@ -68,6 +68,10 @@ This project is licensed under the MIT License. See [`LICENSE`](./LICENSE) for d
 
 **Breaking the cycle of bureaucratic delays, one digital workflow at a time.**
 
+## Architecture & Operations
+
+See the high-level multi-tenant architecture, workflows, and operations in `docs/architecture/multi-tenant-overview.md`.
+
 ## User Service (Authentication & User Management)
 
 The `user-service` microservice handles registration, authentication (JWT + refresh tokens), and administrative user management.

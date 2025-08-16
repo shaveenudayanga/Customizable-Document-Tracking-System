@@ -49,11 +49,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Optional<User> userOpt = userRepository.findByEmail(email);
                 if (userOpt.isPresent() && userOpt.get().isActive()) {
                     User user = userOpt.get();
-                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                            user.getEmail(), null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
-                    );
-                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                user.getEmail(), null,
+                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+            );
+            // Attach auth details including resolved tenant (if any)
+            String tokenTenant = claims.get("tenant", String.class);
+            var details = new org.springframework.security.web.authentication.WebAuthenticationDetailsSource().buildDetails(request);
+            // Wrap details with tenant info using a simple holder map to avoid new class for Phase 1
+            request.setAttribute("tenant", tokenTenant);
+            auth.setDetails(details);
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }
             } catch (Exception ex) {
