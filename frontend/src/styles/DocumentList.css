@@ -1,0 +1,212 @@
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: #e0f2f7; /* Very light teal background */
+}
+
+.doc-list-wrapper {
+  min-height: 100vh;
+  padding: 30px;
+  background: linear-gradient(
+    135deg,
+    #d1c4e9,
+    #b3e5fc,
+    #d1c4e9
+  ); /* Light purple to light blue gradient */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Align items to the top */
+}
+
+.doc-list-container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  width: 100%;
+  max-width: 1200px; /* Wider container for documents */
+}
+
+.doc-list-title {
+  color: #673ab7; /* Deeper purple */
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.doc-list-subtitle {
+  color: #757575; /* Gray */
+  font-size: 1rem;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  gap: 15px;
+  margin-bottom: 30px;
+  justify-content: center;
+}
+
+.search-input,
+.sort-select,
+.filter-select {
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid #bbdefb; /* Light blue border */
+  transition: all 0.3s ease;
+  flex: 1; /* Allow inputs to grow */
+  min-width: 180px; /* Minimum width for inputs */
+  box-sizing: border-box; /* Include padding and border in width */
+  color: #5e35b1; /* Dark purple text */
+}
+
+.search-input::placeholder {
+  color: #a78cb3; /* Lighter purple placeholder */
+}
+
+.search-input:focus,
+.sort-select:focus,
+.filter-select:focus {
+  border-color: #673ab7; /* Deeper purple on focus */
+  box-shadow: 0 0 8px rgba(103, 58, 183, 0.3);
+  outline: none;
+}
+
+.new-doc-btn {
+  background: linear-gradient(
+    135deg,
+    #673ab7,
+    #3f51b5
+  ); /* Purple to indigo gradient */
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  text-decoration: none; /* Remove underline for Link */
+  display: flex; /* For vertical alignment of text and potential icon */
+  align-items: center;
+  justify-content: center;
+}
+
+.new-doc-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.loading-message,
+.error-message,
+.no-documents-found {
+  text-align: center;
+  padding: 20px;
+  font-size: 1rem;
+  color: #757575;
+}
+
+.error-message {
+  background: #ffebee;
+  color: #d32f2f;
+  border-radius: 8px;
+}
+
+.document-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(280px, 1fr)
+  ); /* Responsive grid */
+  gap: 25px;
+}
+
+.document-card {
+  background: #f7f7f7; /* Light gray card background */
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  text-decoration: none; /* Remove underline from Link */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Distribute content */
+  color: #424242; /* Darker gray text */
+}
+
+.document-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  background: #e3f2fd; /* Light blue tint on hover */
+}
+
+.doc-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.doc-card-title {
+  color: #5e35b1; /* Dark purple */
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.doc-status {
+  padding: 5px 10px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.doc-status.approved {
+  background: #e8f5e9; /* Light green */
+  color: #388e3c; /* Dark green */
+}
+
+.doc-status.pending {
+  background: #fff3e0; /* Light orange */
+  color: #f57f17; /* Dark orange */
+}
+
+.doc-status.rejected {
+  background: #ffebee; /* Light red */
+  color: #d32f2f; /* Dark red */
+}
+
+.doc-card-info {
+  font-size: 0.9rem;
+  margin: 5px 0;
+  color: #757575;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .doc-list-container {
+    padding: 20px;
+  }
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-input,
+  .sort-select,
+  .filter-select,
+  .new-doc-btn {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+@media (max-width: 480px) {
+  .doc-list-title {
+    font-size: 1.8rem;
+  }
+  .document-cards-grid {
+    grid-template-columns: 1fr; /* Single column on very small screens */
+  }
+}

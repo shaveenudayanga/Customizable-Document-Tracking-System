@@ -20,6 +20,9 @@ import Dashboard from "./Pages/Dashboard/Dashboard.jsx";
 // Documents
 import DocumentList from "./Pages/Documents/DocumentList.jsx";
 import DocumentDetails from "./Pages/Documents/DocumentDetails.jsx";
+// Corrected: Imported NewDocument and EditDocument and uncommented their routes
+import NewDocument from "./pages/Documents/NewDocument.jsx";
+import EditDocument from "./Pages/Documents/EditDocument.jsx";
 
 // Pipelines
 import PipelineList from "./Pages/Pipelines/PipelineList.jsx";
@@ -81,17 +84,24 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Login and Auth */}
+        {/* Login and Auth pages - these will not be inside PageShell */}
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/onboarding" element={<Onboarding />} />
-        {/* Main app - with PageShell as layout for all other routes */}
+
+        {/* Main app routes - nested within PageShell */}
+        {/* PageShell will render first, then its children will appear in its <Outlet /> */}
         <Route path="/" element={<PageShell />}>
-          {/* Default child route for /, e.g. Dashboard */}
-          <Route index element={<Dashboard />} />
+          {/* Changed the index element to HomeLanding */}
+          <Route index element={<HomeLanding />} />
+
+          {/* All other routes will render within PageShell's layout */}
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="documents" element={<DocumentList />} />
           <Route path="documents/:id" element={<DocumentDetails />} />
+          {/* Uncommented NewDocument and EditDocument routes */}
+          <Route path="new-document" element={<NewDocument />} />
+          <Route path="edit-document/:id" element={<EditDocument />} />
           <Route path="pipelines" element={<PipelineList />} />
           <Route path="pipelines/builder" element={<PipelineBuilder />} />
           <Route path="handover/queue" element={<HandoverQueue />} />
@@ -106,7 +116,8 @@ function App() {
           <Route path="bulk" element={<BulkOperations />} />
           <Route path="mobile" element={<MobileLite />} />
         </Route>
-        {/* Fallback */}
+
+        {/* Fallback for any unmatched routes */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
