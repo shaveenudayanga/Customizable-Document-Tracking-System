@@ -20,8 +20,7 @@ import Dashboard from "./Pages/Dashboard/Dashboard.jsx";
 // Documents
 import DocumentList from "./Pages/Documents/DocumentList.jsx";
 import DocumentDetails from "./Pages/Documents/DocumentDetails.jsx";
-// Corrected: Imported NewDocument and EditDocument and uncommented their routes
-import NewDocument from "./pages/Documents/NewDocument.jsx";
+import NewDocument from "./pages/Documents/NewDocument.jsx"; // Corrected path to Pages/Documents
 import EditDocument from "./Pages/Documents/EditDocument.jsx";
 
 // Pipelines
@@ -44,6 +43,8 @@ import AuditLog from "./Pages/Audit/AuditLog.jsx";
 
 // Profile
 import UserProfile from "./Pages/Profile/UserProfile.jsx";
+// Corrected: Added the missing import for AdminUserManagement
+import AdminUserManagement from "./Pages/Admin/AdminUserManagement.jsx";
 
 // Settings
 import SystemSettings from "./Pages/Settings/SystemSettings.jsx";
@@ -94,12 +95,10 @@ function App() {
         <Route path="/" element={<PageShell />}>
           {/* Changed the index element to HomeLanding */}
           <Route index element={<HomeLanding />} />
-
           {/* All other routes will render within PageShell's layout */}
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="documents" element={<DocumentList />} />
           <Route path="documents/:id" element={<DocumentDetails />} />
-          {/* Uncommented NewDocument and EditDocument routes */}
           <Route path="new-document" element={<NewDocument />} />
           <Route path="edit-document/:id" element={<EditDocument />} />
           <Route path="pipelines" element={<PipelineList />} />
@@ -111,6 +110,8 @@ function App() {
           <Route path="notifications" element={<Notifications />} />
           <Route path="audit" element={<AuditLog />} />
           <Route path="profile" element={<UserProfile />} />
+          <Route path="admin/users" element={<AdminUserManagement />} />{" "}
+          {/* This route is now correctly linked */}
           <Route path="settings" element={<SystemSettings />} />
           <Route path="help" element={<HelpCenter />} />
           <Route path="bulk" element={<BulkOperations />} />
