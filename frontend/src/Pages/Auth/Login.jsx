@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/Login.css";
 import { api } from "../../lib/api";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGoogle, faFacebookF } from "@fortawesome/free-brands-svg-icons";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -81,8 +83,15 @@ const Login = () => {
           </div>
 
           <div className="social-login">
-            <button className="google-btn">Google</button>
-            <button className="facebook-btn">Facebook</button>
+            <button className="google-btn">
+              <FontAwesomeIcon icon={faGoogle} /> <br />
+              Google
+            </button>
+            <button className="facebook-btn">
+              <FontAwesomeIcon icon={faFacebookF} />
+              <br />
+              Facebook
+            </button>
           </div>
 
           <p className="signup-link">

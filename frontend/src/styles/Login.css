@@ -1,7 +1,7 @@
 body {
   margin: 0;
   font-family: "Segoe UI", sans-serif;
-  background: #f3ecff;
+  background: #e0f2f7; /* Very light teal background */
 }
 
 .login-wrapper {
@@ -10,7 +10,12 @@ body {
   justify-content: center;
   align-items: center;
   padding: 15px;
-  background: linear-gradient(135deg, #e5e9f0, #4ba8cd, #e5e9f0);
+  background: linear-gradient(
+    135deg,
+    #d1c4e9,
+    #b3e5fc,
+    #d1c4e9
+  ); /* Light purple to light blue gradient */
 }
 
 .login-card {
@@ -41,20 +46,20 @@ body {
 }
 
 .login-title {
-  color: #6a11cb;
+  color: #673ab7; /* Deeper purple for title */
   font-size: 1.8rem;
   margin-bottom: 10px;
 }
 
 .login-subtitle {
-  color: #666;
+  color: #757575; /* Gray subtitle */
   font-size: 0.9rem;
   margin-bottom: 25px;
 }
 
 .error-message {
-  background: #ffe5e5;
-  color: #b00000;
+  background: #ffebee; /* Light red background for error */
+  color: #da4f4f; /* Darker red text */
   padding: 8px;
   margin-bottom: 15px;
   border-radius: 5px;
@@ -69,26 +74,27 @@ body {
 .login-form label {
   font-weight: 500;
   font-size: 0.9rem;
+  color: #5e35b1; /* Dark purple label */
 }
 
 /* Input fields */
 .login-form input {
   padding: 10px;
   border-radius: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #bbdefb; /* Light blue border */
   transition: all 0.3s ease; /* Smooth transition for border and shadow */
 }
 
 /* Input glow on focus */
 .login-form input:focus {
-  border-color: #4ba8cd; /* Border color changes to blue */
-  box-shadow: 0 0 8px #4ba8cd; /* Subtle glow effect */
+  border-color: #673ab7; /* Deeper purple on focus */
+  box-shadow: 0 0 8px #673ab7;
   outline: none; /* Remove default outline */
 }
 
 .forgot-password {
   font-size: 0.85rem;
-  color: #6a11cb;
+  color: #5e35b1; /* Dark purple link */
   text-align: right;
   text-decoration: none;
 }
@@ -98,7 +104,11 @@ body {
 }
 
 .login-btn {
-  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  background: linear-gradient(
+    135deg,
+    #673ab7,
+    #3f51b5
+  ); /* Purple to indigo gradient */
   color: white;
   padding: 12px;
   border: none;
@@ -115,7 +125,7 @@ body {
   text-align: center;
   margin: 20px 0;
   font-size: 0.85rem;
-  color: #888;
+  color: #757575; /* Gray divider */
 }
 
 .social-login {
@@ -128,9 +138,9 @@ body {
   flex: 1;
   padding: 10px;
   border-radius: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid #bbdefb; /* Light blue border */
   background: white;
-  color: #333;
+  color: #7253b1; /* Dark purple text */
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -161,25 +171,30 @@ body {
 
 .google-btn:hover,
 .facebook-btn:hover {
-  background: #4ba8cd;
+  background: #714ab4; /* Deeper purple on hover */
   color: white;
-  border-color: #4ba8cd;
+  border-color: #8869be;
 }
 
 .signup-link {
   font-size: 0.85rem;
   margin-top: 20px;
   text-align: center;
+  color: #757575; /* Gray link text */
 }
 
 .signup-link a {
-  color: #6a11cb;
+  color: #5e35b1; /* Dark purple link */
 }
 
 .login-image-section {
   flex: 1;
   position: relative;
-  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  background: linear-gradient(
+    135deg,
+    #673ab7,
+    #3f51b5
+  ); /* Purple to indigo gradient */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -196,7 +211,7 @@ body {
   inset: 0;
   background: linear-gradient(
     to bottom right,
-    rgba(106, 17, 203, 0.6),
-    rgba(37, 117, 252, 0.6)
+    rgba(103, 58, 183, 0.6),
+    /* Purple with opacity */ rgba(63, 81, 181, 0.6) /* Indigo with opacity */
   );
 }

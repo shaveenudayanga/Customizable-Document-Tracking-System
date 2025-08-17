@@ -14,18 +14,18 @@ const Onboarding = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState("USER");
-  
+
   // UI states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  
+
   // Field validation states
   const [nameValid, setNameValid] = useState(null);
   const [emailValid, setEmailValid] = useState(null);
   const [emailCheckLoading, setEmailCheckLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0); // 0-4 strength
   const [passwordsMatch, setPasswordsMatch] = useState(null);
-  
+
   const emailCheckTimerRef = useRef(null);
   const navigate = useNavigate();
 
@@ -44,19 +44,21 @@ const Onboarding = () => {
       setEmailValid(null);
       return;
     }
-    
+
     const isFormatValid = emailRegex.test(email.trim());
     setEmailValid(isFormatValid ? "checking" : false);
-    
+
     // Debounced email existence check
     if (isFormatValid) {
       setEmailCheckLoading(true);
       clearTimeout(emailCheckTimerRef.current);
-      
+
       emailCheckTimerRef.current = setTimeout(async () => {
         try {
           // Check if email already exists
-          const response = await api.get(`auth/check-email?email=${encodeURIComponent(email.trim())}`);
+          const response = await api.get(
+            `auth/check-email?email=${encodeURIComponent(email.trim())}`
+          );
           setEmailValid(!response.data.exists);
         } catch (err) {
           // If endpoint doesn't exist, assume email is valid
@@ -66,7 +68,7 @@ const Onboarding = () => {
         }
       }, 500);
     }
-    
+
     return () => clearTimeout(emailCheckTimerRef.current);
   }, [email]);
 
@@ -76,13 +78,13 @@ const Onboarding = () => {
       setPasswordStrength(0);
       return;
     }
-    
+
     let strength = 0;
     if (password.length >= 8) strength++;
     if (/[A-Z]/.test(password)) strength++;
     if (/[0-9]/.test(password)) strength++;
     if (/[^A-Za-z0-9]/.test(password)) strength++;
-    
+
     setPasswordStrength(strength);
   }, [password]);
 
@@ -114,21 +116,25 @@ const Onboarding = () => {
   const extractError = (err) => {
     const d = err?.response?.data;
     const fieldErrors =
-      d?.errors?.map?.((e) => e.defaultMessage || e.message || `${e.field}: ${e.error}`) ||
+      d?.errors?.map?.(
+        (e) => e.defaultMessage || e.message || `${e.field}: ${e.error}`
+      ) ||
       d?.violations?.map?.((v) => `${v.fieldName || v.field}: ${v.message}`) ||
       null;
-    return (fieldErrors && fieldErrors.join(", ")) ||
+    return (
+      (fieldErrors && fieldErrors.join(", ")) ||
       d?.message ||
       d?.error ||
       err?.message ||
-      "Sign up failed";
+      "Sign up failed"
+    );
   };
 
   // Auto-format name with proper capitalization
   const handleNameChange = (e) => {
     const input = e.target.value;
     // Auto-capitalize first letter of each word
-    setName(input.replace(/\b\w/g, l => l.toUpperCase()));
+    setName(input.replace(/\b\w/g, (l) => l.toUpperCase()));
   };
 
   const handleSubmit = async (e) => {
@@ -147,7 +153,10 @@ const Onboarding = () => {
         password,
         role,
       });
-      navigate("/login", { replace: true, state: { registeredEmail: email.trim() } });
+      navigate("/login", {
+        replace: true,
+        state: { registeredEmail: email.trim() },
+      });
     } catch (err) {
       setError(extractError(err));
     } finally {
@@ -173,7 +182,7 @@ const Onboarding = () => {
     { label: "One number", ok: /[0-9]/.test(password) },
     { label: "One special character", ok: /[^A-Za-z0-9]/.test(password) },
   ];
-  
+
   return (
     <div className="signup-wrapper">
       <div className="signup-card">
@@ -201,7 +210,7 @@ const Onboarding = () => {
               {nameValid !== null && (
                 <span
                   className={nameValid ? "valid-text" : "invalid-text"}
-                  style={{ color: nameValid ? "#16a34a" : "#dc2626" }}
+                  style={{ color: nameValid ? "#1c5d34" : "#cd6161" }}
                 >
                   {nameValid ? "✓" : "✗ Min 2 characters"}
                 </span>
@@ -220,11 +229,15 @@ const Onboarding = () => {
 
             <label htmlFor="email">
               Email
-              {emailCheckLoading && <span className="checking-text">Checking...</span>}
+              {emailCheckLoading && (
+                <span className="checking-text">Checking...</span>
+              )}
               {!emailCheckLoading && emailValid !== null && (
                 <span
-                  className={emailValid === true ? "valid-text" : "invalid-text"}
-                  style={{ color: emailValid === true ? "#16a34a" : "#dc2626" }}
+                  className={
+                    emailValid === true ? "valid-text" : "invalid-text"
+                  }
+                  style={{ color: emailValid === true ? "#1c5d34" : "#cd6161" }}
                 >
                   {emailValid === true ? "✓" : "✗"}
                 </span>
@@ -241,14 +254,7 @@ const Onboarding = () => {
               required
             />
 
-            <label htmlFor="password">
-              Password
-              {password && (
-                <span className={`strength-${passwordStrength}`}>
-                  {getPasswordStrengthLabel()}
-                </span>
-              )}
-            </label>
+            <label htmlFor="password">Password</label>
             <input
               type="password"
               id="password"
@@ -259,7 +265,9 @@ const Onboarding = () => {
             />
             {password && (
               <div className="password-strength-meter">
-                <div className={`strength-bar strength-${passwordStrength}`}></div>
+                <div
+                  className={`strength-bar strength-${passwordStrength}`}
+                ></div>
               </div>
             )}
             {password && (
@@ -270,14 +278,12 @@ const Onboarding = () => {
                     <li
                       key={c.label}
                       className={c.ok ? "valid-hint" : ""}
-                      style={{ color: c.ok ? "#16a34a" : undefined }}
+                      style={{ color: c.ok ? "#1c5d34" : undefined }}
                     >
                       <span
                         className={`hint-check ${c.ok ? "ok" : ""}`}
-                        style={{ color: c.ok ? "#16a34a" : undefined }}
-                      >
-                        {c.ok ? "✓" : "✗"}
-                      </span>
+                        style={{ color: c.ok ? "#1c5d34" : undefined }}
+                      ></span>
                       {c.label}
                     </li>
                   ))}
@@ -290,9 +296,9 @@ const Onboarding = () => {
               {passwordsMatch !== null && (
                 <span
                   className={passwordsMatch ? "valid-text" : "invalid-text"}
-                  style={{ color: passwordsMatch ? "#16a34a" : "#dc2626" }}
+                  style={{ color: passwordsMatch ? "#1c5d34" : "#cd6161" }}
                 >
-                  {passwordsMatch ? "✓" : "✗ Passwords don't match"}
+                  {passwordsMatch ? "✓" : "Passwords don't match"}
                 </span>
               )}
             </label>
