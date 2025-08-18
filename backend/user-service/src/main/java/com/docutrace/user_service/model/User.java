@@ -34,9 +34,21 @@ public class User {
 	@Column(nullable = false, unique = true, length = 180)
 	private String email;
 
+	/** Email verified flag. */
+	@Column(name = "email_verified", nullable = false)
+	private boolean emailVerified = false;
+
 	/** BCrypt hashed password. */
 	@Column(nullable = false, length = 200)
 	private String password;
+
+	/** MFA TOTP enabled flag. */
+	@Column(name = "mfa_enabled", nullable = false)
+	private boolean mfaEnabled = false;
+
+	/** MFA secret (base32), stored encrypted at rest in production. */
+	@Column(name = "mfa_secret", length = 200)
+	private String mfaSecret;
 
 	/** Tenant key (subdomain or tenant identifier). Phase 2: optional, will be enforced later. */
 	@Column(name = "tenant", length = 100)

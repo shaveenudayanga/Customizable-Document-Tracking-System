@@ -1,5 +1,6 @@
 package com.docutrace.user_service.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -15,4 +16,7 @@ public class AuthRequest {
 
     @NotBlank
     private String password;
+
+    @JsonProperty("mfa_code")
+    private String mfaCode;
 }

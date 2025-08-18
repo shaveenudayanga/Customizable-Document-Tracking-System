@@ -6,12 +6,16 @@ spring:
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
   flyway:
-    enabled: false # enable in prod profile
+    enabled: true
     locations: classpath:db/migration
   jackson:
     serialization:
@@ -26,10 +30,10 @@ logging:
 
 security:
   jwt:
-    # 256-bit secret recommended; override via ENV VAR in production or .env for local
-    secret: ${JWT_SECRET:change-me-super-secret-jwt-key-change-me-change-me-please-32+}
-    expiration-access-minutes: ${JWT_ACCESS_MINUTES:30}
-    expiration-refresh-days: ${JWT_REFRESH_DAYS:7}
+  # Deprecated for HS256; RS256 used by default with in-memory key for dev
+  secret: ${JWT_SECRET:unused-for-rs256}
+  expiration-access-minutes: ${JWT_ACCESS_MINUTES:30}
+  expiration-refresh-days: ${JWT_REFRESH_DAYS:7}
   tenant:
     # Turn on to enforce tenant match among subdomain/JWT/user
     enforce: ${TENANT_ENFORCE:false}
@@ -46,6 +50,10 @@ spring:
     url: jdbc:postgresql://db:5432/docutrace_users
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:postgres}
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
   jpa:
     hibernate:
       ddl-auto: update
@@ -61,3 +69,6 @@ security:
     secret: ${JWT_SECRET:prod-override-secret}
     expiration-access-minutes: ${JWT_ACCESS_MINUTES:30}
     expiration-refresh-days: ${JWT_REFRESH_DAYS:7}
+  tenant:
+    enforce: ${TENANT_ENFORCE:false}
+    login-enforce: ${TENANT_LOGIN_ENFORCE:false}

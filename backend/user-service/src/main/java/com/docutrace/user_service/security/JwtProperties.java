@@ -10,8 +10,9 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "security.jwt")
 public class JwtProperties {
     private String secret;
-    private int expirationAccessMinutes;
-    private int expirationRefreshDays;
+    // Provide sensible defaults so tests/configs that don't set these still work
+    private int expirationAccessMinutes = 30; // minutes
+    private int expirationRefreshDays = 7;    // days
 
     public String getSecret() { return secret; }
     public void setSecret(String secret) { this.secret = secret; }

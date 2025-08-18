@@ -28,7 +28,7 @@ public class UserController {
 	// Authentication & Registration
 
 	@PostMapping("/auth/register")
-	public org.springframework.http.ResponseEntity<UserResponse> register(@Valid @RequestBody UserRegistrationRequest request) {
+	public org.springframework.http.ResponseEntity<UserResponse> register(@Valid @RequestBody UserRegistrationRequest request)  {
 		UserResponse response = userService.register(request);
 		return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(response);
 	}
@@ -38,9 +38,20 @@ public class UserController {
 		return userService.authenticate(request);
 	}
 
+	@PostMapping("/auth/mfa/challenge")
+	public ResponseEntity<Void> mfaChallenge() {
+		return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+	}
+
 	@PostMapping("/auth/refresh")
 	public AuthResponse refresh(@Valid @RequestBody RefreshTokenRequest request) {
 		return userService.refresh(request);
+	}
+
+	@PostMapping("/auth/logout")
+	public ResponseEntity<Void> logout(@RequestBody RefreshTokenRequest body) {
+		userService.logout(body.getRefreshToken());
+		return ResponseEntity.noContent().build();
 	}
 
 	// Profile
@@ -49,10 +60,35 @@ public class UserController {
 		return userService.profile(auth.getName());
 	}
 
+	// Contract placeholders
+	@PostMapping("/auth/verify-email")
+	public ResponseEntity<Void> verifyEmail(@Valid @RequestBody com.docutrace.user_service.dto.VerifyEmailRequest req) {
+		userService.verifyEmail(req.getToken());
+		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping("/auth/password/forgot")
+	public ResponseEntity<Void> forgotPassword(@Valid @RequestBody com.docutrace.user_service.dto.ForgotPasswordRequest req) {
+		userService.forgotPassword(req.getEmail());
+		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping("/auth/password/reset")
+	public ResponseEntity<Void> resetPassword(@Valid @RequestBody com.docutrace.user_service.dto.ResetPasswordRequest req) {
+		userService.resetPassword(req.getToken(), req.getNewPassword());
+		return ResponseEntity.noContent().build();
+	}
+
 	// Admin endpoints
-	@GetMapping("/admin/users")
+	// Spec: /users (ADMIN)
+	@GetMapping("/users")
 	@PreAuthorize("hasRole('ADMIN')")
 	public List<UserResponse> all() { return userService.listAll(); }
+
+	// Compatibility: some clients/tests expect /api/admin/users for listing
+	@GetMapping("/admin/users")
+	@PreAuthorize("hasRole('ADMIN')")
+	public List<UserResponse> allAdminPath() { return userService.listAll(); }
 
 	@PatchMapping("/admin/users/{id}/role")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -72,5 +108,34 @@ public class UserController {
 	public ResponseEntity<?> delete(@PathVariable UUID id) {
 		userService.delete(id);
 		return ResponseEntity.noContent().build();
+	}
+
+	// Additional endpoints aligned with spec
+	@PostMapping("/users")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<UserResponse> createUser(@Valid @RequestBody com.docutrace.user_service.dto.UserRegistrationRequest req) {
+		UserResponse created = userService.register(req);
+		return ResponseEntity.status(HttpStatus.CREATED).body(created);
+	}
+
+	@GetMapping("/users/{id}")
+	@PreAuthorize("hasAnyRole('ADMIN','USER','HANDOVER_AGENT')")
+	public UserResponse getUser(@PathVariable UUID id) { return userService.getById(id); }
+
+	@PatchMapping("/users/{id}")
+	@PreAuthorize("hasAnyRole('ADMIN','USER','HANDOVER_AGENT')")
+	public UserResponse updateUser(@PathVariable UUID id, @RequestBody com.docutrace.user_service.dto.UpdateUserRequest req) {
+		return userService.updateUser(id, req);
+	}
+
+	@PutMapping("/users/{id}/roles")
+	@PreAuthorize("hasRole('ADMIN')")
+	public UserResponse replaceRoles(@PathVariable UUID id, @RequestBody com.docutrace.user_service.dto.RolesRequest roles) {
+		// simplified: take the first role
+		if (roles == null || roles.getRoles() == null || roles.getRoles().isEmpty()) {
+			throw new IllegalArgumentException("roles required");
+		}
+		UserRole role = UserRole.valueOf(roles.getRoles().get(0));
+		return userService.updateRole(id, role);
 	}
 }

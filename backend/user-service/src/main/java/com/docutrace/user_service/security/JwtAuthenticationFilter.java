@@ -2,7 +2,6 @@ package com.docutrace.user_service.security;
 
 import com.docutrace.user_service.model.User;
 import com.docutrace.user_service.repository.UserRepository;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,7 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
             try {
-                Claims claims = jwtService.parse(token).getBody();
+                var claims = jwtService.parse(token);
                 String email = claims.getSubject();
                 Optional<User> userOpt = userRepository.findByEmail(email);
                 if (userOpt.isPresent() && userOpt.get().isActive()) {
@@ -54,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
             );
             // Attach auth details including resolved tenant (if any)
-            String tokenTenant = claims.get("tenant", String.class);
+            String tokenTenant = (String) claims.getClaim("tenant");
             var details = new org.springframework.security.web.authentication.WebAuthenticationDetailsSource().buildDetails(request);
             // Wrap details with tenant info using a simple holder map to avoid new class for Phase 1
             request.setAttribute("tenant", tokenTenant);
