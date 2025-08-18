@@ -9,10 +9,11 @@ RUN --mount=type=cache,target=/root/.m2 mvn -q -e -DskipTests dependency:go-offl
 COPY src ./src
 RUN --mount=type=cache,target=/root/.m2 mvn -q -DskipTests package
 
-# Runtime stage
-FROM eclipse-temurin:17-jre
-WORKDIR /app
+# Runtime stage (distroless)
+FROM gcr.io/distroless/java17
+USER 10001:10001
+WORKDIR /srv
 COPY --from=build /app/target/user-service-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
-ENV JAVA_OPTS=""
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar --spring.profiles.active=prod"]
+ENV JAVA_TOOL_OPTIONS=""
+ENTRYPOINT ["java","-jar","/srv/app.jar","--spring.profiles.active=prod"]

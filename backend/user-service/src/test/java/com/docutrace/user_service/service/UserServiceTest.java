@@ -38,6 +38,8 @@ class UserServiceTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private JwtService jwtService;
+    @Mock
+    private TokenService tokenService;
 
     @InjectMocks
     private UserService userService;
@@ -87,8 +89,8 @@ class UserServiceTest {
         User user = User.builder().id(UUID.randomUUID()).email("a@test.com").password("hash").active(true).role(UserRole.USER).build();
         when(userRepository.findByEmail("a@test.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("secret", "hash")).thenReturn(true);
-        when(jwtService.generateAccessToken(any(), anyMap())).thenReturn("access");
-        when(jwtService.generateRefreshToken(any())).thenReturn("refresh");
+    when(jwtService.generateAccessToken(any(), anyMap())).thenReturn("access");
+    when(tokenService.issue(any(UUID.class), anyInt(), any(), any())).thenReturn("refresh");
         var resp = userService.authenticate(req);
         assertEquals("access", resp.getAccessToken());
         assertEquals("refresh", resp.getRefreshToken());

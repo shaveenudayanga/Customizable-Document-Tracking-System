@@ -35,6 +35,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(reg -> reg
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/.well-known/**", "/oauth2/jwks").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());
@@ -45,6 +46,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
+    public PasswordEncoder passwordEncoder() {
+    // Argon2PasswordEncoder(saltLength, hashLength, parallelism, memory, iterations)
+    // Use sane defaults: 16-byte salt, 32-byte hash, parallelism=1, memory=1<<13 (8192 KB), iterations=3
+    return new org.springframework.security.crypto.argon2.Argon2PasswordEncoder(16, 32, 1, 1<<13, 3);
+    }
 
 }
