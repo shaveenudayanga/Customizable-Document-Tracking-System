@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "../../styles/Onboarding.css";
 import { api } from "../../lib/api";
+import signInImage from "../../assets/sign_in.jpg";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 // Password regex: at least 8 chars, 1 uppercase, 1 lowercase, 1 number
@@ -189,7 +190,7 @@ const Onboarding = () => {
         {/* Right Side Image */}
         <div className="signup-image-section">
           <div className="gradient-overlay"></div>
-          <img src="/images/signup-model.jpg" alt="Signup Visual" />
+          <img src={signInImage} alt="Signup Visual" />
         </div>
 
         {/* Left Side Form */}
