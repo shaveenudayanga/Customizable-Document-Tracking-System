@@ -1,5 +1,6 @@
 package com.docutrace.user_service.service;
 
+import com.docutrace.user_service.config.AppProperties;
 import com.docutrace.user_service.dto.AuthRequest;
 import com.docutrace.user_service.dto.UserRegistrationRequest;
 import com.docutrace.user_service.exception.ConflictException;
@@ -40,12 +41,35 @@ class UserServiceTest {
     private JwtService jwtService;
     @Mock
     private TokenService tokenService;
+    @Mock
+    private AppProperties appProperties;
 
     @InjectMocks
     private UserService userService;
 
     @BeforeEach
-    void init() { MockitoAnnotations.openMocks(this); }
+    void init() { 
+        MockitoAnnotations.openMocks(this);
+        
+        // Mock AppProperties structure
+        AppProperties.Jwt jwt = new AppProperties.Jwt();
+        jwt.setExpirationRefreshDays(7);
+        jwt.setExpirationAccessMinutes(30);
+        jwt.setIssuer("http://user-service");
+        jwt.setAudience("docutrace");
+        
+        AppProperties.Security security = new AppProperties.Security();
+        security.setMagicTokenHmacSecret("test-magic-secret-1234567890123456");
+        security.setRefreshHmacSecret("test-refresh-secret-1234567890123456");
+        
+        AppProperties.Tenant tenant = new AppProperties.Tenant();
+        tenant.setEnforce(false);
+        tenant.setLoginEnforce(false);
+        
+        when(appProperties.getJwt()).thenReturn(jwt);
+        when(appProperties.getSecurity()).thenReturn(security);
+        when(appProperties.getTenant()).thenReturn(tenant);
+    }
 
     @Test
     void registerSuccess() {

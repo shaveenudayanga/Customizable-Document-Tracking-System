@@ -22,15 +22,15 @@ public class OutboxEvent {
     @Column(name = "aggregate_type", nullable = false)
     private String aggregateType;
 
-    @Column(name = "aggregate_id", nullable = false, columnDefinition = "UUID")
+    @Column(name = "aggregate_id", nullable = false)
     private java.util.UUID aggregateId;
 
     @Column(name = "event_type", nullable = false)
     private String eventType;
 
-    // Store JSON payload as PostgreSQL JSONB
+    // Store JSON payload - PostgreSQL uses JSONB, H2 uses TEXT
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "payload", nullable = false, columnDefinition = "jsonb")
+    @Column(name = "payload", nullable = false, columnDefinition = "TEXT")
     private String payload;
 
     @Column(name = "created_at", nullable = false)

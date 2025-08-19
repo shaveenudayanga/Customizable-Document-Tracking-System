@@ -31,6 +31,26 @@
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<nimbus.version>9.37.3</nimbus.version>
+		
+		<!-- Plugin versions -->
+		<jacoco.version>0.8.11</jacoco.version>
+		<checkstyle.version>3.4.0</checkstyle.version>
+		<pmd.version>3.24.0</pmd.version>
+		<spotbugs.version>4.8.6.0</spotbugs.version>
+		<owasp.version>9.2.0</owasp.version>
+		<sonar.version>3.11.0.3922</sonar.version>
+		
+		<!-- SonarCloud properties -->
+		<sonar.organization>shaveenudayanga</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+		<sonar.projectKey>docutrace-user-service</sonar.projectKey>
+		
+		<!-- Code coverage -->
+		<jacoco.minimum.coverage>0.80</jacoco.minimum.coverage>
+		
+		<!-- Encoding -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 	<dependencies>
 		<!-- Database migrations -->
@@ -170,6 +190,134 @@
 						</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+			
+			<!-- JaCoCo Code Coverage -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>check</id>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<rule>
+									<element>BUNDLE</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>${jacoco.minimum.coverage}</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<!-- Checkstyle Code Style -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>${checkstyle.version}</version>
+				<configuration>
+					<configLocation>google_checks.xml</configLocation>
+					<violationSeverity>warning</violationSeverity>
+					<failOnViolation>false</failOnViolation>
+					<consoleOutput>true</consoleOutput>
+				</configuration>
+			</plugin>
+			
+			<!-- PMD Static Analysis -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>${pmd.version}</version>
+				<configuration>
+					<targetJdk>${java.version}</targetJdk>
+					<failOnViolation>false</failOnViolation>
+					<printFailingErrors>true</printFailingErrors>
+				</configuration>
+			</plugin>
+			
+			<!-- SpotBugs Static Analysis -->
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>${spotbugs.version}</version>
+				<configuration>
+					<effort>Max</effort>
+					<threshold>Low</threshold>
+					<failOnError>false</failOnError>
+				</configuration>
+			</plugin>
+			
+			<!-- OWASP Dependency Check -->
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>${owasp.version}</version>
+				<configuration>
+					<failBuildOnCVSS>8</failBuildOnCVSS>
+					<suppressionFile>dependency-check-suppressions.xml</suppressionFile>
+				</configuration>
+			</plugin>
+			
+			<!-- SonarCloud Analysis -->
+			<plugin>
+				<groupId>org.sonarsource.scanner.maven</groupId>
+				<artifactId>sonar-maven-plugin</artifactId>
+				<version>${sonar.version}</version>
+			</plugin>
+			
+			<!-- License Plugin -->
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>4.5</version>
+				<configuration>
+					<header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
+					<properties>
+						<owner>DocuTrace</owner>
+						<year>2025</year>
+					</properties>
+					<excludes>
+						<exclude>**/README</exclude>
+						<exclude>src/test/resources/**</exclude>
+						<exclude>src/main/resources/**</exclude>
+						<exclude>target/**</exclude>
+						<exclude>.mvn/**</exclude>
+						<exclude>mvnw*</exclude>
+						<exclude>**/*.yml</exclude>
+						<exclude>**/*.yaml</exclude>
+						<exclude>**/*.json</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			
+			<!-- Versions Plugin -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>versions-maven-plugin</artifactId>
+				<version>2.17.1</version>
 			</plugin>
 		</plugins>
 	</build>
