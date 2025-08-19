@@ -2,7 +2,6 @@ package com.docutrace.user_service.service;
 
 import com.docutrace.user_service.model.RefreshToken;
 import com.docutrace.user_service.repository.RefreshTokenRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;
@@ -15,13 +14,19 @@ import java.util.Base64;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class TokenService {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TokenService.class);
     private final RefreshTokenRepository repo;
     private final SecureRandom random = new SecureRandom();
     private static final String HMAC_ALG = "HmacSHA256";
-    private final byte[] hmacKey = "refresh-hash-key-dev".getBytes(StandardCharsets.UTF_8); // TODO: externalize
+    private byte[] hmacKey = "refresh-hash-key-dev".getBytes(StandardCharsets.UTF_8);
+
+    public TokenService(RefreshTokenRepository repo, @org.springframework.beans.factory.annotation.Autowired(required = false) com.docutrace.user_service.security.SecuritySecretsProperties secrets) {
+        this.repo = repo;
+        if (secrets != null && secrets.getRefreshHmacSecret() != null) {
+            this.hmacKey = secrets.getRefreshHmacSecret().getBytes(StandardCharsets.UTF_8);
+        }
+    }
 
     @org.springframework.transaction.annotation.Transactional
     public String issue(UUID userId, int ttlDays, String ip, String ua) {

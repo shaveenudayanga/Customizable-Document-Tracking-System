@@ -13,6 +13,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/")
+
 public class OidcController {
 
     private final JwtService jwtService;

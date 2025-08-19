@@ -4,16 +4,12 @@ import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.springframework.stereotype.Service;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
 import java.util.Date;
@@ -27,27 +23,19 @@ import java.util.UUID;
 @Service
 public class JwtService {
     private final JwtProperties props;
+    private final JwkKeyService keyService;
     private volatile RSAKey rsaKey; // active signer
 
-    public JwtService(JwtProperties props) {
+    public JwtService(JwtProperties props, JwkKeyService keyService) {
         this.props = props;
-        this.rsaKey = generateRsa();
+        this.keyService = keyService;
+        this.rsaKey = keyService.loadOrCreateActive();
     }
 
-    private RSAKey generateRsa() {
-        try {
-            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-            kpg.initialize(2048);
-            KeyPair kp = kpg.generateKeyPair();
-            return new RSAKey.Builder((RSAPublicKey) kp.getPublic())
-                    .privateKey((RSAPrivateKey) kp.getPrivate())
-                    .keyUse(KeyUse.SIGNATURE)
-                    .algorithm(JWSAlgorithm.RS256)
-                    .keyID(UUID.randomUUID().toString())
-                    .build();
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to generate RSA key", e);
-        }
+    // Rotation hook (manual)
+    public synchronized void rotateSigningKey() {
+        keyService.rotate();
+        this.rsaKey = keyService.loadOrCreateActive();
     }
 
     public String generateAccessToken(String subject, Map<String, Object> claims) {
@@ -59,6 +47,8 @@ public class JwtService {
                     .issueTime(Date.from(now))
                     .expirationTime(Date.from(now.plusSeconds(props.getExpirationAccessMinutes() * 60L)))
                     .claim("scp", new String[]{"user:read"});
+            if (props.getIssuer() != null && !props.getIssuer().isBlank()) cb.issuer(props.getIssuer());
+            if (props.getAudience() != null && !props.getAudience().isBlank()) cb.audience(props.getAudience());
             if (claims != null) claims.forEach(cb::claim);
             SignedJWT jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaKey.getKeyID()).build(), cb.build());
             jwt.sign(new RSASSASigner(rsaKey));
@@ -76,6 +66,8 @@ public class JwtService {
                     .subject(subject)
                     .issueTime(Date.from(now))
                     .expirationTime(Date.from(now.plusSeconds(props.getExpirationRefreshDays() * 86400L)))
+                    .issuer(props.getIssuer())
+                    .audience(props.getAudience() == null ? null : java.util.List.of(props.getAudience()))
                     .build();
             SignedJWT jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaKey.getKeyID()).build(), claims);
             jwt.sign(new RSASSASigner(rsaKey));
@@ -89,8 +81,19 @@ public class JwtService {
         SignedJWT jwt = SignedJWT.parse(token);
         RSAPublicKey pub = rsaKey.toRSAPublicKey();
         if (!jwt.verify(new RSASSAVerifier(pub))) throw new IllegalArgumentException("Invalid signature");
-        return jwt.getJWTClaimsSet();
+        JWTClaimsSet claims = jwt.getJWTClaimsSet();
+        // Optional iss/aud validation if configured
+        if (props.getIssuer() != null && !props.getIssuer().isBlank()) {
+            if (!props.getIssuer().equals(claims.getIssuer())) throw new IllegalArgumentException("Invalid iss");
+        }
+        if (props.getAudience() != null && !props.getAudience().isBlank()) {
+            java.util.List<String> aud = claims.getAudience();
+            if (aud == null || aud.stream().noneMatch(a -> a.equals(props.getAudience()))) {
+                throw new IllegalArgumentException("Invalid aud");
+            }
+        }
+        return claims;
     }
 
-    public JWKSet jwks() { return new JWKSet(rsaKey.toPublicJWK()); }
+    public JWKSet jwks() { return keyService.jwks(); }
 }

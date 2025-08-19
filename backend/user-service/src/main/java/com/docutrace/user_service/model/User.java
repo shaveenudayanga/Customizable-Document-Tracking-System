@@ -19,6 +19,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Table(name = "users")
 @Entity
+
 public class User {
 
 	/** Primary identifier (UUID). */
@@ -30,12 +31,13 @@ public class User {
 	@Column(nullable = false, length = 120)
 	private String name;
 
-	/** Unique email used as username. */
-	@Column(nullable = false, unique = true, length = 180)
+	/** Email used as username. Uniqueness is enforced per-tenant via DB index. */
+	@Column(nullable = false, length = 180)
 	private String email;
 
 	/** Email verified flag. */
 	@Column(name = "email_verified", nullable = false)
+	@Builder.Default
 	private boolean emailVerified = false;
 
 	/** BCrypt hashed password. */
@@ -44,6 +46,7 @@ public class User {
 
 	/** MFA TOTP enabled flag. */
 	@Column(name = "mfa_enabled", nullable = false)
+	@Builder.Default
 	private boolean mfaEnabled = false;
 
 	/** MFA secret (base32), stored encrypted at rest in production. */
@@ -61,6 +64,7 @@ public class User {
 
 	/** Indicates whether user account is active (soft disable flag). */
 	@Column(nullable = false)
+	@Builder.Default
 	private boolean active = true;
 
 	/** Creation timestamp auto-managed by Hibernate. */

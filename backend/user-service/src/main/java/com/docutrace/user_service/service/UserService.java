@@ -38,6 +38,8 @@ public class UserService implements UserDetailsService {
 	private final com.docutrace.user_service.tenant.TenantProperties tenantProperties;
 	private final TokenService tokenService;
 	private final MfaService mfaService;
+	@org.springframework.beans.factory.annotation.Autowired(required = false)
+	private com.docutrace.user_service.security.SecuritySecretsProperties secrets;
 	@Autowired(required = false)
 	private com.docutrace.user_service.security.RateLimiter rateLimiter;
 	@Autowired(required = false)
@@ -75,7 +77,7 @@ public class UserService implements UserDetailsService {
 		// Basic rate limiting per IP/email (IP not available here; extend via filter if needed)
 		String key = "login:" + request.getEmail().toLowerCase();
 	if (rateLimiter != null && !rateLimiter.allow(key, 10, java.time.Duration.ofMinutes(1))) {
-			throw new org.springframework.security.authentication.LockedException("Too many attempts");
+			throw new com.docutrace.user_service.exception.TooManyRequestsException("Too many attempts");
 		}
 	String email = request.getEmail().toLowerCase();
 	User user = userRepository.findByEmail(email)
@@ -117,7 +119,7 @@ public class UserService implements UserDetailsService {
 	/** Issues a new access token using a valid refresh token. */
 	public AuthResponse refresh(RefreshTokenRequest request) {
 	if (rateLimiter != null && !rateLimiter.allow("refresh:" + request.getRefreshToken().hashCode(), 20, java.time.Duration.ofMinutes(1))) {
-			throw new org.springframework.security.authentication.LockedException("Too many attempts");
+			throw new com.docutrace.user_service.exception.TooManyRequestsException("Too many attempts");
 		}
 		// Validate and rotate opaque refresh token
 		var next = tokenService.rotate(request.getRefreshToken(), com.docutrace.user_service.security.JwtPropertiesHolder.refreshDays(), null, null);
@@ -201,15 +203,19 @@ public class UserService implements UserDetailsService {
 			throw new NotFoundException("Invalid or expired token");
 		}
 		if (magicTokenRepository != null) {
+			mt.setUsedAt(java.time.Instant.now());
 			magicTokenRepository.save(mt);
 		}
 		return new TokenRecord(mt.getUserId());
 	}
 
 	private String hmac(String input) {
-		try {
+	try {
 			javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
-			mac.init(new javax.crypto.spec.SecretKeySpec("magic-token-dev".getBytes(java.nio.charset.StandardCharsets.UTF_8), "HmacSHA256"));
+	    String key = (secrets != null && secrets.getMagicTokenHmacSecret() != null)
+		    ? secrets.getMagicTokenHmacSecret()
+		    : "magic-token-dev";
+	    mac.init(new javax.crypto.spec.SecretKeySpec(key.getBytes(java.nio.charset.StandardCharsets.UTF_8), "HmacSHA256"));
 			return java.util.Base64.getEncoder().encodeToString(mac.doFinal(input.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
 		} catch (Exception e) {
 			throw new IllegalStateException(e);

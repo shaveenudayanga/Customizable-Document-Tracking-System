@@ -3,7 +3,6 @@ package com.docutrace.user_service.controller;
 
 import com.docutrace.user_service.security.JwtAuthenticationFilter;
 import com.docutrace.user_service.security.JwtService;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.docutrace.user_service.dto.AuthRequest;
 import com.docutrace.user_service.dto.AuthResponse;
@@ -72,7 +71,7 @@ class UserControllerTest {
     mockMvc.perform(post("/api/auth/register")
             .contentType(MediaType.APPLICATION_JSON)
             .content(mapper.writeValueAsString(req)))
-        .andExpect(status().isOk());
+    .andExpect(status().isOk());
     }
 
     @Test
