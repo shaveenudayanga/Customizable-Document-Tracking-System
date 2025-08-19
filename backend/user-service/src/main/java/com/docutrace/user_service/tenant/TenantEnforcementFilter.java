@@ -23,7 +23,7 @@ import java.util.Optional;
  * Checks that subdomain (TenantContext), JWT tenant claim, and user's stored tenant match.
  */
 @Component
-@ConditionalOnProperty(value = "security.tenant.enforce", havingValue = "true")
+@ConditionalOnProperty(value = "app.tenant.enforce", havingValue = "true")
 public class TenantEnforcementFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(TenantEnforcementFilter.class);
 

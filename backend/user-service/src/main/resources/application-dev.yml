@@ -1,0 +1,36 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:userdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  flyway:
+    enabled: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+logging:
+  level:
+    root: INFO
+
+server:
+  port: 8081
+
+app:
+  jwt:
+    issuer: ${JWT_ISSUER:http://user-service}
+    audience: ${JWT_AUDIENCE:docutrace}
+    expiration-access-minutes: ${JWT_ACCESS_MINUTES:30}
+    expiration-refresh-days: ${JWT_REFRESH_DAYS:7}
+  security:
+    refresh-hmac-secret: ${REFRESH_HMAC_SECRET:change-me}
+    magic-token-hmac-secret: ${MAGIC_TOKEN_HMAC_SECRET:change-me}
+  tenant:
+    enforce: ${TENANT_ENFORCE:false}
+    login-enforce: ${TENANT_LOGIN_ENFORCE:false}

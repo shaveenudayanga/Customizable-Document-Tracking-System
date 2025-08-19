@@ -5,7 +5,6 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import com.docutrace.user_service.validation.ValidPassword;
 import lombok.Data;
 
 /**
@@ -22,8 +21,7 @@ public class UserRegistrationRequest {
     private String email;
 
     @NotBlank
-    @ValidPassword
-    @Size(max = 80)
+    @Size(min = 8, max = 80)
     private String password;
 
     @NotNull

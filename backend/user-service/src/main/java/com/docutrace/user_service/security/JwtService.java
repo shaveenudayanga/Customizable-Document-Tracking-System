@@ -3,11 +3,11 @@ package com.docutrace.user_service.security;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
-import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.docutrace.user_service.config.AppProperties;
 import org.springframework.stereotype.Service;
 
 import java.security.interfaces.RSAPublicKey;
@@ -22,12 +22,12 @@ import java.util.UUID;
  */
 @Service
 public class JwtService {
-    private final JwtProperties props;
+    private final AppProperties appProperties;
     private final JwkKeyService keyService;
     private volatile RSAKey rsaKey; // active signer
 
-    public JwtService(JwtProperties props, JwkKeyService keyService) {
-        this.props = props;
+    public JwtService(AppProperties appProperties, JwkKeyService keyService) {
+        this.appProperties = appProperties;
         this.keyService = keyService;
         this.rsaKey = keyService.loadOrCreateActive();
     }
@@ -45,10 +45,14 @@ public class JwtService {
                     .jwtID(UUID.randomUUID().toString())
                     .subject(subject)
                     .issueTime(Date.from(now))
-                    .expirationTime(Date.from(now.plusSeconds(props.getExpirationAccessMinutes() * 60L)))
+                    .expirationTime(Date.from(now.plusSeconds(appProperties.getJwt().getExpirationAccessMinutes() * 60L)))
                     .claim("scp", new String[]{"user:read"});
-            if (props.getIssuer() != null && !props.getIssuer().isBlank()) cb.issuer(props.getIssuer());
-            if (props.getAudience() != null && !props.getAudience().isBlank()) cb.audience(props.getAudience());
+            if (appProperties.getJwt().getIssuer() != null && !appProperties.getJwt().getIssuer().isBlank()) {
+                cb.issuer(appProperties.getJwt().getIssuer());
+            }
+            if (appProperties.getJwt().getAudience() != null && !appProperties.getJwt().getAudience().isBlank()) {
+                cb.audience(appProperties.getJwt().getAudience());
+            }
             if (claims != null) claims.forEach(cb::claim);
             SignedJWT jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaKey.getKeyID()).build(), cb.build());
             jwt.sign(new RSASSASigner(rsaKey));
@@ -65,9 +69,9 @@ public class JwtService {
                     .jwtID(UUID.randomUUID().toString())
                     .subject(subject)
                     .issueTime(Date.from(now))
-                    .expirationTime(Date.from(now.plusSeconds(props.getExpirationRefreshDays() * 86400L)))
-                    .issuer(props.getIssuer())
-                    .audience(props.getAudience() == null ? null : java.util.List.of(props.getAudience()))
+                    .expirationTime(Date.from(now.plusSeconds(appProperties.getJwt().getExpirationRefreshDays() * 86400L)))
+                    .issuer(appProperties.getJwt().getIssuer())
+                    .audience(appProperties.getJwt().getAudience() == null ? null : java.util.List.of(appProperties.getJwt().getAudience()))
                     .build();
             SignedJWT jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaKey.getKeyID()).build(), claims);
             jwt.sign(new RSASSASigner(rsaKey));
@@ -83,12 +87,12 @@ public class JwtService {
         if (!jwt.verify(new RSASSAVerifier(pub))) throw new IllegalArgumentException("Invalid signature");
         JWTClaimsSet claims = jwt.getJWTClaimsSet();
         // Optional iss/aud validation if configured
-        if (props.getIssuer() != null && !props.getIssuer().isBlank()) {
-            if (!props.getIssuer().equals(claims.getIssuer())) throw new IllegalArgumentException("Invalid iss");
+        if (appProperties.getJwt().getIssuer() != null && !appProperties.getJwt().getIssuer().isBlank()) {
+            if (!appProperties.getJwt().getIssuer().equals(claims.getIssuer())) throw new IllegalArgumentException("Invalid iss");
         }
-        if (props.getAudience() != null && !props.getAudience().isBlank()) {
+        if (appProperties.getJwt().getAudience() != null && !appProperties.getJwt().getAudience().isBlank()) {
             java.util.List<String> aud = claims.getAudience();
-            if (aud == null || aud.stream().noneMatch(a -> a.equals(props.getAudience()))) {
+            if (aud == null || aud.stream().noneMatch(a -> a.equals(appProperties.getJwt().getAudience()))) {
                 throw new IllegalArgumentException("Invalid aud");
             }
         }

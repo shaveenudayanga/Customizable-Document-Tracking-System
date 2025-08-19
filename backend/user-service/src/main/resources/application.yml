@@ -2,7 +2,7 @@ spring:
   application:
     name: user-service
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:5432/docutrace_users
+    url: jdbc:postgresql://localhost:5432/docutrace_users
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
@@ -25,21 +25,17 @@ logging:
   level:
     root: INFO
 
-security:
+app:
   jwt:
-    # Deprecated for HS256; RS256 used by default with in-memory key for dev
-    secret: ${JWT_SECRET:unused-for-rs256}
-    expiration-access-minutes: ${JWT_ACCESS_MINUTES:30}
-    expiration-refresh-days: ${JWT_REFRESH_DAYS:7}
     issuer: ${JWT_ISSUER:http://user-service}
     audience: ${JWT_AUDIENCE:docutrace}
-  secrets:
+    expiration-access-minutes: ${JWT_ACCESS_MINUTES:30}
+    expiration-refresh-days: ${JWT_REFRESH_DAYS:7}
+  security:
     refresh-hmac-secret: ${REFRESH_HMAC_SECRET:change-me}
     magic-token-hmac-secret: ${MAGIC_TOKEN_HMAC_SECRET:change-me}
   tenant:
-    # Turn on to enforce tenant match among subdomain/JWT/user
     enforce: ${TENANT_ENFORCE:false}
-    # When true, login is only permitted if Host tenant matches the user's stored tenant
     login-enforce: ${TENANT_LOGIN_ENFORCE:false}
 
 ---
@@ -65,22 +61,8 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     baseline-version: 0
-  out-of-order: true
+    out-of-order: true
 
 logging:
   level:
     root: INFO
-
-security:
-  jwt:
-    secret: ${JWT_SECRET:prod-override-secret}
-    expiration-access-minutes: ${JWT_ACCESS_MINUTES:30}
-    expiration-refresh-days: ${JWT_REFRESH_DAYS:7}
-    issuer: ${JWT_ISSUER:http://user-service}
-    audience: ${JWT_AUDIENCE:docutrace}
-  secrets:
-    refresh-hmac-secret: ${REFRESH_HMAC_SECRET:change-me}
-    magic-token-hmac-secret: ${MAGIC_TOKEN_HMAC_SECRET:change-me}
-  tenant:
-    enforce: ${TENANT_ENFORCE:false}
-    login-enforce: ${TENANT_LOGIN_ENFORCE:false}
