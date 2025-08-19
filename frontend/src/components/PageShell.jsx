@@ -2,6 +2,7 @@ import React from "react";
 import Sidebar from "./Sidebar";
 import "../styles/PageShell.css";
 import { Link, Outlet, useNavigate } from "react-router-dom";
+import logoo from "../assets/logoo.png";
 
 const PageShell = () => {
   const navigate = useNavigate();
@@ -13,10 +14,7 @@ const PageShell = () => {
     <div className="home-container">
       <header className="header">
         <div className="logo">
-          <img
-            src="frontend/src/assets/logoo.png"
-            alt="Document Tracking System Logo"
-          />
+          <img src={logoo} alt="Document Tracking System Logo" />
         </div>
         <nav className="nav">
           <Link to="/documents" className="nav-link">

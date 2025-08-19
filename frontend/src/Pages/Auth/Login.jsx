@@ -22,6 +22,12 @@ const Login = () => {
         localStorage.setItem("accessToken", data.accessToken || data.token);
         if (data.refreshToken)
           localStorage.setItem("refreshToken", data.refreshToken);
+        // Set user role after login (expects 'role' from backend, fallback to 'user')
+        if (data.role) {
+          localStorage.setItem("role", data.role); // expects 'admin' or 'user' from backend
+        } else {
+          localStorage.setItem("role", "user");
+        }
       }
       navigate("/dashboard");
     } catch (err) {

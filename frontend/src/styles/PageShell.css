@@ -93,13 +93,26 @@ body {
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+.logo {
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
 .logo img {
-  height: 42px;
-  user-select: none;
+  width: 160px;
+  height: auto;
+  display: block;
+  margin: 0;
+  padding: 0;
   transition: transform 0.3s ease;
 }
 .logo img:hover {
-  transform: scale(1.05) rotate(-2deg);
+  transform: scale(1.05) rotate(-5deg);
 }
 
 .nav {

@@ -81,6 +81,12 @@ const HomeLanding = () => (
   </div>
 );
 
+// Helper to get user role (replace with real auth logic as needed)
+const getUserRole = () => {
+  // Example: role stored in localStorage as 'admin' or 'user'
+  return localStorage.getItem("role") || "user";
+};
+
 function App() {
   return (
     <Router>
@@ -109,7 +115,16 @@ function App() {
           <Route path="departments" element={<DepartmentManager />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="audit" element={<AuditLog />} />
-          <Route path="profile" element={<UserProfile />} />
+          <Route
+            path="profile"
+            element={
+              getUserRole() === "admin" ? (
+                <AdminUserManagement />
+              ) : (
+                <UserProfile />
+              )
+            }
+          />
           <Route path="admin/users" element={<AdminUserManagement />} />{" "}
           {/* This route is now correctly linked */}
           <Route path="settings" element={<SystemSettings />} />
