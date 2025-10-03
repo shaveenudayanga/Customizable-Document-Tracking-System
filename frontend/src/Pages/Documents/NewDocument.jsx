@@ -1,7 +1,42 @@
+// src/Pages/Dashboard/NewDocument.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/NewDocument.css";
 // import { api } from "../../lib/api";
+
+// --- Utility Functions ---
+
+// 1. Unique Document ID Generator (Simulating UUID or similar)
+const generateUniqueId = () => {
+  // Generates a short, readable unique code (e.g., DOC-ABC-12345)
+  const prefix = "DOC-";
+  const randomChars = Math.random().toString(36).substring(2, 5).toUpperCase();
+  const randomNumbers = Math.floor(10000 + Math.random() * 90000);
+  return `${prefix}${randomChars}-${randomNumbers}`;
+};
+
+// 2. Mock QR Code Component (Simulating a real library like qrcode.react)
+const QRCodeMock = ({ value }) => {
+  // In a real application, this would render the QR code SVG/Canvas.
+  // Here, we display the data it would encode.
+  if (!value) return null;
+  return (
+    <div className="qr-mock-container">
+      <div className="qr-mock-box">
+        {/*  - Placeholder for real QR code */}
+        <span style={{ fontSize: "12px", color: "#673ab7" }}>
+          QR Code Data:
+        </span>
+        <span style={{ fontSize: "10px", wordBreak: "break-all" }}>
+          {value}
+        </span>
+      </div>
+      <p className="qr-caption">Scan to view document details (Simulated)</p>
+    </div>
+  );
+};
+
+// --- Main Component ---
 
 const NewDocument = () => {
   const navigate = useNavigate();
@@ -15,6 +50,10 @@ const NewDocument = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // New State for Generated Data
+  const [documentCode, setDocumentCode] = useState("");
+  const [qrCodeData, setQrCodeData] = useState("");
+
   const handleFileChange = (e) => {
     if (e.target.files.length > 0) {
       setFile(e.target.files[0]);
@@ -27,6 +66,8 @@ const NewDocument = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setDocumentCode("");
+    setQrCodeData("");
 
     if (!title || !pipeline || !department || !category || !file) {
       setError("Please fill in all required fields and select a file.");
@@ -35,38 +76,28 @@ const NewDocument = () => {
 
     setLoading(true);
     try {
-      // In a real app, you would create a FormData object for file uploads
-      // const formData = new FormData();
-      // formData.append("title", title);
-      // formData.append("description", description);
-      // formData.append("pipeline", pipeline);
-      // formData.append("department", department);
-      // formData.append("category", category);
-      // formData.append("file", file);
+      // 1. Generate Unique Code
+      const uniqueId = generateUniqueId();
+      setDocumentCode(uniqueId);
 
-      // const response = await api.post("/documents/upload", formData, {
-      //   headers: {
-      //     "Content-Type": "multipart/form-data",
-      //   },
-      // });
-      // console.log("Document uploaded:", response.data);
+      // In a real scenario, the back-end would return the permanent URL.
+      // We simulate the permanent URL that the QR code will encode.
+      const permanentDocUrl = `${window.location.origin}/view-document/${uniqueId}`;
+      setQrCodeData(permanentDocUrl);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log({
-        title,
-        description,
-        pipeline,
-        department,
-        category,
-        file: file.name,
+      // --- API Upload Simulation ---
+      // In a real app, send data + uniqueId to the API
+
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      console.log("Document creation simulated:", {
+        uniqueId,
+        permanentDocUrl,
       });
-      setSuccess("Document uploaded successfully!");
 
-      // Optionally navigate to the document details or list page
-      // navigate(`/documents/${response.data.id}`);
-      // For mock, navigate back to list after success
-      setTimeout(() => navigate("/documents"), 1500);
+      setSuccess(`Document created! Code: ${uniqueId}. Redirecting...`);
+
+      setTimeout(() => navigate("/documents"), 2500); // Wait longer to show the generated code
     } catch (err) {
       setError(err?.message || "Failed to upload document.");
       console.error("Upload error:", err);
@@ -92,8 +123,13 @@ const NewDocument = () => {
           Fill in the details to create a new document record
         </p>
 
-        {error && <div className="error-message">{error}</div>}
-        {success && <div className="success-message">{success}</div>}
+        {error && <div className="message error-message">{error}</div>}
+        {success && <div className="message success-message">{success}</div>}
+        {documentCode && (
+          <div className="message generated-code-message">
+            ✅ Document Code Generated: <strong>{documentCode}</strong>
+          </div>
+        )}
 
         <form className="new-doc-form" onSubmit={handleSubmit}>
           <div className="form-group">
@@ -181,27 +217,37 @@ const NewDocument = () => {
             </select>
           </div>
 
-          <div className="form-group file-upload-group">
-            <label htmlFor="file-upload" className="file-upload-label">
-              Upload File <span className="required">*</span>
-            </label>
-            <input
-              type="file"
-              id="file-upload"
-              onChange={handleFileChange}
-              required
-              className="file-input-hidden"
-            />
-            <div className="file-input-display">
-              <span className="file-name">
-                {file ? file.name : "No file selected"}
-              </span>
-              <span className="browse-button">Browse</span>
+          <div className="form-row file-and-qr-row">
+            <div className="form-group file-upload-group">
+              <label htmlFor="file-upload" className="file-upload-label">
+                Upload File (PDF/Doc) <span className="required">*</span>
+              </label>
+              <input
+                type="file"
+                id="file-upload"
+                onChange={handleFileChange}
+                required
+                className="file-input-hidden"
+                accept=".pdf,.doc,.docx,.xls,.xlsx" // Accept common document types
+              />
+              <div className="file-input-display">
+                <span className="file-name">
+                  {file ? file.name : "Select a file to upload"}
+                </span>
+                <span className="browse-button">Browse</span>
+              </div>
+              {file && (
+                <span className="file-size">
+                  ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                </span>
+              )}
             </div>
-            {file && (
-              <span className="file-size">
-                ({(file.size / 1024 / 1024).toFixed(2)} MB)
-              </span>
+
+            {qrCodeData && (
+              <div className="form-group qr-code-preview-group">
+                <label>Generated QR Code</label>
+                <QRCodeMock value={qrCodeData} />
+              </div>
             )}
           </div>
 

@@ -68,13 +68,25 @@ body {
   text-align: center;
 }
 
-.error-message,
-.success-message {
+/* Updated Message Styling */
+.message {
   padding: 10px;
   border-radius: 8px;
   margin-bottom: 20px;
   font-weight: 500;
   text-align: center;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .error-message {
@@ -85,6 +97,11 @@ body {
 .success-message {
   background: #e8f5e9; /* Light green */
   color: #388e3c; /* Dark green */
+}
+
+.generated-code-message {
+  background: #fff3e0; /* Light orange */
+  color: #ef6c00; /* Dark orange */
 }
 
 .new-doc-form {
@@ -141,6 +158,19 @@ body {
 
 .form-row .form-group {
   flex: 1;
+}
+
+/* --- File and QR Row Styling --- */
+.file-and-qr-row {
+  align-items: flex-end; /* Align bottom elements if heights differ */
+}
+
+.file-upload-group {
+  flex: 2; /* Give file upload more space */
+}
+
+.qr-code-preview-group {
+  flex: 1; /* Give QR code panel less space */
 }
 
 /* Custom file upload styling */
@@ -201,6 +231,45 @@ body {
   display: block;
 }
 
+/* --- QR Code Mock Styling --- */
+.qr-mock-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border: 1px dashed #bbdefb;
+  border-radius: 8px;
+  height: 100%;
+  min-height: 120px;
+}
+
+.qr-mock-box {
+  width: 80px;
+  height: 80px;
+  background: #f0f0f0;
+  border: 3px solid white;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 5px;
+  border-radius: 4px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath d='M20 20h40v40H20zM80 20h20v20H80zM120 20h60v60h-60zM20 80h40v40H20zM140 100h20v20h-20zM20 140h60v60H20zM100 140h20v20h-20zM140 140h20v20h-20z' fill='%23673ab7'/%3E%3C/svg%3E");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.qr-caption {
+  font-size: 0.75rem;
+  color: #757575;
+  margin: 0;
+  text-align: center;
+}
+
 .submit-btn {
   background: linear-gradient(
     135deg,
@@ -253,5 +322,15 @@ body {
   .form-row {
     flex-direction: column;
     gap: 15px;
+  }
+
+  /* Stack QR and File groups on small screens */
+  .file-and-qr-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .file-upload-group,
+  .qr-code-preview-group {
+    flex: 1;
   }
 }
