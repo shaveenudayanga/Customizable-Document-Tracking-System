@@ -1,149 +1,377 @@
 // src/Pages/Dashboard/Dashboard.jsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Home,
+  FileText,
+  BarChart,
+  Settings,
+  LogOut,
+  Users,
+  CheckCircle,
+  Clock,
+  FileArchive,
+  Eye,
+  Send,
+  XCircle,
+  ChevronRight,
+  FileX,
+  Upload,
+  Check,
+  X,
+  User,
+} from "lucide-react";
 import "../../styles/Dashboard.css";
 
-const Dashboard = () => {
-  const [role, setRole] = useState("user"); // default "user", can be "admin"
-  const [userName, setUserName] = useState("Sadish");
+// =================================================================
+// --- Reusable Sub-Components ---
+// =================================================================
 
-  // Simulate fetching role from localStorage or API after login
+// 1. Sidebar Link Component
+const SidebarLink = ({ Icon, title, active, onClick }) => (
+  <li className={`sidebar-link ${active ? "active" : ""}`} onClick={onClick}>
+    <Icon size={20} />
+    <span>{title}</span>
+  </li>
+);
+
+// 2. Metric Card Component
+const MetricCard = ({ title, value, Icon, colorClass }) => (
+  <div className={`metric-card ${colorClass}`}>
+    <div className="card-icon">
+      <Icon size={32} />
+    </div>
+    <div className="card-content">
+      <p className="card-title">{title}</p>
+      <h3 className="card-value">{value}</h3>
+    </div>
+  </div>
+);
+
+// 3. Activity Log Data and Helpers
+const activityLog = [
+  {
+    id: 1,
+    type: "upload",
+    description: 'New contract "NDA-Q4" uploaded by Jane Doe.',
+    time: "5 min ago",
+    user: "Jane Doe",
+  },
+  {
+    id: 2,
+    type: "approval",
+    description: 'Approved "Invoice #4021" submitted by Sadish.',
+    time: "1 hour ago",
+    user: "Admin",
+  },
+  {
+    id: 3,
+    type: "rejection",
+    description: 'Rejected "Q3 Budget Plan" due to incorrect format.',
+    time: "3 hours ago",
+    user: "Manager Bob",
+  },
+  {
+    id: 4,
+    type: "user",
+    description: 'New user "Michael Scott" registered via invitation.',
+    time: "1 day ago",
+    user: "System",
+  },
+  {
+    id: 5,
+    type: "upload",
+    description: 'Draft policy "Security Policy v2" updated.',
+    time: "1 day ago",
+    user: "Alice J.",
+  },
+];
+
+const getActivityMetadata = (type) => {
+  switch (type) {
+    case "upload":
+      return { Icon: Upload, color: "var(--color-primary)" };
+    case "approval":
+      return { Icon: Check, color: "var(--color-success)" };
+    case "rejection":
+      return { Icon: X, color: "var(--color-danger)" };
+    case "user":
+      return { Icon: User, color: "var(--color-info)" };
+    default:
+      return { Icon: Clock, color: "var(--color-text-light)" };
+  }
+};
+
+// 4. Activity Item Component
+const ActivityItem = ({ activity }) => {
+  const { Icon, color } = getActivityMetadata(activity.type);
+
+  return (
+    <div
+      className="activity-item"
+      style={{
+        "--item-animation-delay": `${activity.id * 0.1}s`,
+        "--icon-color": color,
+      }}
+    >
+      <div className="activity-icon" style={{ color: color }}>
+        <Icon size={20} />
+      </div>
+
+      <div className="activity-content">
+        <div className="activity-description">{activity.description}</div>
+        <div className="activity-footer">
+          <Clock size={12} />
+          <span>{activity.time}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 5. Recent Activity Panel (New Secondary Block)
+const RecentActivity = () => {
+  return (
+    <div className="secondary-block recent-activity-panel">
+      <h3 className="block-title">Recent System Activity</h3>
+
+      <div className="activity-list">
+        {activityLog.map((activity) => (
+          <ActivityItem key={activity.id} activity={activity} />
+        ))}
+      </div>
+
+      <div className="view-all-button-container">
+        <button className="btn-view-all">View Full Log</button>
+      </div>
+    </div>
+  );
+};
+
+// =================================================================
+// --- Main Dashboard Component ---
+// =================================================================
+
+const Dashboard = () => {
+  const navigate = useNavigate();
+  // State management
+  const [role, setRole] = useState("admin"); // Default to admin for demonstration
+  const [userName, setUserName] = useState("Sadish ");
+  const [activeTab, setActiveTab] = useState("Home");
+
+  // Simulate fetching role/user data
   useEffect(() => {
-    const tokenRole = localStorage.getItem("role"); // store "user" or "admin"
+    const tokenRole = localStorage.getItem("role");
     if (tokenRole) setRole(tokenRole);
   }, []);
 
-  // Dummy metrics
+  // --- Dummy Data ---
+
   const userMetrics = [
-    { title: "Documents in Transit", value: 12 },
-    { title: "Documents Completed", value: 30 },
-    { title: "Pending Actions", value: 5 },
-    { title: "Recent Uploads", value: 8 },
+    {
+      title: "Documents for Review",
+      value: 3,
+      Icon: Eye,
+      colorClass: "primary",
+    },
+    {
+      title: "Documents in Transit",
+      value: 12,
+      Icon: Clock,
+      colorClass: "warning",
+    },
+    {
+      title: "Completed Documents",
+      value: 30,
+      Icon: CheckCircle,
+      colorClass: "success",
+    },
+    {
+      title: "Recent Uploads",
+      value: 8,
+      Icon: FileArchive,
+      colorClass: "info",
+    },
   ];
 
   const adminMetrics = [
-    { title: "Total Documents", value: 150 },
-    { title: "Pending Approvals", value: 12 },
-    { title: "Active Users", value: 25 },
-    { title: "Overdue Documents", value: 3 },
+    {
+      title: "Total Documents",
+      value: 150,
+      Icon: FileText,
+      colorClass: "primary",
+    },
+    {
+      title: "Pending Approvals",
+      value: 12,
+      Icon: Send,
+      colorClass: "warning",
+    },
+    { title: "Active Users", value: 25, Icon: Users, colorClass: "success" },
+    { title: "Overdue Documents", value: 3, Icon: FileX, colorClass: "danger" },
   ];
+
+  // Determine the data set to use
+  const metricsData = role === "user" ? userMetrics : adminMetrics;
+
+  // --- Dynamic Table Content ---
+
+  const UserPendingTable = () => (
+    <div className="table-block">
+      <h3 className="block-title">Pending Tasks (My Actions)</h3>
+      <div className="custom-table">
+        <div className="table-header">
+          <span>ID</span>
+          <span>Document Name</span>
+          <span>Status</span>
+          <span>Due Date</span>
+          <span>Action</span>
+        </div>
+        {/* Simulated Data */}
+        <div className="table-row">
+          <span>DOC-001</span>
+          <span>Q2 Financial Report</span>
+          <span className="status status-pending">In Transit</span>
+          <span>2025-10-05</span>
+          <button className="btn-table primary">Review</button>
+        </div>
+        <div className="table-row">
+          <span>DOC-002</span>
+          <span>Vendor Contract B</span>
+          <span className="status status-pending">Pending</span>
+          <span>2025-10-07</span>
+          <button className="btn-table primary">Sign</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const AdminPendingTable = () => (
+    <div className="table-block">
+      <h3 className="block-title">Documents Requiring Approval</h3>
+      <div className="custom-table">
+        <div className="table-header">
+          <span>ID</span>
+          <span>User</span>
+          <span>Document Title</span>
+          <span>Submission Date</span>
+          <span>Action</span>
+        </div>
+        {/* Simulated Data */}
+        <div className="table-row">
+          <span>APP-101</span>
+          <span>John Doe</span>
+          <span>Marketing Campaign Plan</span>
+          <span>2025-10-01</span>
+          <div className="action-buttons">
+            <button className="btn-table success">Approve</button>
+            <button className="btn-table danger">Reject</button>
+          </div>
+        </div>
+        <div className="table-row">
+          <span>APP-102</span>
+          <span>Mary Jane</span>
+          <span>Q3 Expense Report</span>
+          <span>2025-10-02</span>
+          <div className="action-buttons">
+            <button className="btn-table success">Approve</button>
+            <button className="btn-table danger">Reject</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // --- Render ---
 
   return (
     <div className="dashboard-wrapper">
-      {/* Sidebar */}
+      {/* Sidebar (Left) */}
       <aside className="sidebar">
-        <h2>DocuTrace</h2>
-        <ul>
-          <li>Home</li>
-          <li>My Documents</li>
-          <li>Reports</li>
-          {role === "admin" && <li>Admin Tools</li>}
-          <li>Settings</li>
-          <li>Logout</li>
-        </ul>
+        <h2 className="logo-title">DocuTrace</h2>
+        <nav className="sidebar-nav">
+          <ul>
+            <SidebarLink
+              Icon={Home}
+              title="Dashboard"
+              active={activeTab === "Home"}
+              onClick={() => setActiveTab("Home")}
+            />
+            <SidebarLink
+              Icon={FileText}
+              title="All Documents"
+              active={activeTab === "Docs"}
+              onClick={() => {
+                setActiveTab("Docs");
+                navigate("/documents");
+              }}
+            />
+            <SidebarLink
+              Icon={BarChart}
+              title="Reports"
+              active={activeTab === "Reports"}
+              onClick={() => setActiveTab("Reports")}
+            />
+            {role === "admin" && (
+              <SidebarLink
+                Icon={Users}
+                title="User Management"
+                active={activeTab === "Admin"}
+                onClick={() => {
+                  setActiveTab("Admin");
+                  navigate("/userprofile");
+                }}
+              />
+            )}
+            <SidebarLink
+              Icon={Settings}
+              title="Settings"
+              active={activeTab === "Settings"}
+              onClick={() => setActiveTab("Settings")}
+            />
+          </ul>
+        </nav>
+        <div className="sidebar-footer">
+          <SidebarLink
+            Icon={LogOut}
+            title="Logout"
+            active={false}
+            onClick={() => {
+              alert("Logging out...");
+              navigate("/");
+            }}
+          />
+        </div>
       </aside>
 
-      {/* Main Content */}
+      {/* Main Content (Right) */}
       <main className="dashboard-main">
         <header className="dashboard-header">
-          <h1>Welcome, {userName}!</h1>
-          <span>Role: {role.toUpperCase()}</span>
+          <h1 className="header-greeting">
+            Hello, <span className="user-name-highlight">{userName}</span>!
+          </h1>
+          <div className="header-info">
+            <span className={`role-badge role-${role}`}>
+              {role.toUpperCase()}
+            </span>
+            <ChevronRight size={18} className="chevron" />
+          </div>
         </header>
 
         {/* Metrics Cards */}
-        <section className="metrics-cards">
-          {(role === "user" ? userMetrics : adminMetrics).map((metric) => (
-            <div key={metric.title} className="metric-card">
-              <h3>{metric.value}</h3>
-              <p>{metric.title}</p>
-            </div>
+        <section className="metrics-grid">
+          {metricsData.map((metric) => (
+            <MetricCard key={metric.title} {...metric} />
           ))}
         </section>
 
-        {/* Tables and Charts */}
-        <section className="dashboard-content">
-          {role === "user" ? (
-            <>
-              <div className="table-container">
-                <h3>Pending Documents</h3>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Name</th>
-                      <th>Status</th>
-                      <th>Due Date</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>001</td>
-                      <td>Document A</td>
-                      <td>In Transit</td>
-                      <td>2025-08-20</td>
-                      <td>
-                        <button>View</button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>002</td>
-                      <td>Document B</td>
-                      <td>Pending</td>
-                      <td>2025-08-22</td>
-                      <td>
-                        <button>View</button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="chart-placeholder">
-                Workflow Chart Placeholder
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="table-container">
-                <h3>Pending Approvals</h3>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>User</th>
-                      <th>Document</th>
-                      <th>Submission Date</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>101</td>
-                      <td>John</td>
-                      <td>Document X</td>
-                      <td>2025-08-12</td>
-                      <td>
-                        <button>Approve</button>
-                        <button>Reject</button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>102</td>
-                      <td>Mary</td>
-                      <td>Document Y</td>
-                      <td>2025-08-13</td>
-                      <td>
-                        <button>Approve</button>
-                        <button>Reject</button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="chart-placeholder">
-                System Analytics Placeholder
-              </div>
-            </>
-          )}
+        {/* Main Content Blocks (Tables and Activity Log) */}
+        <section className="dashboard-content-blocks">
+          <div className="primary-block">
+            {role === "user" ? <UserPendingTable /> : <AdminPendingTable />}
+          </div>
+
+          <RecentActivity />
         </section>
       </main>
     </div>

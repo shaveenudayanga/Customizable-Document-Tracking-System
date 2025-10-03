@@ -123,9 +123,12 @@ const SideMenu = ({ activeItem, setActiveItem }) => {
         </div>
         <div
           className={`menu-item ${activeItem === "audit" ? "active" : ""}`}
-          onClick={() => setActiveItem("audit")}
+          onClick={() => {
+            setActiveItem("audit");
+            navigate("/dashboard");
+          }}
         >
-          <FileText size={20} /> Audit Log
+          <FileText size={20} /> Dashboard
         </div>
         <div
           className={`menu-item ${activeItem === "notify" ? "active" : ""}`}
