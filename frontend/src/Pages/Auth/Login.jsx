@@ -4,8 +4,7 @@ import "../../styles/Login.css";
 import { api } from "../../lib/api";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle, faFacebookF } from "@fortawesome/free-brands-svg-icons";
-import loginImage from "../../assets/login.jpg";
-import logoo1 from "../../assets/logoo1.png";
+import loginImage from "../../assets/login.jpg"; // <-- FIX: Import the image
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -51,10 +50,9 @@ const Login = () => {
           <span className="close-btn" onClick={handleClose}>
             ×
           </span>
-          <img src={logoo1} alt="Logo" className="login-logo" />
           <h2 className="login-title">Log In</h2>
           <p className="login-subtitle">
-            <span>Welcome back! Please enter your details</span>
+            Welcome back! Please enter your details
           </p>
 
           {error && <div className="error-message">{error}</div>}
@@ -82,7 +80,12 @@ const Login = () => {
               Forgot password?
             </a>
 
-            <button type="submit" className="login-btn" disabled={loading}>
+            <button
+              type="submit"
+              className="login-btn"
+              disabled={loading}
+              onClick={() => navigate("/adminusermanagement")}
+            >
               {loading ? "Logging in..." : "Log In"}
             </button>
           </form>

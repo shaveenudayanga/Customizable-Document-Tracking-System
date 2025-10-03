@@ -190,7 +190,8 @@ const Onboarding = () => {
         {/* Right Side Image */}
         <div className="signup-image-section">
           <div className="gradient-overlay"></div>
-          <img src={signInImage} alt="Signup Visual" />
+          <img src={signInImage} alt="Signup Visual" />{" "}
+          {/* FIXED: use imported image */}
         </div>
 
         {/* Left Side Form */}
@@ -312,17 +313,6 @@ const Onboarding = () => {
               className={passwordsMatch === false ? "invalid-input" : ""}
               required
             />
-
-            <label htmlFor="role-select">Role</label>
-            <select
-              id="role-select"
-              className="role-select"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
-              <option value="USER">User</option>
-              <option value="ADMIN">Admin</option>
-            </select>
 
             <button type="submit" className="signup-btn" disabled={isDisabled}>
               {loading ? "Creating..." : "Sign Up"}

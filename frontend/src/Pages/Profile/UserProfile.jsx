@@ -1,335 +1,275 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import {
+  UserPlus,
+  UserX,
+  Send,
+  Trash2,
+  Search,
+  Mail,
+  Loader,
+  CheckCircle,
+} from "lucide-react";
 import "../../styles/UserProfile.css";
-// import { api } from "../../lib/api"; // Assume API for fetching/updating user data
 
-const UserProfile = () => {
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
+// --- Mock Data ---
+const initialUsers = [
+  {
+    id: 101,
+    name: "Alice Johnson",
+    email: "alice.j@corp.com",
+    role: "Manager",
+    status: "Active",
+    dateJoined: "2023-01-15",
+  },
+  {
+    id: 102,
+    name: "Bob Smith",
+    email: "bob.s@corp.com",
+    role: "Auditor",
+    status: "Active",
+    dateJoined: "2023-03-22",
+  },
+  {
+    id: 103,
+    name: "Charlie Brown",
+    email: "charlie.b@corp.com",
+    role: "Viewer",
+    status: "Active",
+    dateJoined: "2023-05-10",
+  },
+];
 
-  // Form states for editing
-  const [editName, setEditName] = useState("");
-  const [editEmail, setEditEmail] = useState("");
-  const [editNotifications, setEditNotifications] = useState({
-    email: true,
-    sms: false,
-    app: true,
-  });
-  const [editPreferences, setEditPreferences] = useState({
-    theme: "light",
-    timezone: "UTC",
-  });
+const initialInvites = [
+  {
+    id: 201,
+    email: "pending@invite.com",
+    status: "Pending",
+    role: "Viewer",
+    dateSent: "2024-05-01",
+  },
+  {
+    id: 202,
+    email: "another@test.net",
+    status: "Pending",
+    role: "Auditor",
+    dateSent: "2024-05-05",
+  },
+];
 
-  // Mock user data - replace with actual API fetch
-  const mockUserData = {
-    id: "user123",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    role: "ADMIN", // Or 'USER', 'HANDOVER_AGENT'
-    lastLogin: "2024-08-17T22:30:00Z",
-    preferences: {
-      theme: "light",
-      timezone: "America/New_York",
-      language: "en-US",
-    },
-    notificationSettings: {
-      email: true,
-      sms: false,
-      app: true,
-    },
-  };
+// --- Sub-Component: Invitation Form ---
+const InviteUserForm = ({ addInvite }) => {
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("Viewer");
+  const [isSending, setIsSending] = useState(false);
+  const [sentSuccess, setSentSuccess] = useState(false);
 
-  useEffect(() => {
-    // Simulate fetching user data
-    setLoading(true);
-    setError("");
-    setTimeout(() => {
-      // In a real app: try { const response = await api.get('/profile'); setUser(response.data); ... }
-      setUser(mockUserData);
-      setEditName(mockUserData.name);
-      setEditEmail(mockUserData.email);
-      setEditNotifications(mockUserData.notificationSettings);
-      setEditPreferences(mockUserData.preferences);
-      setLoading(false);
-    }, 700);
-  }, []);
-
-  const handleSave = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
-    setLoading(true); // For saving state
+    if (!email) return;
 
-    try {
-      // In a real app: await api.put('/profile', { name: editName, email: editEmail, notificationSettings: editNotifications, preferences: editPreferences });
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
+    setIsSending(true);
+    setSentSuccess(false);
 
-      const updatedUser = {
-        ...user,
-        name: editName,
-        email: editEmail,
-        notificationSettings: editNotifications,
-        preferences: editPreferences,
-        updatedAt: new Date().toISOString(),
+    // Simulate API call delay
+    setTimeout(() => {
+      const newInvite = {
+        id: Date.now(),
+        email: email,
+        status: "Pending",
+        role: role,
+        dateSent: new Date().toISOString().slice(0, 10),
       };
-      setUser(updatedUser); // Update local state
-      setSuccess("Profile updated successfully!");
-      setIsEditing(false);
-    } catch (err) {
-      setError(err?.message || "Failed to update profile.");
-      console.error("Profile update error:", err);
-    } finally {
-      setLoading(false);
-    }
+      addInvite(newInvite);
+
+      setIsSending(false);
+      setSentSuccess(true);
+      setEmail("");
+      setRole("Viewer");
+
+      // Clear success message after a short time
+      setTimeout(() => setSentSuccess(false), 3000);
+    }, 1500);
   };
-
-  const handleCancelEdit = () => {
-    // Reset form states to current user data
-    if (user) {
-      setEditName(user.name);
-      setEditEmail(user.email);
-      setEditNotifications(user.notificationSettings);
-      setEditPreferences(user.preferences);
-    }
-    setIsEditing(false);
-    setError("");
-    setSuccess("");
-  };
-
-  const handlePasswordReset = () => {
-    // In a real app, this would trigger a password reset flow (e.g., modal, navigate to forgot-password)
-    alert("Password reset functionality would be triggered here!");
-    // For now, just show a message
-    setSuccess("Password reset link sent to your email (mock action).");
-  };
-
-  if (loading && !user) {
-    return (
-      <div className="profile-wrapper">
-        <div className="loading-message">Loading user profile...</div>
-      </div>
-    );
-  }
-
-  if (error && !user) {
-    return (
-      <div className="profile-wrapper">
-        <div className="error-message user-error">{error}</div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="profile-wrapper">
-        <div className="no-profile-found">No user profile found.</div>
-      </div>
-    );
-  }
 
   return (
-    <div className="profile-wrapper">
-      <div className="profile-container">
-        <div className="profile-header">
-          <h1 className="profile-title">
-            {isEditing ? "Edit Your Profile" : `${user.name}'s Profile`}
-          </h1>
-          <button onClick={() => navigate(-1)} className="back-button">
-            ← Back
-          </button>
-        </div>
-        <p className="profile-subtitle">
-          Manage your personal details and settings
-        </p>
-
-        {error && <div className="error-message">{error}</div>}
-        {success && <div className="success-message">{success}</div>}
-
-        <form onSubmit={handleSave} className="profile-form">
-          <div className="form-section">
-            <h2 className="section-heading">Personal Information</h2>
-            <div className="form-group">
-              <label htmlFor="name">Full Name</label>
+    <div className="invite-form-card">
+      <h3 className="card-title">
+        <UserPlus size={20} /> Invite New User
+      </h3>
+      <form onSubmit={handleSubmit} className="invite-form">
+        <div className="form-row-grid">
+          <div className="form-field">
+            <label htmlFor="email">Email Address</label>
+            <div className="input-with-icon">
+              <Mail size={16} />
               <input
-                type="text"
-                id="name"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                readOnly={!isEditing}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <input
-                type="email"
                 id="email"
-                value={editEmail}
-                onChange={(e) => setEditEmail(e.target.value)}
-                readOnly={!isEditing}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="user@domain.com"
                 required
               />
             </div>
-            <div className="form-group">
-              <label>Role</label>
-              <input
-                type="text"
-                value={user.role}
-                readOnly
-                className="read-only-input"
-              />
-            </div>
-            <div className="form-group">
-              <label>Last Login</label>
-              <input
-                type="text"
-                value={new Date(user.lastLogin).toLocaleString()}
-                readOnly
-                className="read-only-input"
-              />
-            </div>
           </div>
+          <div className="form-field">
+            <label htmlFor="role">Assign Role</label>
+            <select
+              id="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            >
+              <option value="Viewer">Viewer</option>
+              <option value="Auditor">Auditor</option>
+              <option value="Manager">Manager</option>
+            </select>
+          </div>
+        </div>
 
-          <div className="form-section">
-            <h2 className="section-heading">Preferences</h2>
-            <div className="form-group">
-              <label htmlFor="theme">Theme</label>
-              <select
-                id="theme"
-                value={editPreferences.theme}
-                onChange={(e) =>
-                  setEditPreferences({
-                    ...editPreferences,
-                    theme: e.target.value,
-                  })
-                }
-                disabled={!isEditing}
-              >
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label htmlFor="timezone">Timezone</label>
-              <input
-                type="text"
-                id="timezone"
-                value={editPreferences.timezone}
-                onChange={(e) =>
-                  setEditPreferences({
-                    ...editPreferences,
-                    timezone: e.target.value,
-                  })
-                }
-                readOnly={!isEditing}
-                placeholder="e.g., America/New_York"
-              />
-            </div>
-            <div className="form-group">
-              <label>Language</label>
-              <input
-                type="text"
-                value={editPreferences.language}
-                readOnly={!isEditing}
-              />
-            </div>
-          </div>
+        <button
+          type="submit"
+          className={`invite-button ${isSending ? "sending" : ""} ${
+            sentSuccess ? "success" : ""
+          }`}
+          disabled={isSending || sentSuccess}
+        >
+          {isSending ? (
+            <>
+              <Loader size={18} className="spinner" /> Sending...
+            </>
+          ) : sentSuccess ? (
+            <>
+              <CheckCircle size={18} /> Invitation Sent
+            </>
+          ) : (
+            <>
+              <Send size={18} /> Send Invite Link
+            </>
+          )}
+        </button>
+      </form>
+    </div>
+  );
+};
 
-          <div className="form-section">
-            <h2 className="section-heading">Notification Settings</h2>
-            <div className="checkbox-group">
-              <input
-                type="checkbox"
-                id="email-notifications"
-                checked={editNotifications.email}
-                onChange={(e) =>
-                  setEditNotifications({
-                    ...editNotifications,
-                    email: e.target.checked,
-                  })
-                }
-                disabled={!isEditing}
-              />
-              <label htmlFor="email-notifications">Email Notifications</label>
-            </div>
-            <div className="checkbox-group">
-              <input
-                type="checkbox"
-                id="sms-notifications"
-                checked={editNotifications.sms}
-                onChange={(e) =>
-                  setEditNotifications({
-                    ...editNotifications,
-                    sms: e.target.checked,
-                  })
-                }
-                disabled={!isEditing}
-              />
-              <label htmlFor="sms-notifications">SMS Notifications</label>
-            </div>
-            <div className="checkbox-group">
-              <input
-                type="checkbox"
-                id="app-notifications"
-                checked={editNotifications.app}
-                onChange={(e) =>
-                  setEditNotifications({
-                    ...editNotifications,
-                    app: e.target.checked,
-                  })
-                }
-                disabled={!isEditing}
-              />
-              <label htmlFor="app-notifications">In-App Notifications</label>
-            </div>
-          </div>
+// --- Sub-Component: User Table Row ---
+const UserRow = ({ user, onDelete }) => {
+  const isInvite = user.status === "Pending";
+  const rowClass = isInvite ? "invite-row" : "user-row";
+  const statusClass =
+    user.status === "Active" ? "status-active" : "status-pending";
 
-          <div className="form-actions">
-            {isEditing ? (
-              <>
-                <button
-                  type="submit"
-                  className="save-button"
-                  disabled={loading}
-                >
-                  {loading ? "Saving..." : "Save Changes"}
-                </button>
-                <button
-                  type="button"
-                  className="cancel-button"
-                  onClick={handleCancelEdit}
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  className="edit-button"
-                  onClick={() => setIsEditing(true)}
-                >
-                  Edit Profile
-                </button>
-                <button
-                  type="button"
-                  className="reset-password-button"
-                  onClick={handlePasswordReset}
-                >
-                  Reset Password
-                </button>
-              </>
-            )}
+  return (
+    <tr className={rowClass}>
+      <td>{user.name || "-"}</td>
+      <td>{user.email}</td>
+      <td>{user.role}</td>
+      <td>
+        <span className={`user-status-badge ${statusClass}`}>
+          {user.status}
+        </span>
+      </td>
+      <td>{user.dateJoined || user.dateSent}</td>
+      <td className="action-cell">
+        <button
+          className="delete-button"
+          onClick={() => onDelete(user.id, isInvite)}
+          title={`Delete ${isInvite ? "Invitation" : "User"}`}
+        >
+          <Trash2 size={16} />
+        </button>
+      </td>
+    </tr>
+  );
+};
+
+// --- Main Component: User Management Panel ---
+const UserManagement = () => {
+  const [activeUsers, setActiveUsers] = useState(initialUsers);
+  const [pendingInvites, setPendingInvites] = useState(initialInvites);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const addInvite = (newInvite) => {
+    setPendingInvites((prev) => [...prev, newInvite]);
+  };
+
+  const handleDelete = (id, isInvite) => {
+    if (isInvite) {
+      setPendingInvites((prev) => prev.filter((invite) => invite.id !== id));
+    } else {
+      setActiveUsers((prev) => prev.filter((user) => user.id !== id));
+    }
+  };
+
+  const allUsers = [...activeUsers, ...pendingInvites];
+
+  const filteredUsers = allUsers.filter(
+    (user) =>
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.role.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="user-management-panel admin-details-card">
+      {/* 1. Invitation Form */}
+      <InviteUserForm addInvite={addInvite} />
+
+      <div className="management-table-section">
+        <div className="table-header-controls">
+          <h2 className="section-title">
+            <UserX size={24} style={{ marginRight: "10px" }} />
+            System Users & Invites
+          </h2>
+          <div className="search-box">
+            <Search size={18} />
+            <input
+              type="text"
+              placeholder="Search users by name, email, or role..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-        </form>
+        </div>
+
+        {/* 2. User/Invite Table */}
+        <div className="table-responsive">
+          <table className="user-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>{pendingInvites.length > 0 ? "Date" : "Joined"}</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="empty-state-cell">
+                    No users or invites match your search criteria.
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((user) => (
+                  <UserRow key={user.id} user={user} onDelete={handleDelete} />
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {filteredUsers.length > 0 && (
+          <div className="table-summary">
+            Showing {filteredUsers.length} of {allUsers.length} total users and
+            invites.
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default UserProfile;
+export default UserManagement;

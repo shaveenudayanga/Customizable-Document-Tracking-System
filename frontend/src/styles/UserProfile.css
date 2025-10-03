@@ -1,268 +1,294 @@
-body {
-  margin: 0;
-  font-family: "Segoe UI", sans-serif;
-  background: #e0f2f7; /* Very light teal background */
-}
+/* --- User Management Specific Styles --- */
 
-.profile-wrapper {
-  min-height: 100vh;
-  padding: 30px;
-  background: linear-gradient(
-    135deg,
-    #d1c4e9,
-    #b3e5fc,
-    #d1c4e9
-  ); /* Light purple to light blue gradient */
+.user-management-panel {
+  /* Inherits card styles */
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 40px;
 }
 
-.profile-container {
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  padding: 40px;
+/* ------------------- Invitation Form Styles ------------------- */
+.invite-form-card {
+  padding: 20px;
+  border: 1px solid var(--color-selected-bg);
+  border-radius: 12px;
+  background-color: #fcfcfc;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.invite-form-card .card-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: var(--color-primary-hover);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-selected-bg);
+}
+
+.invite-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-row-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* Email wider than Role */
+  gap: 20px;
+}
+
+.form-row-grid .form-field label {
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+}
+
+.input-with-icon {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0 10px;
+  background-color: var(--color-card-bg);
+  transition: border-color 0.2s;
+}
+
+.input-with-icon svg {
+  color: var(--color-text-light);
+  margin-right: 8px;
+}
+
+.input-with-icon input,
+.form-row-grid select {
+  border: none;
+  padding: 12px 5px;
   width: 100%;
-  max-width: 800px;
+  background-color: transparent;
+  font-size: 1rem;
 }
 
-.profile-header {
+.input-with-icon:focus-within {
+  border-color: var(--color-primary);
+}
+
+.invite-button {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  background-color: var(--color-primary);
+  color: var(--color-card-bg);
+  box-shadow: 0 4px 10px rgba(169, 139, 239, 0.4);
+}
+
+.invite-button:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.invite-button.sending {
+  background-color: #ffc107; /* Yellow for loading */
+  color: var(--color-text-dark);
+  cursor: not-allowed;
+}
+
+.invite-button.success {
+  background-color: #28a745; /* Green for success */
+  color: white;
+  cursor: default;
+}
+
+/* Spinner Animation */
+.invite-button .spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ------------------- Table Management Styles ------------------- */
+.management-table-section {
+  padding-top: 20px;
+}
+
+.table-header-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  border-bottom: 2px solid #e1bee7; /* Light purple underline */
-  padding-bottom: 15px;
 }
 
-.back-button {
-  background: none;
-  border: 1px solid #bbdefb;
-  color: #5e35b1;
-  padding: 8px 15px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.back-button:hover {
-  background: #e3f2fd; /* Light blue */
-  border-color: #673ab7;
-  color: #673ab7;
-  transform: translateY(-2px);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.profile-title {
-  color: #673ab7; /* Deeper purple */
-  font-size: 2.2rem;
+.section-title {
+  font-size: 1.5rem;
+  color: var(--color-text-dark);
+  font-weight: 600;
   margin: 0;
-  flex-grow: 1; /* Allow title to take available space */
-  text-align: center;
-}
-
-.profile-subtitle {
-  color: #757575;
-  font-size: 1rem;
-  margin-bottom: 30px;
-  text-align: center;
-}
-
-.loading-message,
-.error-message.user-error,
-.no-profile-found {
-  text-align: center;
-  padding: 20px;
-  font-size: 1rem;
-  color: #757575;
-}
-
-.error-message {
-  background: #ffebee; /* Light red */
-  color: #d32f2f; /* Dark red */
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-weight: 500;
-  text-align: center;
-}
-
-.success-message {
-  background: #e8f5e9; /* Light green */
-  color: #388e3c; /* Dark green */
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-weight: 500;
-  text-align: center;
-}
-
-.profile-form {
   display: flex;
-  flex-direction: column;
-  gap: 25px;
+  align-items: center;
 }
 
-.form-section {
-  background: #f7f7f7; /* Light gray section background */
-  border-radius: 15px;
-  padding: 25px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+/* Search Box */
+.search-box {
+  display: flex;
+  align-items: center;
+  padding: 8px 15px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  background-color: #f9f9f9;
+  width: 300px;
+  transition: border-color 0.3s;
 }
 
-.section-heading {
-  color: #5e35b1; /* Dark purple */
-  font-size: 1.4rem;
-  margin-top: 0;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #e1bee7; /* Light purple underline */
-  padding-bottom: 10px;
+.search-box:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-selected-bg);
 }
 
-.form-group {
-  margin-bottom: 15px;
+.search-box svg {
+  color: var(--color-text-light);
+  margin-right: 10px;
 }
 
-.form-group label {
-  display: block;
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: #5e35b1; /* Dark purple */
-  font-size: 0.95rem;
-}
-
-.form-group input[type="text"],
-.form-group input[type="email"],
-.form-group select {
+.search-box input {
+  border: none;
+  background: transparent;
   width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #bbdefb; /* Light blue border */
-  transition: all 0.3s ease;
-  font-size: 1rem;
-  color: #424242; /* Darker gray text */
-  box-sizing: border-box; /* Include padding and border in width */
-}
-
-.form-group input:read-only,
-.form-group select:disabled {
-  background-color: #f0f0f0; /* Lighter gray for read-only */
-  color: #757575;
-  cursor: not-allowed;
-  border-color: #e0e0e0;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-  border-color: #673ab7; /* Deeper purple on focus */
-  box-shadow: 0 0 8px rgba(103, 58, 183, 0.3);
+  font-size: 15px;
+  padding: 0;
   outline: none;
 }
 
-.checkbox-group {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
+/* Table */
+.table-responsive {
+  overflow-x: auto;
 }
 
-.checkbox-group input[type="checkbox"] {
-  margin-right: 10px;
-  min-width: 18px; /* Ensure checkbox is visible */
-  min-height: 18px;
-  cursor: pointer;
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 700px;
 }
 
-.checkbox-group label {
-  margin-bottom: 0; /* Remove bottom margin for labels in checkbox group */
-  font-size: 1rem;
-  color: #424242;
-  cursor: pointer;
+.user-table th {
+  background-color: var(--color-selected-bg);
+  color: var(--color-selected-text);
+  text-align: left;
+  padding: 12px 15px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--color-primary);
 }
 
-.form-actions {
-  display: flex;
-  gap: 15px;
-  justify-content: flex-end; /* Align buttons to the right */
-  padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
+.user-table td {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  color: var(--color-text-dark);
+  font-size: 0.95rem;
+  transition: background-color 0.3s;
 }
 
-.edit-button,
-.save-button,
-.cancel-button,
-.reset-password-button {
-  background: linear-gradient(
-    135deg,
-    #673ab7,
-    #3f51b5
-  ); /* Purple to indigo gradient */
-  color: white;
-  padding: 12px 25px;
+.user-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* Specific Row Styles */
+.invite-row {
+  background-color: #fff9e6; /* Light yellow background for pending invites */
+}
+
+.invite-row td {
+  color: #8a6d3b;
+  font-style: italic;
+}
+
+/* Status Badges */
+.user-status-badge {
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-active {
+  background-color: #e6ffe6;
+  color: #008000;
+}
+
+.status-pending {
+  background-color: #ffeecc;
+  color: #cc9900;
+}
+
+/* Action Cell & Button */
+.action-cell {
+  width: 80px;
+  text-align: center;
+}
+
+.delete-button {
+  background: #dc35451a; /* Very light red */
+  color: #dc3545; /* Red icon */
   border: none;
-  border-radius: 8px;
+  padding: 8px;
+  border-radius: 50%;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-weight: bold;
-  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.edit-button:hover,
-.save-button:hover,
-.reset-password-button:hover {
-  filter: brightness(1.1);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+.delete-button:hover {
+  background: #dc3545;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
 }
 
-.cancel-button {
-  background: #f44336; /* Red for cancel */
+/* Summary and Empty State */
+.table-summary {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: var(--color-text-light);
 }
 
-.cancel-button:hover {
-  filter: brightness(1.1);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+.empty-state-cell {
+  text-align: center;
+  padding: 40px;
+  font-style: italic;
+  color: var(--color-text-light);
+  background-color: #fcfcfc;
 }
 
-.edit-button:disabled,
-.save-button:disabled,
-.cancel-button:disabled,
-.reset-password-button:disabled {
-  background: #9e9e9e; /* Gray when disabled */
-  cursor: not-allowed;
-  filter: none;
-  transform: none;
-  box-shadow: none;
-  opacity: 0.7;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .profile-container {
-    padding: 20px;
+/* Responsive adjustments for mobile */
+@media (max-width: 600px) {
+  .form-row-grid {
+    grid-template-columns: 1fr;
   }
-  .profile-header {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .profile-title {
-    margin: 10px 0;
-    font-size: 1.8rem;
-  }
-  .back-button {
-    width: 100%;
-    margin-bottom: 15px;
-  }
-  .form-actions {
+  .table-header-controls {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
+    gap: 15px;
   }
-  .edit-button,
-  .save-button,
-  .cancel-button,
-  .reset-password-button {
+  .search-box {
     width: 100%;
   }
 }
