@@ -33,7 +33,7 @@ const PageShell = () => {
             deadlines with ease.
           </p>
           <div className="hero-actions">
-            <Link to="/login" className="cta-btn primary-cta-btn">
+            <Link to="/onboarding" className="cta-btn primary-cta-btn">
               Get Started
             </Link>
             <Link to="/learnmore" className="cta-btn secondary-cta-btn">
