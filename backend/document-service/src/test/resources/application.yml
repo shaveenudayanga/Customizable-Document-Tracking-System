@@ -1,3 +1,4 @@
+# Test profile configuration (H2 in-memory + multipart limits)
 spring:
   datasource:
     url: 'jdbc:h2:mem:docservice-${random.uuid};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE'

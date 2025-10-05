@@ -1,3 +1,4 @@
+// Service: generates QR codes for documents and stores them on disk
 package com.docutrace.document_service.service;
 
 import java.io.IOException;

@@ -2,12 +2,12 @@ version: '3.8'
 
 services:
   postgres-documents:
-    image: postgres:15
+    image: postgres:16
     container_name: postgres-documents
     environment:
       POSTGRES_DB: document_db
-      POSTGRES_USER: document_user
-      POSTGRES_PASSWORD: document_password
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:

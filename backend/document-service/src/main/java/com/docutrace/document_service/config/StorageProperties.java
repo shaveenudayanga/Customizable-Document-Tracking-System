@@ -1,3 +1,4 @@
+// Config: file storage properties (base path)
 package com.docutrace.document_service.config;
 
 import java.nio.file.Path;

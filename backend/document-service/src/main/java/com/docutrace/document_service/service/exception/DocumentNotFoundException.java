@@ -1,3 +1,4 @@
+// Exception: thrown when a requested document cannot be found
 package com.docutrace.document_service.service.exception;
 
 /**

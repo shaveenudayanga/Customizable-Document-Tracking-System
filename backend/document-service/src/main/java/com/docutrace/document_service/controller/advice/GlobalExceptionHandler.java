@@ -1,3 +1,4 @@
+// ControllerAdvice: centralizes API error handling and maps exceptions to JSON responses
 package com.docutrace.document_service.controller.advice;
 
 import java.util.LinkedHashMap;

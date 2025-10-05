@@ -1,3 +1,4 @@
+// DTO: response payload representing document details
 package com.docutrace.document_service.dto;
 
 import java.time.OffsetDateTime;

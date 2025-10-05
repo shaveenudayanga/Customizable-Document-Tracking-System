@@ -1,3 +1,4 @@
+// Repository: JPA repository for Document entities
 package com.docutrace.document_service.repository;
 
 import java.util.List;

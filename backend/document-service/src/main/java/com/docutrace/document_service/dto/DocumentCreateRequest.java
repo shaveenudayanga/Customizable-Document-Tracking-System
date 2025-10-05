@@ -1,3 +1,4 @@
+// DTO: request payload when creating a new document
 package com.docutrace.document_service.dto;
 
 import java.util.UUID;

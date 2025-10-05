@@ -1,4 +1,5 @@
 # Document Service Configuration
+# This file contains runtime configuration for the document-service (datasource, storage, springdoc, actuator)
 spring:
   application:
     name: document-service
@@ -13,7 +14,7 @@ spring:
   # JPA Configuration
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:
@@ -60,7 +61,7 @@ management:
       
 # Server Configuration
 server:
-  port: 8081
+  port: 8082
   
 # Logging Configuration
 logging:

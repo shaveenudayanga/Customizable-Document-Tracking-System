@@ -1,3 +1,4 @@
+// Mapper: maps between Document entity and DTOs using MapStruct
 package com.docutrace.document_service.mapper;
 
 import java.util.List;

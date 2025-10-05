@@ -1,3 +1,4 @@
+// Service: handles storing and retrieving files on disk with validation
 package com.docutrace.document_service.service;
 
 import java.io.IOException;

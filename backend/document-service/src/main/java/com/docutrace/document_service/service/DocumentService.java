@@ -1,3 +1,4 @@
+// Service: core business logic for creating/listing documents, file handling, and QR codes
 package com.docutrace.document_service.service;
 
 import java.io.IOException;
@@ -83,12 +84,12 @@ public class DocumentService {
         documentRepository.save(document);
 
     String downloadUrl = buildFileDownloadUrl(documentId, storedPath.getFileName().toString());
-        return new FileUploadResponse(
-                documentId,
-                storedPath.getFileName().toString(),
+    return new FileUploadResponse(
+        documentId,
+        storedPath.getFileName().toString(),
         downloadUrl,
-                "File uploaded successfully"
-        );
+        "File uploaded successfully"
+    );
     }
 
     @Transactional(readOnly = true)
@@ -184,5 +185,15 @@ public class DocumentService {
             throw new FileStorageException("Unable to load " + description + " from " + path, ex);
         }
         throw new FileResourceNotFoundException(description + " not found at path: " + path);
+    }
+
+    /**
+     * Update the status field of an existing document and return the updated response.
+     */
+    public DocumentResponse updateStatus(Long documentId, String status) {
+        Document document = findDocument(documentId);
+        document.setStatus(status);
+        Document saved = documentRepository.save(document);
+        return toResponse(saved);
     }
 }

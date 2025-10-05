@@ -1,3 +1,4 @@
+// Error DTO: standardized API error response payload
 package com.docutrace.document_service.controller.error;
 
 import java.time.OffsetDateTime;

@@ -1,3 +1,4 @@
+// Controller: HTTP endpoints for CRUD operations on documents and QR retrieval
 package com.docutrace.document_service.controller;
 
 import java.net.URI;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.docutrace.document_service.dto.DocumentCreateRequest;
 import com.docutrace.document_service.dto.DocumentResponse;
+import com.docutrace.document_service.dto.DocumentStatusUpdateRequest;
 import com.docutrace.document_service.service.DocumentService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,8 +37,10 @@ import jakarta.validation.Valid;
 @Tag(name = "Documents", description = "Operations that manage document metadata and QR codes")
 public class DocumentController {
 
+    // Business service that implements document operations
     private final DocumentService documentService;
 
+    // Constructor - dependencies are injected by Spring
     public DocumentController(DocumentService documentService) {
         this.documentService = documentService;
     }
@@ -50,9 +54,28 @@ public class DocumentController {
         @ApiResponse(responseCode = "201", description = "Document created successfully"),
         @ApiResponse(responseCode = "400", description = "Validation failed for the provided payload")
     })
+    // Create a new document record. Validates the request and returns 201 with the created resource.
     public ResponseEntity<DocumentResponse> createDocument(@Valid @RequestBody DocumentCreateRequest request) {
         DocumentResponse response = documentService.createDocument(request);
         return ResponseEntity.created(URI.create("/api/documents/" + response.id())).body(response);
+    }
+
+    // Update Status of a document
+    @PostMapping("/{documentId}/status")
+    @Operation(
+        summary = "Update the status of a document",
+        description = "Updates the status field of an existing document."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Document status updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Validation failed for the provided payload"),
+        @ApiResponse(responseCode = "404", description = "Document not found")
+    })
+    // Update a document's status. Expects JSON body: { "status": "NEW|APPROVED|REJECTED" }
+    public ResponseEntity<DocumentResponse> updateDocumentStatus(@PathVariable Long documentId,
+                                                                  @Valid @RequestBody DocumentStatusUpdateRequest request) {
+        DocumentResponse updated = documentService.updateStatus(documentId, request.status());
+        return ResponseEntity.ok(updated);
     }
 
     @GetMapping
@@ -60,6 +83,7 @@ public class DocumentController {
         summary = "List documents",
         description = "Returns all documents ordered by creation date in descending order."
     )
+    // List all documents ordered by creation time (most recent first).
     public List<DocumentResponse> listDocuments() {
         return documentService.listDocuments();
     }
@@ -73,6 +97,7 @@ public class DocumentController {
         @ApiResponse(responseCode = "200", description = "Document found"),
         @ApiResponse(responseCode = "404", description = "Document not found")
     })
+    // Retrieve a single document's metadata by ID.
     public DocumentResponse getDocument(@PathVariable Long documentId) {
         return documentService.getDocument(documentId);
     }
@@ -86,10 +111,12 @@ public class DocumentController {
         @ApiResponse(responseCode = "200", description = "QR code returned"),
         @ApiResponse(responseCode = "404", description = "Document not found")
     })
+    // Get the QR code for a document. Returns JSON (base64) if requested, otherwise an image stream.
     public ResponseEntity<?> getDocumentQr(
             @PathVariable Long documentId,
             @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String acceptHeader) {
 
+        // Decide whether the client requested JSON (base64) or an image stream for the QR code.
         boolean wantsJson = acceptHeader != null && acceptHeader.contains(MediaType.APPLICATION_JSON_VALUE);
         if (wantsJson) {
             byte[] qrBytes = documentService.getDocumentQrBytes(documentId);
@@ -101,7 +128,7 @@ public class DocumentController {
                             "qrCodeBase64", base64
                     ));
         }
-
+        // Return the QR code as an inline PNG resource when the client accepts images.
         Resource resource = documentService.getDocumentQr(documentId);
         ContentDisposition disposition = ContentDisposition.inline()
                 .filename("document-" + documentId + "-qr.png")

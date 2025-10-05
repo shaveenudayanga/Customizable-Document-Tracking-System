@@ -1,3 +1,4 @@
+// Exception: thrown when QR code generation fails
 package com.docutrace.document_service.service.exception;
 
 /**

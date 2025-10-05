@@ -1,3 +1,4 @@
+// Entity: represents a tracked document persisted in the database
 package com.docutrace.document_service.entity;
 
 import java.time.OffsetDateTime;

@@ -1,3 +1,4 @@
+// Exception: thrown when a file resource is not found on disk
 package com.docutrace.document_service.service.exception;
 
 /**

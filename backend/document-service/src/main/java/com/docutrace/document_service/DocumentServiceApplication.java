@@ -1,3 +1,4 @@
+// Application entrypoint for the Document Service Spring Boot app
 package com.docutrace.document_service;
 
 import org.springframework.boot.SpringApplication;
