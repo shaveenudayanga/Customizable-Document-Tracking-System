@@ -15,7 +15,6 @@ public record DocumentCreateRequest(
         @NotBlank @Size(max = 100) String documentType,
         @Size(max = 10_000) String description,
         @NotNull UUID ownerUserId,
-        @NotBlank @Size(max = 50) String status,
         @Size(max = 512) String qrPath,
         @Size(max = 512) String fileDir
 ) {

@@ -84,6 +84,13 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!-- Spring Boot DevTools for development (optional) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<optional>true</optional>
+		</dependency>
+
 		<!-- Spring Boot Test Starter (test scope) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -96,7 +103,7 @@
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>

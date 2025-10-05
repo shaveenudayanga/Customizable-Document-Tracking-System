@@ -49,6 +49,7 @@ public class DocumentService {
 
     public DocumentResponse createDocument(DocumentCreateRequest request) {
         Document document = documentMapper.toEntity(request);
+        document.setStatus("NEW");
         Document persisted = documentRepository.save(document);
 
         Path documentDirectory = baseStoragePath.resolve(String.valueOf(persisted.getId()));
