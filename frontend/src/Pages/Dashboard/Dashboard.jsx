@@ -308,9 +308,12 @@ const Dashboard = () => {
             />
             <SidebarLink
               Icon={BarChart}
-              title="Reports"
-              active={activeTab === "Reports"}
-              onClick={() => setActiveTab("Reports")}
+              title="Define Pipelines"
+              active={activeTab === "pipelines/builder"}
+              onClick={() => {
+                setActiveTab("pipelines/builder");
+                navigate("/pipelines/builder");
+              }}
             />
             {role === "admin" && (
               <SidebarLink
