@@ -11,18 +11,18 @@ import {
 import PageShell from "./components/PageShell.jsx";
 
 // Auth Pages
-import Login from "./pages/Auth/Login.jsx";
+import Login from "./Pages/Auth/Login.jsx";
 import ForgotPassword from "./Pages/Auth/ForgotPassword.jsx";
 import Onboarding from "./Pages/Auth/Onboarding.jsx";
 
 // Dashboard
 import Dashboard from "./Pages/Dashboard/Dashboard.jsx";
-import Learnmore from "./pages/Learnmore/Learnmore.jsx"; // Fixed casing for Learnmore import
+import Learnmore from "./Pages/Learnmore/Learnmore.jsx"; // Fixed casing for Learnmore import
 
 // Documents
 import DocumentList from "./Pages/Documents/DocumentList.jsx";
 import DocumentDetails from "./Pages/Documents/DocumentDetails.jsx";
-import NewDocument from "./pages/Documents/NewDocument.jsx"; // Corrected path to Pages/Documents
+import NewDocument from "./Pages/Documents/NewDocument.jsx"; // Corrected path to Pages/Documents
 import EditDocument from "./Pages/Documents/EditDocument.jsx";
 
 // Pipelines
@@ -38,13 +38,13 @@ import HandoverHistory from "./Pages/Handover/HandoverHistory.jsx";
 import DepartmentManager from "./Pages/Departments/DepartmentManager.jsx";
 
 // Notifications
-import Notifications from "./pages/Notifications/Notifications.jsx";
+import Notifications from "./Pages/Notifications/Notifications.jsx";
 
 // Audit
 import AuditLog from "./Pages/Audit/AuditLog.jsx";
 
 // Profile
-import UserProfile from "./pages/Profile/UserProfile.jsx";
+import UserProfile from "./Pages/Profile/UserProfile.jsx";
 // Corrected: Added the missing import for AdminUserManagement
 import AdminUserManagement from "./Pages/Admin/AdminUserManagement.jsx";
 
