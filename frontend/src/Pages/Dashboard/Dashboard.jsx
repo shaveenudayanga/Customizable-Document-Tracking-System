@@ -22,6 +22,8 @@ import {
   User,
 } from "lucide-react";
 import "../../styles/Dashboard.css";
+import { userService } from "../../services/userService.js";
+import { documentService } from "../../services/documentService.js";
 
 // =================================================================
 // --- Reusable Sub-Components ---
@@ -156,60 +158,99 @@ const Dashboard = () => {
   const navigate = useNavigate();
   // State management
   const [role, setRole] = useState("admin"); // Default to admin for demonstration
-  const [userName, setUserName] = useState("Sadish ");
+  const [userName, setUserName] = useState("Loading...");
   const [activeTab, setActiveTab] = useState("Home");
+  const [userMetrics, setUserMetrics] = useState([]);
+  const [adminMetrics, setAdminMetrics] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Simulate fetching role/user data
+  // Fetch user data and metrics
   useEffect(() => {
-    const tokenRole = localStorage.getItem("role");
-    if (tokenRole) setRole(tokenRole);
+    const fetchUserData = async () => {
+      try {
+        const currentUser = await userService.getCurrentUser();
+        setUserName(currentUser.name);
+        setRole(currentUser.role);
+
+        // Set user role in localStorage for consistency
+        localStorage.setItem("role", currentUser.role);
+
+        // Fetch documents for metrics calculation
+        const documents = await documentService.getAllDocuments();
+
+        if (currentUser.role === "user") {
+          // Calculate user-specific metrics
+          const userDocs = documents.filter(
+            (doc) => doc.owner === currentUser.name
+          );
+          setUserMetrics([
+            {
+              title: "Documents for Review",
+              value: userDocs.filter((doc) => doc.status === "Pending").length,
+              Icon: Eye,
+              colorClass: "primary",
+            },
+            {
+              title: "Documents in Transit",
+              value: userDocs.filter((doc) => doc.currentStep !== "Completed")
+                .length,
+              Icon: Clock,
+              colorClass: "warning",
+            },
+            {
+              title: "Completed Documents",
+              value: userDocs.filter((doc) => doc.status === "Approved").length,
+              Icon: CheckCircle,
+              colorClass: "success",
+            },
+            {
+              title: "Recent Uploads",
+              value: userDocs.length,
+              Icon: FileArchive,
+              colorClass: "info",
+            },
+          ]);
+        } else {
+          // Calculate admin metrics
+          setAdminMetrics([
+            {
+              title: "Total Documents",
+              value: documents.length,
+              Icon: FileText,
+              colorClass: "primary",
+            },
+            {
+              title: "Pending Approvals",
+              value: documents.filter((doc) => doc.status === "Pending").length,
+              Icon: Send,
+              colorClass: "warning",
+            },
+            {
+              title: "Active Users",
+              value: 25, // This would come from userService.getAllUsers().length
+              Icon: Users,
+              colorClass: "success",
+            },
+            {
+              title: "Overdue Documents",
+              value: documents.filter((doc) => doc.status === "Rejected")
+                .length,
+              Icon: FileX,
+              colorClass: "danger",
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        // Fallback to default values
+        setUserName("User");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
   }, []);
-
-  // --- Dummy Data ---
-
-  const userMetrics = [
-    {
-      title: "Documents for Review",
-      value: 3,
-      Icon: Eye,
-      colorClass: "primary",
-    },
-    {
-      title: "Documents in Transit",
-      value: 12,
-      Icon: Clock,
-      colorClass: "warning",
-    },
-    {
-      title: "Completed Documents",
-      value: 30,
-      Icon: CheckCircle,
-      colorClass: "success",
-    },
-    {
-      title: "Recent Uploads",
-      value: 8,
-      Icon: FileArchive,
-      colorClass: "info",
-    },
-  ];
-
-  const adminMetrics = [
-    {
-      title: "Total Documents",
-      value: 150,
-      Icon: FileText,
-      colorClass: "primary",
-    },
-    {
-      title: "Pending Approvals",
-      value: 12,
-      Icon: Send,
-      colorClass: "warning",
-    },
-    { title: "Active Users", value: 25, Icon: Users, colorClass: "success" },
-    { title: "Overdue Documents", value: 3, Icon: FileX, colorClass: "danger" },
-  ];
 
   // Determine the data set to use
   const metricsData = role === "user" ? userMetrics : adminMetrics;

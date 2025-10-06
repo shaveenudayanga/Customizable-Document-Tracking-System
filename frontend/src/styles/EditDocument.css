@@ -1,11 +1,16 @@
+html,
 body {
   margin: 0;
   font-family: "Segoe UI", sans-serif;
   background: #e0f2f7; /* Very light teal background */
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: auto;
 }
 
 .edit-doc-wrapper {
   min-height: 100vh;
+  height: auto;
   padding: 30px;
   background: linear-gradient(
     135deg,
@@ -13,9 +18,6 @@ body {
     #b3e5fc,
     #d1c4e9
   ); /* Light purple to light blue gradient */
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
 }
 
 .edit-doc-container {
@@ -25,6 +27,7 @@ body {
   padding: 40px;
   width: 100%;
   max-width: 700px; /* Wider container for forms */
+  margin: 0 auto; /* Center the container */
 }
 
 .edit-doc-header {

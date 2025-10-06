@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../../styles/DocumentList.css";
-// Assume 'api' is configured for your backend calls
-// import { api } from "../../lib/api";
+import { documentService } from "../../services/documentService.js";
 
 const DocumentList = () => {
   const [documents, setDocuments] = useState([]);
@@ -12,88 +11,35 @@ const DocumentList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Mock API data - replace with actual API calls
-  const mockDocuments = [
-    {
-      id: "doc1",
-      title: "Project Proposal Q3",
-      status: "Approved",
-      owner: "Alice",
-      pipeline: "Sales",
-      currentStep: "Final Review",
-      createdAt: "2024-07-01",
-    },
-    {
-      id: "doc2",
-      title: "Marketing Campaign Brief",
-      status: "Pending",
-      owner: "Bob",
-      pipeline: "Marketing",
-      currentStep: "Content Creation",
-      createdAt: "2024-07-15",
-    },
-    {
-      id: "doc3",
-      title: "Legal Contract Draft V2",
-      status: "Rejected",
-      owner: "Charlie",
-      pipeline: "Legal",
-      currentStep: "Client Feedback",
-      createdAt: "2024-07-10",
-    },
-    {
-      id: "doc4",
-      title: "HR Onboarding Checklist",
-      status: "Approved",
-      owner: "Diana",
-      pipeline: "HR",
-      currentStep: "Completed",
-      createdAt: "2024-06-20",
-    },
-    {
-      id: "doc5",
-      title: "Budget Allocation FY25",
-      status: "Pending",
-      owner: "Eve",
-      pipeline: "Finance",
-      currentStep: "Manager Approval",
-      createdAt: "2024-08-01",
-    },
-  ];
-
   useEffect(() => {
     const fetchDocuments = async () => {
       setLoading(true);
       setError(null);
       try {
-        // In a real app, you'd use api.get here
-        // const response = await api.get('/documents', { params: { searchTerm, sortBy, filterStatus } });
-        // setDocuments(response.data);
+        // Use documentService instead of hard-coded data
+        let allDocuments = await documentService.getAllDocuments();
 
-        // Simulate API call delay and filtering/sorting
-        setTimeout(() => {
-          let filtered = mockDocuments.filter(
-            (doc) =>
-              doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              doc.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              doc.pipeline.toLowerCase().includes(searchTerm.toLowerCase())
-          );
+        // Apply client-side filtering and sorting
+        let filtered = allDocuments.filter(
+          (doc) =>
+            doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            doc.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            doc.pipeline.toLowerCase().includes(searchTerm.toLowerCase())
+        );
 
-          if (filterStatus !== "all") {
-            filtered = filtered.filter((doc) => doc.status === filterStatus);
+        if (filterStatus !== "all") {
+          filtered = filtered.filter((doc) => doc.status === filterStatus);
+        }
+
+        filtered.sort((a, b) => {
+          if (sortBy === "createdAt") {
+            return new Date(b.createdAt) - new Date(a.createdAt);
           }
+          return 0;
+        });
 
-          filtered.sort((a, b) => {
-            if (sortBy === "createdAt") {
-              return new Date(b.createdAt) - new Date(a.createdAt);
-            }
-            // Add more sorting logic if needed
-            return 0;
-          });
-
-          setDocuments(filtered);
-          setLoading(false);
-        }, 500); // Simulate network delay
+        setDocuments(filtered);
+        setLoading(false);
       } catch (err) {
         setError("Failed to fetch documents.");
         setLoading(false);

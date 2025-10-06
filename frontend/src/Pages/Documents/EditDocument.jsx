@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../../styles/EditDocument.css";
-// import { api } from "../../lib/api";
+import { documentService } from "../../services/documentService.js";
 
 const EditDocument = () => {
   const { id } = useParams(); // Get document ID from URL
@@ -113,12 +113,8 @@ const EditDocument = () => {
       setLoading(true);
       setError("");
       try {
-        // In a real app: const response = await api.get(`/documents/${id}`);
-        // const docData = response.data;
-
-        // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        const docData = mockDocumentDetails[id];
+        // Use documentService instead of hard-coded data
+        const docData = await documentService.getDocumentById(id);
 
         if (docData) {
           setDocument(docData);
@@ -171,16 +167,9 @@ const EditDocument = () => {
         updatedAt: new Date().toISOString(), // Simulate update timestamp
       };
 
-      // In a real app: const response = await api.put(`/documents/${id}`, updatedData);
-      // console.log("Document updated:", response.data);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Updated Document:", updatedData);
+      // Use documentService to update the document
+      await documentService.updateDocument(id, updatedData);
       setSuccess("Document updated successfully!");
-
-      // Update mock data or refetch for consistency (in a real app, state would be updated automatically)
-      // mockDocumentDetails[id] = { ...mockDocumentDetails[id], ...updatedData };
 
       setTimeout(() => navigate(`/documents/${id}`), 1500); // Navigate back to details page
     } catch (err) {

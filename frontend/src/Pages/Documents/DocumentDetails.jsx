@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import "../../styles/DocumentDetails.css";
-// import { api } from "../../lib/api";
+import { documentService } from "../../services/documentService.js";
 
 const DocumentDetails = () => {
   const { id } = useParams(); // Get document ID from URL
@@ -10,103 +10,46 @@ const DocumentDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Mock API data - replace with actual API calls
-  const mockDocumentDetails = {
-    doc1: {
-      id: "doc1",
-      title: "Project Proposal Q3",
-      status: "Approved",
-      owner: "Alice Johnson",
-      pipeline: "Sales Pipeline",
-      currentStep: "Final Review",
-      department: "Sales",
-      category: "Proposals",
-      createdAt: "2024-07-01T10:30:00Z",
-      updatedAt: "2024-07-25T15:00:00Z",
-      description:
-        "Comprehensive proposal for the Q3 project, outlining objectives, methodologies, and expected outcomes. Includes detailed budget breakdown and timeline.",
-      attachedFiles: [
-        {
-          name: "Proposal_Q3_v1.pdf",
-          url: "/mock-files/proposal_q3_v1.pdf",
-          type: "pdf",
-        },
-        {
-          name: "Budget_Spreadsheet.xlsx",
-          url: "/mock-files/budget_spreadsheet.xlsx",
-          type: "excel",
-        },
-      ],
-      history: [
-        {
-          timestamp: "2024-07-01T10:30:00Z",
-          action: "Created",
-          by: "Alice Johnson",
-        },
-        {
-          timestamp: "2024-07-05T09:00:00Z",
-          action: "Submitted for Review",
-          by: "Alice Johnson",
-        },
-        {
-          timestamp: "2024-07-10T11:45:00Z",
-          action: "Reviewed by Manager",
-          by: "Bob Smith",
-        },
-        {
-          timestamp: "2024-07-15T14:20:00Z",
-          action: "Approved by Sales Director",
-          by: "Charlie Green",
-        },
-      ],
-      auditTrail: [
-        {
-          timestamp: "2024-07-01T10:30:00Z",
-          event: "Document created by Alice Johnson.",
-        },
-        {
-          timestamp: "2024-07-02T11:00:00Z",
-          event: "Metadata updated: 'Description' added by Alice Johnson.",
-        },
-        {
-          timestamp: "2024-07-05T09:00:00Z",
-          event: "Moved to 'Submitted for Review' step by Alice Johnson.",
-        },
-        {
-          timestamp: "2024-07-10T11:45:00Z",
-          event: "Status changed to 'Under Review' by Bob Smith.",
-        },
-        {
-          timestamp: "2024-07-15T14:20:00Z",
-          event: "Status changed to 'Approved' by Charlie Green.",
-        },
-        {
-          timestamp: "2024-07-20T10:00:00Z",
-          event: "File 'Budget_Spreadsheet.xlsx' downloaded by Diana Prince.",
-        },
-      ],
-    },
-    // Add more mock document details here if needed for other IDs
-  };
-
   useEffect(() => {
     const fetchDocument = async () => {
       setLoading(true);
       setError(null);
       try {
-        // In a real app: const response = await api.get(`/documents/${id}`);
-        // setDocument(response.data);
+        // Use documentService instead of hard-coded data
+        const doc = await documentService.getDocumentById(id);
+        if (doc) {
+          setDocument(doc);
+        } else {
+          setError("Document not found.");
+        }
+      } catch (err) {
+        setError("Failed to fetch document details.");
+        console.error("Error fetching document details:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        // Simulate API call delay
-        setTimeout(() => {
-          const doc = mockDocumentDetails[id];
-          if (doc) {
-            setDocument(doc);
-          } else {
-            setError("Document not found.");
-          }
-          setLoading(false);
-        }, 500);
+    if (id) {
+      fetchDocument();
+    } else {
+      setError("No document ID provided.");
+      setLoading(false);
+    }
+  }, [id]);
+  useEffect(() => {
+    const fetchDocument = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Use documentService instead of hard-coded data
+        const doc = await documentService.getDocumentById(id);
+        if (doc) {
+          setDocument(doc);
+        } else {
+          setError("Document not found.");
+        }
+        setLoading(false);
       } catch (err) {
         setError("Failed to fetch document details.");
         setLoading(false);
