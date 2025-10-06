@@ -24,8 +24,15 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
     
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String role; // USER, ADMIN, AGENT
+    private Role role;
+
+    @Column
+    private String position;
+
+    @Column(name = "section_id")
+    private String sectionId;
     
     private LocalDateTime createdAt;
     

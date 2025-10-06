@@ -6,5 +6,7 @@ public record RegisterRequest(
     @NotBlank String username,
     @NotBlank String password,
     @Email @NotBlank String email,
-    String role  // Optional, defaults to USER
+    String role,
+    String position,
+    String sectionId
 ) {}

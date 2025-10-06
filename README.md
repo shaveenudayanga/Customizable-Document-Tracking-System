@@ -91,6 +91,13 @@ docker compose up -d
 
 Service will be available at `http://localhost:8080` (default admin endpoints protected).
 
+### API Documentation
+
+Once the service is running locally you can explore the interactive OpenAPI docs at:
+
+* Swagger UI: `http://localhost:8081/swagger-ui/index.html`
+* Raw OpenAPI spec: `http://localhost:8081/v3/api-docs`
+
 ### API Endpoints
 
 Public:
