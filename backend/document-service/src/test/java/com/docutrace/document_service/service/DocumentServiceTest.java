@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -65,7 +66,6 @@ class DocumentServiceTest {
                 "REPORT",
                 "Summary",
                 UUID.randomUUID(),
-                "NEW",
                 null,
                 null
         );
@@ -87,6 +87,7 @@ class DocumentServiceTest {
         assertEquals("Doc Title", response.title());
         assertEquals("/api/documents/1/qrcode", response.qrPath());
         assertEquals("/api/documents/1/files", response.fileDir());
+        assertEquals(List.of("DEPARTMENT_PENDING", "APPROVAL_PENDING"), response.statuses());
         assertTrue(Files.exists(tempDir.resolve("1/files")));
 
         ArgumentCaptor<Path> qrDirectoryCaptor = ArgumentCaptor.forClass(Path.class);
@@ -148,5 +149,22 @@ class DocumentServiceTest {
 
         assertTrue(resource.exists());
         assertEquals(qrPath.toUri(), resource.getURI());
+    }
+
+    @Test
+    void updateStatus_persistsBothStatuses() {
+        Document document = new Document();
+        document.setId(42L);
+        document.setStatus("DEPARTMENT_PENDING|APPROVAL_PENDING");
+
+        when(documentRepository.findById(42L)).thenReturn(Optional.of(document));
+        when(documentRepository.save(any(Document.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        List<String> newStatuses = List.of("DEPARTMENT_REVIEWED", "APPROVED");
+
+        DocumentResponse response = documentService.updateStatus(42L, newStatuses);
+
+        assertEquals(newStatuses, response.statuses());
+        assertEquals("DEPARTMENT_REVIEWED|APPROVED", document.getStatus());
     }
 }

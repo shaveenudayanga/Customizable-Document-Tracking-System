@@ -18,7 +18,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.docutrace.document_service.dto.DocumentCreateRequest;
 import com.docutrace.document_service.dto.DocumentResponse;
@@ -60,6 +62,28 @@ public class DocumentController {
         return ResponseEntity.created(URI.create("/api/documents/" + response.id())).body(response);
     }
 
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+        summary = "Create a new document with an initial file",
+        description = "Creates a document record and, when a file part is provided, immediately stores it under the new document."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Document created successfully"),
+        @ApiResponse(responseCode = "400", description = "Validation failed for the provided payload")
+    })
+    public ResponseEntity<DocumentResponse> createDocumentWithFile(
+            @Valid @RequestPart("metadata") DocumentCreateRequest metadata,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        DocumentResponse created = documentService.createDocument(metadata);
+
+        if (file != null && !file.isEmpty()) {
+            documentService.uploadFile(created.id(), file);
+            created = documentService.getDocument(created.id());
+        }
+
+        return ResponseEntity.created(URI.create("/api/documents/" + created.id())).body(created);
+    }
+
     // Update Status of a document
     @PostMapping("/{documentId}/status")
     @Operation(
@@ -71,10 +95,10 @@ public class DocumentController {
         @ApiResponse(responseCode = "400", description = "Validation failed for the provided payload"),
         @ApiResponse(responseCode = "404", description = "Document not found")
     })
-    // Update a document's status. Expects JSON body: { "status": "NEW|APPROVED|REJECTED" }
+    // Update a document's statuses. Expects JSON body: { "statuses": ["DEPARTMENT_REVIEWED", "APPROVED"] }
     public ResponseEntity<DocumentResponse> updateDocumentStatus(@PathVariable Long documentId,
                                                                   @Valid @RequestBody DocumentStatusUpdateRequest request) {
-        DocumentResponse updated = documentService.updateStatus(documentId, request.status());
+        DocumentResponse updated = documentService.updateStatus(documentId, request.statuses());
         return ResponseEntity.ok(updated);
     }
 

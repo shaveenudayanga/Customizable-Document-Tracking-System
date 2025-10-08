@@ -2,10 +2,12 @@
 package com.docutrace.document_service.service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -29,6 +31,8 @@ import com.docutrace.document_service.service.exception.FileStorageException;
 @Transactional
 public class DocumentService {
 
+    private static final List<String> DEFAULT_STATUSES = List.of("DEPARTMENT_PENDING", "APPROVAL_PENDING");
+
     private final DocumentRepository documentRepository;
     private final DocumentMapper documentMapper;
     private final FileStorageService fileStorageService;
@@ -49,7 +53,7 @@ public class DocumentService {
 
     public DocumentResponse createDocument(DocumentCreateRequest request) {
         Document document = documentMapper.toEntity(request);
-        document.setStatus("NEW");
+        document.setStatus(encodeStatuses(DEFAULT_STATUSES));
         Document persisted = documentRepository.save(document);
 
         Path documentDirectory = baseStoragePath.resolve(String.valueOf(persisted.getId()));
@@ -138,7 +142,7 @@ public class DocumentService {
                 base.documentType(),
                 base.description(),
                 base.ownerUserId(),
-                base.status(),
+        base.statuses() == null ? List.of() : List.copyOf(base.statuses()),
                 qrUrl,
                 filesUrl,
                 base.createdAt(),
@@ -189,12 +193,25 @@ public class DocumentService {
     }
 
     /**
-     * Update the status field of an existing document and return the updated response.
+     * Update the department and approval statuses of an existing document.
      */
-    public DocumentResponse updateStatus(Long documentId, String status) {
+    public DocumentResponse updateStatus(Long documentId, List<String> statuses) {
         Document document = findDocument(documentId);
-        document.setStatus(status);
+        document.setStatus(encodeStatuses(statuses));
         Document saved = documentRepository.save(document);
         return toResponse(saved);
+    }
+
+    private String encodeStatuses(List<String> statuses) {
+        List<String> safeStatuses = Objects.requireNonNullElse(statuses, List.of());
+        if (safeStatuses.isEmpty()) {
+            return "";
+        }
+        if (safeStatuses.size() != 2) {
+            throw new IllegalArgumentException("Exactly two statuses (department and approval) are required");
+        }
+        return safeStatuses.stream()
+                .map(status -> status == null ? "" : status.trim())
+                .collect(Collectors.joining("|"));
     }
 }

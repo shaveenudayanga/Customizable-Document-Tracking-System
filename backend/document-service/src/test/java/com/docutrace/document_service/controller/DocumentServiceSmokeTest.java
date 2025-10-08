@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
-import java.util.UUID;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -31,6 +31,7 @@ import org.springframework.util.MultiValueMap;
 import com.docutrace.document_service.dto.DocumentCreateRequest;
 import com.docutrace.document_service.dto.DocumentResponse;
 import com.docutrace.document_service.dto.FileUploadResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestInstance(Lifecycle.PER_CLASS)
@@ -66,7 +67,6 @@ class DocumentServiceSmokeTest {
                 "REPORT",
                 "Verifying full lifecycle",
                 UUID.randomUUID(),
-                "ACTIVE",
                 null,
                 null
         );
@@ -95,7 +95,7 @@ class DocumentServiceSmokeTest {
         assertThat(fetched.documentType()).isEqualTo(createRequest.documentType());
         assertThat(fetched.description()).isEqualTo(createRequest.description());
         assertThat(fetched.ownerUserId()).isEqualTo(createRequest.ownerUserId());
-        assertThat(fetched.status()).isEqualTo(createRequest.status());
+        assertThat(fetched.statuses()).containsExactly("DEPARTMENT_PENDING", "APPROVAL_PENDING");
         assertThat(fetched.qrPath()).isEqualTo(createdDocument.qrPath());
         assertThat(fetched.fileDir()).isEqualTo("/api/documents/" + documentId + "/files");
         assertThat(fetched.createdAt()).isNotNull();
@@ -178,17 +178,64 @@ class DocumentServiceSmokeTest {
         }
     }
 
-        @Test
-        void createDocument_withValidationErrorsReturnsBadRequest() {
-                DocumentCreateRequest invalidRequest = new DocumentCreateRequest(
-                                "",
-                                "",
-                                "",
-                                null,
-                                "",
-                                null,
-                                null
-                );
+    @Test
+    void createDocument_withFileInSingleRequest() throws Exception {
+        UUID ownerId = UUID.randomUUID();
+        DocumentCreateRequest metadata = new DocumentCreateRequest(
+                "Single Call Document",
+                "REPORT",
+                "Metadata and file in one shot",
+                ownerId,
+                null,
+                null
+        );
+
+        ObjectMapper mapper = new ObjectMapper();
+        String metadataJson = mapper.writeValueAsString(metadata);
+
+        HttpHeaders metadataHeaders = new HttpHeaders();
+        metadataHeaders.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> metadataPart = new HttpEntity<>(metadataJson, metadataHeaders);
+
+        String fileName = "inline-upload.png";
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("metadata", metadataPart);
+        body.add("file", buildFilePart(fileName, SAMPLE_PNG, MediaType.IMAGE_PNG));
+
+        HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        ResponseEntity<DocumentResponse> response = restTemplate.exchange(
+                "/api/documents",
+                HttpMethod.POST,
+                new HttpEntity<>(body, requestHeaders),
+                DocumentResponse.class
+        );
+
+        assertThat(response.getStatusCode().value()).isEqualTo(201);
+        DocumentResponse created = Objects.requireNonNull(response.getBody());
+        assertThat(created.id()).isNotNull();
+        assertThat(created.ownerUserId()).isEqualTo(ownerId);
+        assertThat(created.statuses()).containsExactly("DEPARTMENT_PENDING", "APPROVAL_PENDING");
+
+        Path storedFile = STORAGE_BASE_PATH
+                .resolve(String.valueOf(created.id()))
+                .resolve("files")
+                .resolve(fileName);
+        assertThat(Files.exists(storedFile)).isTrue();
+        assertThat(Files.readAllBytes(storedFile)).isEqualTo(SAMPLE_PNG);
+    }
+
+    @Test
+    void createDocument_withValidationErrorsReturnsBadRequest() {
+        DocumentCreateRequest invalidRequest = new DocumentCreateRequest(
+                "",
+                "",
+                "",
+                null,
+                null,
+                null
+        );
 
                 ResponseEntity<String> response = restTemplate.postForEntity(
                                 "/api/documents",
@@ -199,7 +246,7 @@ class DocumentServiceSmokeTest {
                 assertThat(response.getStatusCode().value()).isEqualTo(400);
                 assertThat(response.getBody()).isNotNull();
                 assertThat(response.getBody()).contains("validationErrors");
-        }
+    }
 
     private static HttpEntity<Resource> buildFilePart(String filename, byte[] content, MediaType mediaType) {
         HttpHeaders headers = new HttpHeaders();

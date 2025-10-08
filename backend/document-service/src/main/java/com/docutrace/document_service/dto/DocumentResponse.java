@@ -2,6 +2,7 @@
 package com.docutrace.document_service.dto;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -13,7 +14,7 @@ public record DocumentResponse(
         String documentType,
         String description,
         UUID ownerUserId,
-        String status,
+        List<String> statuses,
         String qrPath,
         String fileDir,
         OffsetDateTime createdAt,
