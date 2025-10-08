@@ -43,7 +43,6 @@ const NewDocument = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [pipeline, setPipeline] = useState("");
-  const [department, setDepartment] = useState("");
   const [category, setCategory] = useState("");
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -69,7 +68,7 @@ const NewDocument = () => {
     setDocumentCode("");
     setQrCodeData("");
 
-    if (!title || !pipeline || !department || !category || !file) {
+    if (!title || !pipeline || !category || !file) {
       setError("Please fill in all required fields and select a file.");
       return;
     }
@@ -157,45 +156,23 @@ const NewDocument = () => {
             ></textarea>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="pipeline">
-                Pipeline <span className="required">*</span>
-              </label>
-              <select
-                id="pipeline"
-                value={pipeline}
-                onChange={(e) => setPipeline(e.target.value)}
-                required
-              >
-                <option value="">Select Pipeline</option>
-                <option value="Sales">Sales Pipeline</option>
-                <option value="Marketing">Marketing Workflow</option>
-                <option value="Legal">Legal Review</option>
-                <option value="HR">HR Onboarding</option>
-                <option value="Finance">Finance Approval</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="department">
-                Department <span className="required">*</span>
-              </label>
-              <select
-                id="department"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                required
-              >
-                <option value="">Select Department</option>
-                <option value="Sales">Sales</option>
-                <option value="Marketing">Marketing</option>
-                <option value="Legal">Legal</option>
-                <option value="HR">Human Resources</option>
-                <option value="Finance">Finance</option>
-                <option value="Operations">Operations</option>
-              </select>
-            </div>
+          <div className="form-group">
+            <label htmlFor="pipeline">
+              Pipeline <span className="required">*</span>
+            </label>
+            <select
+              id="pipeline"
+              value={pipeline}
+              onChange={(e) => setPipeline(e.target.value)}
+              required
+            >
+              <option value="">Select Pipeline</option>
+              <option value="Sales">Sales Pipeline</option>
+              <option value="Marketing">Marketing Workflow</option>
+              <option value="Legal">Legal Review</option>
+              <option value="HR">HR Onboarding</option>
+              <option value="Finance">Finance Approval</option>
+            </select>
           </div>
 
           <div className="form-group">

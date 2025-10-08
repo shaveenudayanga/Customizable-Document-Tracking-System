@@ -56,6 +56,127 @@ const PipelineBuilder = () => {
   );
   const [pipelineNodes, setPipelineNodes] = useState([]);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [savedPipelines, setSavedPipelines] = useState([
+    {
+      id: 1,
+      name: "Standard Document Approval",
+      description: "Finance → HR → Legal → Archive",
+      nodes: [
+        {
+          id: "1",
+          name: "Finance",
+          type: "department",
+          index: 0,
+          notifyUser: true,
+          statusOptions: DEFAULT_STATUS_OPTIONS,
+          instructions: "Review financial aspects of the document.",
+        },
+        {
+          id: "2",
+          name: "HR",
+          type: "department",
+          index: 1,
+          notifyUser: true,
+          statusOptions: DEFAULT_STATUS_OPTIONS,
+          instructions: "Review HR compliance and policies.",
+        },
+        {
+          id: "3",
+          name: "Legal",
+          type: "department",
+          index: 2,
+          notifyUser: true,
+          statusOptions: DEFAULT_STATUS_OPTIONS,
+          instructions: "Review legal requirements and compliance.",
+        },
+        {
+          id: "4",
+          name: "Archive",
+          type: "department",
+          index: 3,
+          notifyUser: false,
+          statusOptions: DEFAULT_STATUS_OPTIONS,
+          instructions: "Archive the document.",
+        },
+      ],
+      createdAt: new Date("2024-01-15"),
+      lastModified: new Date("2024-01-20"),
+    },
+    {
+      id: 2,
+      name: "Quick HR Processing",
+      description: "HR → Legal",
+      nodes: [
+        {
+          id: "5",
+          name: "HR",
+          type: "department",
+          index: 0,
+          notifyUser: true,
+          statusOptions: DEFAULT_STATUS_OPTIONS,
+          instructions: "Initial HR review and processing.",
+        },
+        {
+          id: "6",
+          name: "Legal",
+          type: "department",
+          index: 1,
+          notifyUser: true,
+          statusOptions: DEFAULT_STATUS_OPTIONS,
+          instructions: "Final legal approval.",
+        },
+      ],
+      createdAt: new Date("2024-02-01"),
+      lastModified: new Date("2024-02-01"),
+    },
+    {
+      id: 3,
+      name: "Financial Audit Flow",
+      description: "Finance → Audit → Legal → Archive",
+      nodes: [
+        {
+          id: "7",
+          name: "Finance",
+          type: "department",
+          index: 0,
+          notifyUser: true,
+          statusOptions: DEFAULT_STATUS_OPTIONS,
+          instructions: "Financial review and validation.",
+        },
+        {
+          id: "8",
+          name: "Audit",
+          type: "department",
+          index: 1,
+          notifyUser: true,
+          statusOptions: DEFAULT_STATUS_OPTIONS,
+          instructions: "Comprehensive audit review.",
+        },
+        {
+          id: "9",
+          name: "Legal",
+          type: "department",
+          index: 2,
+          notifyUser: true,
+          statusOptions: DEFAULT_STATUS_OPTIONS,
+          instructions: "Legal compliance check.",
+        },
+        {
+          id: "10",
+          name: "Archive",
+          type: "department",
+          index: 3,
+          notifyUser: false,
+          statusOptions: DEFAULT_STATUS_OPTIONS,
+          instructions: "Archive audited document.",
+        },
+      ],
+      createdAt: new Date("2024-01-10"),
+      lastModified: new Date("2024-01-25"),
+    },
+  ]);
+  const [currentPipelineId, setCurrentPipelineId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const canvasRef = useRef(null);
 
   const generateFlow = useCallback(() => {
@@ -94,12 +215,78 @@ const PipelineBuilder = () => {
     );
   };
 
+  const loadPipeline = (pipeline) => {
+    setPipelineNodes([...pipeline.nodes]);
+    setCurrentPipelineId(pipeline.id);
+    setSelectedNode(null);
+    // Update the department input to reflect the loaded pipeline
+    const departmentNames = pipeline.nodes.map((node) => node.name).join(", ");
+    setDepartmentInput(departmentNames);
+  };
+
+  const savePipeline = () => {
+    if (pipelineNodes.length === 0) {
+      alert("Please create a pipeline first before saving.");
+      return;
+    }
+
+    const pipelineName = prompt("Enter a name for this pipeline:");
+    if (!pipelineName) return;
+
+    const newPipeline = {
+      id: Date.now(),
+      name: pipelineName,
+      description: pipelineNodes.map((node) => node.name).join(" → "),
+      nodes: [...pipelineNodes],
+      createdAt: new Date(),
+      lastModified: new Date(),
+    };
+
+    if (currentPipelineId) {
+      // Update existing pipeline
+      setSavedPipelines((prev) =>
+        prev.map((pipeline) =>
+          pipeline.id === currentPipelineId
+            ? {
+                ...newPipeline,
+                id: currentPipelineId,
+                createdAt: pipeline.createdAt,
+              }
+            : pipeline
+        )
+      );
+    } else {
+      // Add new pipeline
+      setSavedPipelines((prev) => [...prev, newPipeline]);
+      setCurrentPipelineId(newPipeline.id);
+    }
+
+    alert("Pipeline saved successfully!");
+  };
+
+  const deletePipeline = (pipelineId) => {
+    setSavedPipelines((prev) =>
+      prev.filter((pipeline) => pipeline.id !== pipelineId)
+    );
+    if (currentPipelineId === pipelineId) {
+      setCurrentPipelineId(null);
+      setPipelineNodes([]);
+      setSelectedNode(null);
+      setDepartmentInput("Finance, HR, Legal, Archive");
+    }
+    setShowDeleteConfirm(null);
+  };
+
+  const confirmDelete = (pipelineId) => {
+    setShowDeleteConfirm(pipelineId);
+  };
+
   return (
     <div className="pipeline-builder-page">
       <header className="builder-header">
         <h1 className="header-title">Sequential Flow Builder (Admin View)</h1>
         <div className="header-actions">
-          <button className="btn btn-secondary">
+          <button className="btn btn-secondary" onClick={savePipeline}>
             <span className="icon">💾</span> Save Configuration
           </button>
           <button
@@ -139,6 +326,78 @@ const PipelineBuilder = () => {
               <p className="summary-title">
                 First Step: {pipelineNodes[0].name}
               </p>
+            </div>
+          )}
+
+          {/* Saved Pipelines Section */}
+          <div className="saved-pipelines-section">
+            <h3>💾 Saved Pipelines</h3>
+            <div className="saved-pipelines-list">
+              {savedPipelines.length === 0 ? (
+                <p className="no-pipelines">No saved pipelines yet.</p>
+              ) : (
+                savedPipelines.map((pipeline) => (
+                  <div
+                    key={pipeline.id}
+                    className={`saved-pipeline-item ${
+                      currentPipelineId === pipeline.id ? "active" : ""
+                    }`}
+                  >
+                    <div
+                      className="pipeline-info"
+                      onClick={() => loadPipeline(pipeline)}
+                    >
+                      <div className="pipeline-name">{pipeline.name}</div>
+                      <div className="pipeline-description">
+                        {pipeline.description}
+                      </div>
+                      <div className="pipeline-meta">
+                        Last modified:{" "}
+                        {pipeline.lastModified.toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div className="pipeline-actions">
+                      <button
+                        className="btn-delete"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          confirmDelete(pipeline.id);
+                        }}
+                        title="Delete Pipeline"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Delete Confirmation Modal */}
+          {showDeleteConfirm && (
+            <div className="delete-modal-overlay">
+              <div className="delete-modal">
+                <h3>Confirm Delete</h3>
+                <p>
+                  Are you sure you want to delete this pipeline? This action
+                  cannot be undone.
+                </p>
+                <div className="modal-actions">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowDeleteConfirm(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => deletePipeline(showDeleteConfirm)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </aside>
