@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom"; // Ensure Link is imported
 import "../../styles/AdminUserManagement.css";
+import { userService } from "../../services/userService";
+import { departmentService } from "../../services/departmentService";
 // Added Camera to the imports
 import {
   User,
@@ -10,16 +12,109 @@ import {
   Bell,
   LogOut,
   Camera,
+  Loader,
 } from "lucide-react";
 
-// --- Component 1: Admin Details Form (UNCHANGED from last modification) ---
+// --- Component 1: Admin Details Form ---
 const AdminDetailsForm = () => {
   const navigate = useNavigate();
-  const [name, setName] = React.useState("Jane Doe");
-  const [email, setEmail] = React.useState("jane.doe@company.com");
-  const [profileImage, setProfileImage] = React.useState(
-    "/path/to/admin-photo.jpg"
-  );
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [role, setRole] = useState("");
+  const [position, setPosition] = useState("");
+  const [department, setDepartment] = useState("");
+  const [sectionId, setSectionId] = useState("");
+  const [profileImage, setProfileImage] = useState("");
+  const [departments, setDepartments] = useState([]);
+  const [loadingDepartments, setLoadingDepartments] = useState(false);
+
+  const normalizeDepartmentList = (data) => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+
+    if (data && typeof data === "object") {
+      if (Array.isArray(data.items)) return data.items;
+      if (Array.isArray(data.content)) return data.content;
+      if (Array.isArray(data.data)) return data.data;
+
+      const potentialValues = Object.values(data).filter(
+        (value) => Array.isArray(value)
+      );
+      for (const arr of potentialValues) {
+        if (Array.isArray(arr)) return arr;
+      }
+
+      const objectValues = Object.values(data).filter(
+        (value) => value && typeof value === "object"
+      );
+      if (objectValues.length) {
+        return objectValues;
+      }
+    }
+
+    console.warn("Unable to normalize departments payload", data);
+    return [];
+  };
+
+  // Fetch user profile on component mount
+  useEffect(() => {
+    loadUserProfile();
+    loadDepartments();
+  }, []);
+
+  const loadDepartments = async () => {
+    try {
+      setLoadingDepartments(true);
+      const deptList = await departmentService.getAllDepartments();
+      setDepartments(normalizeDepartmentList(deptList));
+    } catch (err) {
+      console.error("Error loading departments:", err);
+      const fallbackDepts = departmentService.getDepartments();
+      setDepartments(normalizeDepartmentList(fallbackDepts));
+    } finally {
+      setLoadingDepartments(false);
+    }
+  };
+
+  const loadUserProfile = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const userData = await userService.getCurrentUser();
+      
+      if (userData) {
+        setUsername(userData.username || "");
+        setEmail(userData.email || "");
+        setRole(userData.role || "USER");
+        setPosition(userData.position || "");
+        setSectionId(userData.sectionId || "");
+        setDepartment(userData.sectionId || "");
+        
+        // Generate display name from username or email
+        const displayName = userData.username 
+          ? userData.username.split(/[._-]/).map(part => 
+              part.charAt(0).toUpperCase() + part.slice(1)
+            ).join(" ")
+          : userData.email?.split("@")[0] || "User";
+        setName(displayName);
+        
+        // Set default profile image based on email
+        if (userData.email) {
+          setProfileImage(generateInitialsAvatar(displayName, userData.email));
+        }
+      }
+    } catch (err) {
+      console.error("Error loading user profile:", err);
+      setError("Failed to load user profile. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Function to generate simple hash (browser compatible)
   const simpleHash = (str) => {
@@ -51,34 +146,13 @@ const AdminDetailsForm = () => {
     return `https://ui-avatars.com/api/?name=${initials}&background=${colors[colorIndex]}&color=fff&size=200`;
   };
 
-  // Mock user database lookup (replace with real API call)
-  const mockUserPhotos = {
-    "jane.doe@company.com":
-      "https://images.unsplash.com/photo-1494790108755-2616b612b993?w=200&h=200&fit=crop&crop=face",
-    "john.smith@company.com":
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-    "admin@doctutrace.com":
-      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face",
-  };
-
   // Handle email change and auto-update profile photo
   const handleEmailChange = (e) => {
     const newEmail = e.target.value;
     setEmail(newEmail);
 
-    // Auto-update profile photo if email is valid
     if (newEmail && newEmail.includes("@") && newEmail.includes(".")) {
-      // Priority 1: Check mock user database (replace with real API call)
-      if (mockUserPhotos[newEmail.toLowerCase()]) {
-        setProfileImage(mockUserPhotos[newEmail.toLowerCase()]);
-      }
-      // Priority 2: Use initials-based avatar
-      else {
-        setProfileImage(generateInitialsAvatar(name, newEmail));
-      }
-
-      // Alternative: Use Gravatar
-      // setProfileImage(generateGravatarUrl(newEmail));
+      setProfileImage(generateInitialsAvatar(name, newEmail));
     }
   };
 
@@ -88,9 +162,56 @@ const AdminDetailsForm = () => {
     }
   };
 
-  const handleSaveChanges = () => {
-    alert(`Saving changes for: ${name}. Email: ${email}. Photo updated.`);
+  const handleSaveChanges = async () => {
+    try {
+      setSaving(true);
+      setError(null);
+      
+      // TODO: When backend supports profile update endpoint, call:
+      // await userService.updateProfile({
+      //   position,
+      //   sectionId: department,
+      // });
+      
+      const selectedDept = departments.find(
+        (d) => (d.key || d.id) === department
+      );
+      const deptName = selectedDept ? selectedDept.name : department;
+
+      alert(
+        `Profile saved successfully!\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPosition: ${position}\nDepartment: ${deptName}`
+      );
+    } catch (err) {
+      console.error("Error saving profile:", err);
+      setError("Failed to save profile. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="admin-details-card">
+        <div style={{ textAlign: "center", padding: "3rem" }}>
+          <Loader size={48} className="spinner" />
+          <p style={{ marginTop: "1rem", color: "#888" }}>Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !email) {
+    return (
+      <div className="admin-details-card">
+        <div style={{ textAlign: "center", padding: "3rem" }}>
+          <p style={{ color: "#ef4444", marginBottom: "1rem" }}>{error}</p>
+          <button onClick={loadUserProfile} className="save-button">
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-details-card">
@@ -112,10 +233,22 @@ const AdminDetailsForm = () => {
 
         <div className="profile-info">
           <h2>{name}</h2>
-          <p>System Administrator</p>
+          <p>{position}</p>
           <p className="email-link">{email}</p>
         </div>
       </div>
+
+      {error && (
+        <div style={{ 
+          padding: "1rem", 
+          background: "#fee", 
+          color: "#c00", 
+          borderRadius: "8px",
+          marginBottom: "1rem"
+        }}>
+          {error}
+        </div>
+      )}
 
       <div className="form-grid">
         {/* Row 1 */}
@@ -138,28 +271,78 @@ const AdminDetailsForm = () => {
         </div>
         {/* Row 2 */}
         <div className="form-field">
-          <label>Mobile Number</label>
+          <label>Position</label>
           <input
             type="text"
-            defaultValue="Add Number"
-            placeholder="Add Number"
+            value={position}
+            onChange={(e) => setPosition(e.target.value)}
+            placeholder="Enter position/title"
           />
         </div>
         <div className="form-field">
-          <label>Address</label>
-          <input type="text" defaultValue="123 Main St, Anytown, USA" />
+          <label>Department</label>
+          {(() => {
+            const departmentOptions = normalizeDepartmentList(departments);
+            const getDeptValue = (dept) =>
+              dept?.key ?? dept?.id ?? dept?.code ?? dept?.value ?? dept?.name ?? "";
+            const getDeptName = (dept) =>
+              dept?.name ?? dept?.displayName ?? dept?.title ?? dept?.key ?? dept?.id ?? "Department";
+
+            return (
+              <select
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                disabled={loadingDepartments || !departmentOptions.length}
+                className="department-select"
+              >
+                <option value="">
+                  {loadingDepartments
+                    ? "Loading departments..."
+                    : departmentOptions.length
+                    ? "Select department"
+                    : "No departments available"}
+                </option>
+                {departmentOptions.map((dept, index) => {
+                  const value = getDeptValue(dept) || `dept-${index}`;
+                  return (
+                    <option key={value} value={value}>
+                      {getDeptName(dept)}
+                    </option>
+                  );
+                })}
+              </select>
+            );
+          })()}
         </div>
         {/* Row 3 */}
         <div className="form-field">
-          <label>Company Address</label>
-          <input type="text" defaultValue="456 Corporate Blvd, Head Office" />
+          <label>Role</label>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            disabled
+          >
+            <option value="USER">User</option>
+            <option value="ADMIN">Admin</option>
+            <option value="MANAGER">Manager</option>
+          </select>
         </div>
         <div className="form-field">{/* Empty placeholder */}</div>
       </div>
 
       <div className="form-actions">
-        <button className="save-button" onClick={handleSaveChanges}>
-          Save Changes
+        <button 
+          className="save-button" 
+          onClick={handleSaveChanges}
+          disabled={saving}
+        >
+          {saving ? (
+            <>
+              <Loader size={18} className="spinner" /> Saving...
+            </>
+          ) : (
+            "Save Changes"
+          )}
         </button>
       </div>
     </div>

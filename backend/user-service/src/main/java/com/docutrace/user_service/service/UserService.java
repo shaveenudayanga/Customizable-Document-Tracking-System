@@ -89,6 +89,43 @@ public class UserService {
         );
     }
 
+    public UserResponse updateProfile(String username, UpdateProfileRequest request) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (request.email() != null) {
+            String email = request.email().trim();
+            if (!StringUtils.hasText(email)) {
+                throw new RuntimeException("Email cannot be blank");
+            }
+            if (!email.equalsIgnoreCase(user.getEmail()) && userRepository.existsByEmail(email)) {
+                throw new RuntimeException("Email already in use");
+            }
+            user.setEmail(email);
+        }
+
+        if (request.position() != null) {
+            String position = request.position().trim();
+            user.setPosition(StringUtils.hasText(position) ? position : null);
+        }
+
+        if (request.sectionId() != null) {
+            String sectionId = request.sectionId().trim();
+            user.setSectionId(StringUtils.hasText(sectionId) ? sectionId : null);
+        }
+
+        userRepository.save(user);
+
+        return new UserResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.getPosition(),
+                user.getSectionId()
+        );
+    }
+
     private Role parseRole(String roleValue) {
         if (!StringUtils.hasText(roleValue)) {
             return Role.USER;

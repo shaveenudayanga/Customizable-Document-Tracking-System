@@ -1,12 +1,28 @@
 import { workflowService } from "./workflowService.js";
+import { api } from "../lib/api.js";
 
 /**
  * Department Service
  * Handles department-related operations
- * Note: Backend doesn't have a dedicated department controller yet.
- * Departments are referenced by keys in workflow templates.
+ * Can fetch from backend API or use predefined list as fallback
  */
 export const departmentService = {
+  /**
+   * Get all departments from backend API
+   * Falls back to predefined list if API fails
+   * @returns {Promise<Array>} List of departments
+   */
+  async getAllDepartments() {
+    try {
+      // Try to fetch from backend API
+      const departments = await api.get("/departments");
+      return departments;
+    } catch (error) {
+      console.warn("Failed to fetch departments from API, using fallback list:", error);
+      // Fallback to predefined list
+      return this.getDepartments();
+    }
+  },
   /**
    * Get tasks for a specific department
    * Uses workflow service under the hood

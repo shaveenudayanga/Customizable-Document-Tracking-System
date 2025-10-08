@@ -48,8 +48,17 @@
   background: var(--color-card-bg);
   border-radius: var(--border-radius-large);
   box-shadow: var(--shadow-elevation);
-  padding: 30px;
-  transition: transform 0.3s ease;
+}
+
+/* Spinner Animation */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ------------------- Side Menu (Left) ------------------- */
@@ -380,4 +389,121 @@
 
 .footer-bottom .legal-links span {
   color: rgba(255, 255, 255, 0.5);
+}
+
+/* ------------------- Loading & Error States ------------------- */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.loading-spinner .spinner {
+  color: var(--color-primary);
+  margin-bottom: 15px;
+}
+
+.loading-spinner p {
+  color: var(--color-text-light);
+  font-size: 16px;
+}
+
+.error-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #dc3545;
+}
+
+.error-message svg {
+  margin-bottom: 15px;
+}
+
+.error-message p {
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.retry-btn {
+  padding: 10px 24px;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.retry-btn:hover {
+  background-color: var(--color-primary-hover);
+}
+
+/* Role select (disabled) */
+.role-select:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  color: var(--color-text-light);
+}
+
+/* Department select */
+.department-select {
+  width: 100%;
+  padding: 12px 15px;
+  font-size: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: white;
+  color: var(--color-text-dark);
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.department-select:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+.department-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(169, 139, 239, 0.1);
+}
+
+.department-select:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  color: var(--color-text-light);
+}
+
+.department-select option {
+  padding: 10px;
+}
+
+.error-banner,
+.success-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.error-banner {
+  background: #fde8e8;
+  color: #b91c1c;
+}
+
+.success-banner {
+  background: #ecfdf5;
+  color: #047857;
 }

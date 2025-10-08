@@ -50,44 +50,21 @@ const MetricCard = ({ title, value, Icon, colorClass }) => (
   </div>
 );
 
-// 3. Activity Log Data and Helpers
-const activityLog = [
-  {
-    id: 1,
-    type: "upload",
-    description: 'New contract "NDA-Q4" uploaded by Jane Doe.',
-    time: "5 min ago",
-    user: "Jane Doe",
-  },
-  {
-    id: 2,
-    type: "approval",
-    description: 'Approved "Invoice #4021" submitted by Sadish.',
-    time: "1 hour ago",
-    user: "Admin",
-  },
-  {
-    id: 3,
-    type: "rejection",
-    description: 'Rejected "Q3 Budget Plan" due to incorrect format.',
-    time: "3 hours ago",
-    user: "Manager Bob",
-  },
-  {
-    id: 4,
-    type: "user",
-    description: 'New user "Michael Scott" registered via invitation.',
-    time: "1 day ago",
-    user: "System",
-  },
-  {
-    id: 5,
-    type: "upload",
-    description: 'Draft policy "Security Policy v2" updated.',
-    time: "1 day ago",
-    user: "Alice J.",
-  },
-];
+// 3. Activity Log Component
+const ActivityLogItem = ({ activity }) => {
+  const { Icon, color } = getActivityMetadata(activity.type);
+  return (
+    <div className="activity-item">
+      <div className="activity-icon" style={{ color }}>
+        <Icon size={20} />
+      </div>
+      <div className="activity-details">
+        <p className="activity-description">{activity.description}</p>
+        <span className="activity-time">{activity.time}</span>
+      </div>
+    </div>
+  );
+};
 
 const getActivityMetadata = (type) => {
   switch (type) {
@@ -131,16 +108,22 @@ const ActivityItem = ({ activity }) => {
   );
 };
 
-// 5. Recent Activity Panel (New Secondary Block)
-const RecentActivity = () => {
+// 5. Recent Activity Panel
+const RecentActivity = ({ activities }) => {
   return (
     <div className="secondary-block recent-activity-panel">
       <h3 className="block-title">Recent System Activity</h3>
 
       <div className="activity-list">
-        {activityLog.map((activity) => (
-          <ActivityItem key={activity.id} activity={activity} />
-        ))}
+        {activities && activities.length > 0 ? (
+          activities.map((activity) => (
+            <ActivityItem key={activity.id} activity={activity} />
+          ))
+        ) : (
+          <p style={{ textAlign: "center", color: "#888", padding: "2rem" }}>
+            No recent activity
+          </p>
+        )}
       </div>
 
       <div className="view-all-button-container">
@@ -162,6 +145,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("Home");
   const [userMetrics, setUserMetrics] = useState([]);
   const [adminMetrics, setAdminMetrics] = useState([]);
+  const [activityLog, setActivityLog] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch user data and metrics
@@ -177,6 +161,15 @@ const Dashboard = () => {
 
         // Fetch documents for metrics calculation
         const documents = await documentService.getAllDocuments();
+
+        // Generate activity log from recent documents
+        const recentActivities = documents.slice(0, 5).map((doc, index) => ({
+          id: index + 1,
+          type: doc.status === "Approved" ? "approval" : doc.status === "Rejected" ? "rejection" : "upload",
+          description: `Document "${doc.title}" ${doc.status === "Approved" ? "approved" : doc.status === "Rejected" ? "rejected" : "uploaded"} by ${doc.owner || "User"}.`,
+          time: new Date(doc.createdAt).toLocaleDateString(),
+        }));
+        setActivityLog(recentActivities);
 
         if (currentUser.role === "user") {
           // Calculate user-specific metrics
