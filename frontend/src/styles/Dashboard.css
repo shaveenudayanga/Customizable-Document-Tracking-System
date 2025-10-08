@@ -1,0 +1,497 @@
+/* Color Palette based on previous admin/notification styles */
+:root {
+  --color-primary: #a98bef; /* Lavender/Soft Purple (Main Accent) */
+  --color-primary-hover: #9b72ec; /* Darker Purple */
+  --color-background-start: #f4f7f9; /* Light Grey/White Background */
+  --color-background-end: #eef1f3;
+  --color-card-bg: #ffffff;
+  --color-text-dark: #333333;
+  --color-text-light: #666666;
+  --color-selected-bg: #f0f0f5; /* Very light gray/purple tint */
+  --color-selected-text: #5e468e; /* Darker accent text */
+
+  /* Semantic Colors */
+  --color-success: #28a745;
+  --color-danger: #dc3545;
+  --color-warning: #ffc107;
+  --color-info: #17a2b8;
+
+  --sidebar-width: 260px;
+  --border-radius: 12px;
+}
+
+/* --- Keyframes --- */
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ------------------- Layout Structure ------------------- */
+.dashboard-wrapper {
+  display: flex;
+  height: 100vh; /* Set wrapper to full viewport height */
+  overflow: hidden; /* Prevents global scrolling */
+
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(
+    135deg,
+    var(--color-background-start),
+    var(--color-background-end)
+  );
+}
+
+/* ------------------- Sidebar Styles ------------------- */
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--color-card-bg);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 30px 20px;
+
+  height: 100%; /* Takes full height */
+  overflow-y: auto; /* Allows scrolling within sidebar */
+}
+
+.logo-title {
+  color: var(--color-primary-hover);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 15px;
+  margin-bottom: 8px;
+  border-radius: var(--border-radius);
+  color: var(--color-text-dark);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.sidebar-link:hover {
+  background-color: var(--color-selected-bg);
+  color: var(--color-primary-hover);
+}
+
+.sidebar-link.active {
+  background-color: var(--color-primary);
+  color: white;
+  box-shadow: 0 4px 10px rgba(169, 139, 239, 0.4);
+}
+
+.sidebar-link.active svg {
+  color: white;
+}
+
+.sidebar-footer {
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+/* ------------------- Main Content Area ------------------- */
+.dashboard-main {
+  flex-grow: 1;
+  padding: 40px;
+
+  /* --- FIX APPLIED HERE --- */
+  overflow-y: auto; /* This enables vertical scrolling for the main content */
+  height: 100%;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.header-greeting {
+  font-size: 2rem;
+  font-weight: 400;
+  color: var(--color-text-dark);
+}
+
+.user-name-highlight {
+  font-weight: 700;
+  color: var(--color-primary-hover);
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.role-badge {
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.role-admin {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.role-user {
+  background-color: var(--color-selected-bg);
+  color: var(--color-selected-text);
+}
+
+/* ------------------- Metrics Grid ------------------- */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.metric-card {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border-radius: var(--border-radius);
+  background-color: var(--color-card-bg);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.metric-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.card-icon {
+  margin-right: 15px;
+  padding: 10px;
+  border-radius: 50%;
+  /* Base color for icon background */
+  background-color: rgba(169, 139, 239, 0.1);
+}
+
+.card-content {
+  flex-grow: 1;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+  font-weight: 500;
+}
+
+.card-value {
+  margin: 5px 0 0 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-text-dark);
+}
+
+/* Metric Card Colors */
+.metric-card.primary .card-icon {
+  color: var(--color-primary);
+}
+.metric-card.warning .card-icon {
+  color: var(--color-warning);
+}
+.metric-card.success .card-icon {
+  color: var(--color-success);
+}
+.metric-card.info .card-icon {
+  color: var(--color-info);
+}
+.metric-card.danger .card-icon {
+  color: var(--color-danger);
+}
+
+/* ------------------- Content Blocks ------------------- */
+.dashboard-content-blocks {
+  display: grid;
+  grid-template-columns: 3fr 2fr; /* Table wider than activity log */
+  gap: 30px;
+}
+
+.primary-block,
+.secondary-block {
+  background-color: var(--color-card-bg);
+  padding: 30px;
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.block-title {
+  font-size: 1.3rem;
+  color: var(--color-selected-text);
+  margin-top: 0;
+  margin-bottom: 25px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--color-selected-bg);
+  font-weight: 600;
+}
+
+/* --- Custom Table Styling --- */
+.custom-table {
+  display: flex;
+  flex-direction: column;
+}
+
+.table-header,
+.table-row {
+  display: grid;
+  grid-template-columns: 0.5fr 2fr 1fr 1fr 1.2fr; /* Define column widths */
+  padding: 15px 0;
+  align-items: center;
+}
+
+.table-header {
+  font-weight: 700;
+  color: var(--color-selected-text);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  border-bottom: 2px solid var(--color-selected-bg);
+}
+
+.table-row {
+  border-bottom: 1px solid #f5f5f5;
+  transition: background-color 0.2s;
+}
+
+.table-row:hover {
+  background-color: #fcfcfc;
+}
+
+.status {
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-pending {
+  background-color: #ffc1071a;
+  color: var(--color-warning);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-table {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  font-size: 0.85rem;
+}
+
+.btn-table.primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+.btn-table.primary:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.btn-table.success {
+  background-color: var(--color-success);
+  color: white;
+}
+.btn-table.success:hover {
+  background-color: color-mix(in srgb, var(--color-success) 80%, black);
+}
+
+.btn-table.danger {
+  background-color: var(--color-danger);
+  color: white;
+}
+.btn-table.danger:hover {
+  background-color: color-mix(in srgb, var(--color-danger) 80%, black);
+}
+
+/* ------------------- Recent Activity Panel Styles ------------------- */
+.recent-activity-panel {
+  /* Inherits .secondary-block styles */
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Custom Scrollbar */
+.activity-list::-webkit-scrollbar {
+  width: 6px;
+}
+.activity-list::-webkit-scrollbar-thumb {
+  background: var(--color-selected-bg);
+  border-radius: 3px;
+}
+.activity-list::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #fcfcfc;
+  border-left: 3px solid var(--icon-color, #ccc); /* Dynamic color */
+  transition: background-color 0.2s, transform 0.2s;
+  cursor: default;
+
+  /* Apply animation with delay */
+  opacity: 0;
+  animation: fadeInSlideUp 0.5s ease-out forwards;
+  animation-delay: var(--item-animation-delay);
+}
+
+.activity-item:hover {
+  background-color: var(--color-selected-bg);
+  transform: translateX(2px);
+}
+
+.activity-icon {
+  margin-right: 12px;
+  padding-top: 2px;
+}
+
+.activity-content {
+  flex-grow: 1;
+}
+
+.activity-description {
+  font-size: 0.95rem;
+  color: var(--color-text-dark);
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.activity-footer {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  margin-top: 5px;
+}
+
+.activity-footer svg {
+  margin-right: 5px;
+  width: 12px;
+  height: 12px;
+}
+
+.view-all-button-container {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px dashed #eee;
+}
+
+.btn-view-all {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-view-all:hover {
+  background: var(--color-primary);
+  color: var(--color-card-bg);
+  box-shadow: 0 4px 10px rgba(169, 139, 239, 0.4);
+}
+
+/* ------------------- Responsive Design ------------------- */
+@media (max-width: 1024px) {
+  .dashboard-wrapper {
+    flex-direction: column;
+    height: auto; /* Allow content to push height on mobile */
+  }
+  .sidebar {
+    width: 100%;
+    height: auto;
+    padding: 15px 20px;
+    flex-direction: row;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    overflow-y: visible;
+  }
+  .logo-title {
+    display: none;
+  }
+  .sidebar-nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .sidebar-link {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+  }
+  .sidebar-main {
+    padding: 20px;
+    overflow-y: visible; /* Content can scroll naturally with the mobile view */
+    height: auto;
+  }
+  .dashboard-content-blocks {
+    grid-template-columns: 1fr;
+  }
+  .activity-list {
+    max-height: 300px; /* Reduced height on smaller screens */
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .header-greeting {
+    font-size: 1.5rem;
+  }
+  .sidebar-link span {
+    display: none; /* Hide text, show only icons */
+  }
+  .table-header,
+  .table-row {
+    grid-template-columns: 1fr 1fr 1fr; /* Simplification for mobile */
+  }
+  .table-header span:nth-child(1),
+  .table-row span:nth-child(1),
+  .table-header span:nth-child(4),
+  .table-row span:nth-child(4) {
+    display: none; /* Hide ID and Date columns */
+  }
+}

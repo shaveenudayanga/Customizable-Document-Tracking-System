@@ -1,0 +1,294 @@
+/* --- User Management Specific Styles --- */
+
+.user-management-panel {
+  /* Inherits card styles */
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* ------------------- Invitation Form Styles ------------------- */
+.invite-form-card {
+  padding: 20px;
+  border: 1px solid var(--color-selected-bg);
+  border-radius: 12px;
+  background-color: #fcfcfc;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.invite-form-card .card-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: var(--color-primary-hover);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-selected-bg);
+}
+
+.invite-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-row-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* Email wider than Role */
+  gap: 20px;
+}
+
+.form-row-grid .form-field label {
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+}
+
+.input-with-icon {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0 10px;
+  background-color: var(--color-card-bg);
+  transition: border-color 0.2s;
+}
+
+.input-with-icon svg {
+  color: var(--color-text-light);
+  margin-right: 8px;
+}
+
+.input-with-icon input,
+.form-row-grid select {
+  border: none;
+  padding: 12px 5px;
+  width: 100%;
+  background-color: transparent;
+  font-size: 1rem;
+}
+
+.input-with-icon:focus-within {
+  border-color: var(--color-primary);
+}
+
+.invite-button {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  background-color: var(--color-primary);
+  color: var(--color-card-bg);
+  box-shadow: 0 4px 10px rgba(169, 139, 239, 0.4);
+}
+
+.invite-button:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.invite-button.sending {
+  background-color: #ffc107; /* Yellow for loading */
+  color: var(--color-text-dark);
+  cursor: not-allowed;
+}
+
+.invite-button.success {
+  background-color: #28a745; /* Green for success */
+  color: white;
+  cursor: default;
+}
+
+/* Spinner Animation */
+.invite-button .spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ------------------- Table Management Styles ------------------- */
+.management-table-section {
+  padding-top: 20px;
+}
+
+.table-header-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  color: var(--color-text-dark);
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Search Box */
+.search-box {
+  display: flex;
+  align-items: center;
+  padding: 8px 15px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  background-color: #f9f9f9;
+  width: 300px;
+  transition: border-color 0.3s;
+}
+
+.search-box:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-selected-bg);
+}
+
+.search-box svg {
+  color: var(--color-text-light);
+  margin-right: 10px;
+}
+
+.search-box input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 15px;
+  padding: 0;
+  outline: none;
+}
+
+/* Table */
+.table-responsive {
+  overflow-x: auto;
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 700px;
+}
+
+.user-table th {
+  background-color: var(--color-selected-bg);
+  color: var(--color-selected-text);
+  text-align: left;
+  padding: 12px 15px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.user-table td {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  color: var(--color-text-dark);
+  font-size: 0.95rem;
+  transition: background-color 0.3s;
+}
+
+.user-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* Specific Row Styles */
+.invite-row {
+  background-color: #fff9e6; /* Light yellow background for pending invites */
+}
+
+.invite-row td {
+  color: #8a6d3b;
+  font-style: italic;
+}
+
+/* Status Badges */
+.user-status-badge {
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-active {
+  background-color: #e6ffe6;
+  color: #008000;
+}
+
+.status-pending {
+  background-color: #ffeecc;
+  color: #cc9900;
+}
+
+/* Action Cell & Button */
+.action-cell {
+  width: 80px;
+  text-align: center;
+}
+
+.delete-button {
+  background: #dc35451a; /* Very light red */
+  color: #dc3545; /* Red icon */
+  border: none;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-button:hover {
+  background: #dc3545;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* Summary and Empty State */
+.table-summary {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+}
+
+.empty-state-cell {
+  text-align: center;
+  padding: 40px;
+  font-style: italic;
+  color: var(--color-text-light);
+  background-color: #fcfcfc;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 600px) {
+  .form-row-grid {
+    grid-template-columns: 1fr;
+  }
+  .table-header-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  .search-box {
+    width: 100%;
+  }
+}

@@ -1,0 +1,383 @@
+/* Color Variables */
+:root {
+  --color-background-start: #7114ce; /* Purple start */
+  --color-background-end: #9b72ec; /* Darker purple end */
+  --color-card-bg: #ffffff;
+  --color-primary: #a98bef; /* Lavender/Soft Purple */
+  --color-primary-hover: #9b72ec;
+  --color-text-dark: #333333;
+  --color-text-light: #666666;
+  --color-selected-bg: #f0f0f5; /* Very light gray/purple tint */
+  --color-selected-text: #5e468e; /* Darker accent text */
+  --border-radius-large: 15px;
+  --shadow-elevation: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* ------------------- Main Layout ------------------- */
+.admin-profile-container {
+  min-height: 100vh;
+  height: auto;
+  padding: 30px;
+  /* Apply the purple gradient background */
+  background: radial-gradient(
+    circle,
+    var(--color-background-start) 0%,
+    var(--color-background-end) 100%
+  );
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--color-text-dark);
+}
+
+.doctutrace-header {
+  color: var(--color-card-bg);
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 40px;
+}
+
+.profile-content-area {
+  display: flex;
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ------------------- Card Styles ------------------- */
+.side-menu-card,
+.admin-details-card {
+  background: var(--color-card-bg);
+  border-radius: var(--border-radius-large);
+  box-shadow: var(--shadow-elevation);
+  padding: 30px;
+  transition: transform 0.3s ease;
+}
+
+/* ------------------- Side Menu (Left) ------------------- */
+.side-menu-card {
+  flex: 0 0 280px; /* Fixed width */
+  height: fit-content;
+}
+
+.menu-heading {
+  color: var(--color-text-light);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 15px 0;
+  padding-left: 10px;
+}
+
+.settings-heading {
+  margin-top: 25px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-list {
+  margin-bottom: 25px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-text-dark);
+  border-radius: 8px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.menu-item:hover {
+  background-color: var(--color-selected-bg);
+}
+
+.menu-item.active {
+  background-color: var(--color-primary);
+  color: var(--color-card-bg);
+  box-shadow: 0 4px 10px rgba(169, 139, 239, 0.4);
+}
+
+.menu-item.active svg {
+  color: var(--color-card-bg);
+}
+
+/* Settings Controls */
+.settings-controls {
+  margin-top: 15px;
+  padding: 0 10px;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.setting-row label {
+  font-weight: 500;
+}
+
+.setting-row select {
+  border: 1px solid #ddd;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 30px;
+  padding: 12px 10px;
+  cursor: pointer;
+  color: #cc0000; /* Red for Logout */
+  font-weight: 600;
+  border-top: 1px solid #eee;
+}
+
+/* ------------------- Admin Details Form (Right) ------------------- */
+.admin-details-card {
+  flex-grow: 1;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+/* Profile Image and Upload Button Container */
+.profile-image-container {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin-right: 20px;
+}
+
+.profile-image-container .profile-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--color-primary);
+}
+
+.photo-upload-button {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: var(--color-card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  border: 2px solid var(--color-card-bg); /* White border to make it pop */
+  transition: background-color 0.2s;
+}
+
+.photo-upload-button:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.profile-info h2 {
+  margin: 0;
+  font-size: 24px;
+  color: var(--color-text-dark);
+}
+
+.profile-info p {
+  margin: 2px 0;
+  font-size: 14px;
+  color: var(--color-text-light);
+}
+
+.profile-info .email-link {
+  font-weight: 500;
+  color: var(--color-primary-hover);
+}
+
+/* Form Grid */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 40px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--color-text-dark);
+}
+
+.form-field input,
+.form-field select {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: #f9f9f9;
+  transition: border-color 0.2s;
+  color: var(--color-text-dark);
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  background-color: var(--color-card-bg);
+}
+
+/* Actions */
+.form-actions {
+  margin-top: 30px;
+  text-align: right;
+}
+
+.save-button {
+  background-color: var(--color-primary);
+  color: var(--color-card-bg);
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.1s;
+  box-shadow: 0 4px 10px rgba(169, 139, 239, 0.4);
+}
+
+.save-button:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.save-button:active {
+  transform: scale(0.98);
+}
+
+/* ------------------- NEW DETAILED FOOTER STYLES ------------------- */
+.docutrace-footer {
+  background: transparent; /* Rely on the main container background */
+  color: var(--color-card-bg); /* White text */
+  padding-top: 60px;
+  padding-bottom: 20px;
+  margin: 60px auto 0 auto;
+  max-width: 1200px;
+}
+
+.footer-content-wrapper {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Subtle separator */
+}
+
+.footer-logo {
+  flex-basis: 30%;
+}
+
+.footer-logo .logo-link {
+  color: var(--color-card-bg);
+  font-size: 24px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.footer-logo p {
+  margin: 5px 0 0 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.footer-links,
+.footer-social {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-links h4,
+.footer-social h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  color: var(--color-primary); /* Use accent color for headings */
+}
+
+.footer-links a {
+  color: var(--color-card-bg);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.footer-links a:hover {
+  color: var(--color-primary);
+}
+
+.footer-social {
+  /* Adjust flex basis if needed */
+  align-items: flex-start;
+}
+
+.social-icons {
+  display: flex;
+  gap: 15px;
+}
+
+.social-icons a {
+  font-size: 20px;
+  color: var(--color-card-bg);
+  transition: color 0.2s;
+}
+
+.social-icons a:hover {
+  color: var(--color-primary);
+}
+
+/* Footer Bottom Section */
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 20px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.footer-bottom .legal-links {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.footer-bottom .legal-links a {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-bottom .legal-links a:hover {
+  color: var(--color-primary);
+}
+
+.footer-bottom .legal-links span {
+  color: rgba(255, 255, 255, 0.5);
+}

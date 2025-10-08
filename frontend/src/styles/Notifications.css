@@ -1,0 +1,223 @@
+/* --- ENHANCED Keyframes --- */
+@keyframes slideInFade {
+  from {
+    opacity: 0;
+    transform: translateY(15px); /* Slide up for smoother entry */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* New subtle pulse animation for the badge */
+@keyframes badgePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(220, 53, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+  }
+}
+
+/* ------------------- Notification Panel Styles ------------------- */
+.notification-panel-card {
+  /* Inherits base card styles, but we'll add more depth */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); /* Deeper shadow for the panel */
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--color-selected-bg); /* Use light purple tint for separator */
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 26px; /* Slightly larger title */
+  font-weight: 700;
+  color: var(--color-selected-text); /* Use darker accent text for prominence */
+  display: flex;
+  align-items: center;
+}
+
+.panel-title svg {
+  color: var(--color-primary); /* Use primary purple for the bell icon */
+}
+
+.unread-badge {
+  background-color: #dc3545; /* Red for alert */
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-left: 15px;
+  box-shadow: 0 2px 5px rgba(220, 53, 69, 0.4);
+  animation: badgePulse 2s infinite; /* Smoother pulse effect */
+}
+
+.mark-all-btn {
+  background: none;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary-hover);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 15px;
+  border-radius: 20px; /* Pill shape */
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.mark-all-btn:hover {
+  background-color: var(--color-primary);
+  color: var(--color-card-bg);
+  box-shadow: 0 4px 10px rgba(169, 139, 239, 0.4);
+}
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* --- Individual Notification Item Styles --- */
+.notification-item {
+  display: flex;
+  align-items: center;
+  padding: 18px; /* More vertical padding */
+  border-radius: 12px; /* Slightly larger border radius */
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Increased subtle shadow */
+  position: relative;
+
+  /* Animation for calm entry */
+  opacity: 0;
+  animation: slideInFade 0.6s ease-out forwards;
+  animation-delay: var(--item-animation-delay);
+}
+
+.notification-item:hover {
+  background-color: var(--color-selected-bg);
+  transform: translateY(-4px); /* More noticeable lift */
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Unread state - More prominent differentiation */
+.notification-item.unread {
+  background-color: var(
+    --color-selected-bg
+  ); /* Use the very light purple tint */
+  border: 1px solid var(--color-primary); /* Subtle border for distinction */
+  border-left: 5px solid var(--color-primary); /* Bold purple bar */
+}
+
+.notification-item.unread:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--color-selected-bg) 90%,
+    var(--color-primary) 10%
+  );
+  border-color: var(--color-primary-hover);
+}
+
+/* Read state - More subdued and visually flatter */
+.notification-item.read {
+  opacity: 0.85; /* Less opaque */
+  background-color: var(--color-card-bg);
+  border: 1px solid #f0f0f0;
+  border-left: 5px solid transparent;
+}
+
+.notification-item.read:hover {
+  opacity: 1;
+}
+
+.notification-icon {
+  width: 45px; /* Larger icon container */
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  /* Use icon color variable defined in JSX */
+  background-color: color-mix(
+    in srgb,
+    var(--icon-color) 20%,
+    var(--color-card-bg)
+  ); /* Better contrast/calm color mix */
+  margin-right: 20px;
+  border: 2px solid var(--icon-color);
+}
+
+.notification-content {
+  flex-grow: 1;
+}
+
+.notification-title {
+  font-weight: 700;
+  color: var(--color-text-dark);
+  margin-bottom: 4px;
+}
+
+.notification-message {
+  font-size: 15px; /* Slightly larger text for readability */
+  color: var(--color-text-light);
+  line-height: 1.4;
+}
+
+.notification-footer {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: var(--color-text-light);
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.notification-footer svg {
+  margin-right: 5px;
+  width: 13px;
+  height: 13px;
+  color: #999;
+}
+
+/* Small unread dot indicator */
+.unread-dot {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 10px; /* Slightly larger dot */
+  height: 10px;
+  background-color: #dc3545;
+  border-radius: 50%;
+  animation: badgePulse 2s infinite;
+}
+
+.arrow-icon {
+  color: var(--color-text-light);
+  margin-left: 15px;
+  transition: transform 0.3s;
+}
+
+.notification-item:hover .arrow-icon {
+  transform: translateX(10px); /* More pronounced arrow movement */
+  color: var(--color-primary-hover);
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--color-text-light);
+  padding: 60px 0;
+  font-style: italic;
+  font-size: 1.1rem;
+  background-color: var(--color-selected-bg);
+  border-radius: 12px;
+}
