@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: 'jdbc:h2:mem:workflow-${random.uuid};MODE=LEGACY;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE'
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: false
+
+camunda:
+  bpm:
+    database:
+      schema-update: true
+    job-execution:
+      enabled: false
+
+server:
+  port: 0
+
+logging:
+  level:
+    root: WARN
+
