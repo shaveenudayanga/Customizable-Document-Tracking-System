@@ -21,13 +21,13 @@ import Learnmore from "./pages/Learnmore/Learnmore.jsx";
 
 // Documents
 import DocumentList from "./pages/Documents/DocumentList.jsx";
-import DocumentDetails from "./pages/Documents/DocumentDetails.jsx";
+import DocumentDetails from "./Pages/Documents/DocumentDetails.jsx";
 import NewDocument from "./pages/Documents/NewDocument.jsx"; // Corrected path to pages/Documents
 import EditDocument from "./pages/Documents/EditDocument.jsx";
 
 // Pipelines
 import PipelineList from "./pages/Pipelines/PipelineList.jsx";
-import PipelineBuilder from "./pages/Pipelines/PipelineBuilder.jsx";
+import PipelineBuilder from "./Pages/Pipelines/PipelineBuilder.jsx";
 
 // Handover
 import HandoverQueue from "./pages/Handover/HandoverQueue.jsx";
@@ -46,7 +46,7 @@ import AuditLog from "./pages/Audit/AuditLog.jsx";
 // Profile
 import UserProfile from "./pages/Profile/UserProfile.jsx";
 // Corrected: Added the missing import for AdminUserManagement
-import AdminUserManagement from "./Pages/Admin/AdminUserManagement.jsx";
+import AdminUserManagement from "./pages/Admin/AdminUserManagement.jsx";
 
 // Settings
 import SystemSettings from "./pages/Settings/SystemSettings.jsx";

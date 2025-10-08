@@ -24,7 +24,15 @@ async function request(method, path, body) {
   });
 
   const text = await res.text();
-  const data = text ? (() => { try { return JSON.parse(text); } catch { return { message: text }; } })() : null;
+  const data = text
+    ? (() => {
+        try {
+          return JSON.parse(text);
+        } catch {
+          return { message: text };
+        }
+      })()
+    : null;
 
   if (!res.ok) {
     const err = new Error(data?.message || data?.error || "Request failed");
