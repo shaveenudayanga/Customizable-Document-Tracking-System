@@ -1,30 +1,52 @@
 import { api } from "../lib/api.js";
 
-// Document Service - Replace hard-coded data with API calls
+/**
+ * Document Service
+ * Handles document CRUD operations and file management
+ * Matches backend document-service endpoints (port 8082)
+ */
 export const documentService = {
-  // Get all documents
-  async getAllDocuments(params = {}) {
+  /**
+   * Get all documents
+   * GET /api/documents
+   * @returns {Promise<Array>} List of documents ordered by creation date (desc)
+   */
+  async getAllDocuments() {
     try {
-      return await api.get("/documents", params);
+      return await api.get("/documents");
     } catch (error) {
       console.error("Error fetching documents:", error);
-      // Fallback to mock data during development
-      return this.getMockDocuments();
+      throw error;
     }
   },
 
-  // Get document by ID
+  /**
+   * Get document by ID
+   * GET /api/documents/{documentId}
+   * @param {number} id - Document ID (Long in backend)
+   * @returns {Promise<Object>} Document details
+   */
   async getDocumentById(id) {
     try {
       return await api.get(`/documents/${id}`);
     } catch (error) {
       console.error("Error fetching document:", error);
-      // Fallback to mock data
-      return this.getMockDocumentById(id);
+      throw error;
     }
   },
 
-  // Create new document
+  /**
+   * Create new document
+   * POST /api/documents
+   * @param {Object} documentData
+   * @param {string} documentData.title - Document title (required, max 255 chars)
+   * @param {string} documentData.documentType - Document type (required, max 100 chars)
+   * @param {string} [documentData.description] - Description (optional, max 10,000 chars)
+   * @param {string} documentData.ownerUserId - Owner user UUID (required)
+   * @param {string} [documentData.qrPath] - QR code path (optional, max 512 chars)
+   * @param {string} [documentData.fileDir] - File directory (optional, max 512 chars)
+   * @returns {Promise<Object>} Created document
+   */
   async createDocument(documentData) {
     try {
       return await api.post("/documents", documentData);
@@ -34,68 +56,111 @@ export const documentService = {
     }
   },
 
-  // Update document
-  async updateDocument(id, documentData) {
+  /**
+   * Create document with file upload
+   * POST /api/documents (multipart/form-data)
+   * @param {Object} metadata - Document metadata
+   * @param {File} file - File to upload
+   * @returns {Promise<Object>} Created document
+   */
+  async createDocumentWithFile(metadata, file) {
     try {
-      return await api.put(`/documents/${id}`, documentData);
+      const formData = new FormData();
+      formData.append(
+        "metadata",
+        new Blob([JSON.stringify(metadata)], { type: "application/json" })
+      );
+      if (file) {
+        formData.append("file", file);
+      }
+      return await api.upload("/documents", formData);
     } catch (error) {
-      console.error("Error updating document:", error);
+      console.error("Error creating document with file:", error);
       throw error;
     }
   },
 
-  // Delete document
-  async deleteDocument(id) {
+  /**
+   * Update document status
+   * POST /api/documents/{documentId}/status
+   * @param {number} documentId - Document ID
+   * @param {Array<string>} statuses - Array of status strings
+   * @returns {Promise<Object>} Updated document
+   */
+  async updateDocumentStatus(documentId, statuses) {
     try {
-      return await api.delete(`/documents/${id}`);
+      return await api.post(`/documents/${documentId}/status`, { statuses });
     } catch (error) {
-      console.error("Error deleting document:", error);
+      console.error("Error updating document status:", error);
       throw error;
     }
   },
 
-  // Mock data fallbacks (keep temporarily during transition)
-  getMockDocuments() {
-    return [
-      {
-        id: "doc1",
-        title: "Project Proposal Q3",
-        status: "Approved",
-        owner: "Alice",
-        pipeline: "Sales",
-        currentStep: "Final Review",
-        createdAt: "2024-07-01",
-      },
-      {
-        id: "doc2",
-        title: "Marketing Campaign Brief",
-        status: "Pending",
-        owner: "Bob",
-        pipeline: "Marketing",
-        currentStep: "Content Creation",
-        createdAt: "2024-07-15",
-      },
-      // ... other mock documents
-    ];
+  /**
+   * Get document QR code
+   * GET /api/documents/{documentId}/qrcode
+   * @param {number} documentId - Document ID
+   * @param {boolean} asBase64 - If true, returns base64 string, otherwise returns image URL
+   * @returns {Promise<string|Object>} QR code data
+   */
+  async getDocumentQRCode(documentId, asBase64 = false) {
+    try {
+      if (asBase64) {
+        return await api.get(`/documents/${documentId}/qrcode`, {
+          headers: { Accept: "application/json" },
+        });
+      } else {
+        // Return the URL for the image
+        const BASE = import.meta.env.VITE_API_URL || "/api";
+        return `${BASE}/documents/${documentId}/qrcode`;
+      }
+    } catch (error) {
+      console.error("Error fetching QR code:", error);
+      throw error;
+    }
   },
 
-  getMockDocumentById(id) {
-    const mockData = {
-      doc1: {
-        id: "doc1",
-        title: "Project Proposal Q3",
-        status: "Approved",
-        owner: "Alice",
-        pipeline: "Sales",
-        currentStep: "Final Review",
-        department: "Sales",
-        category: "Proposals",
-        description: "Comprehensive proposal for the Q3 project...",
-        createdAt: "2024-07-01T10:30:00Z",
-        updatedAt: "2024-07-25T15:00:00Z",
-      },
-      // ... other mock documents
-    };
-    return mockData[id] || null;
+  /**
+   * Upload file to document
+   * POST /api/documents/{documentId}/file
+   * @param {number} documentId - Document ID
+   * @param {File} file - File to upload
+   * @returns {Promise<Object>} Upload response
+   */
+  async uploadFile(documentId, file) {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      return await api.upload(`/documents/${documentId}/file`, formData);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Download document file
+   * GET /api/documents/{documentId}/file
+   * @param {number} documentId - Document ID
+   * @returns {string} Download URL
+   */
+  getDownloadUrl(documentId) {
+    const BASE = import.meta.env.VITE_API_URL || "/api";
+    return `${BASE}/documents/${documentId}/file`;
+  },
+
+  /**
+   * List files for a document
+   * GET /api/documents/{documentId}/files
+   * @param {number} documentId - Document ID
+   * @returns {Promise<Array>} List of files
+   */
+  async listFiles(documentId) {
+    try {
+      return await api.get(`/documents/${documentId}/files`);
+    } catch (error) {
+      console.error("Error listing files:", error);
+      throw error;
+    }
   },
 };

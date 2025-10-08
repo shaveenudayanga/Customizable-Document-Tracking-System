@@ -14,11 +14,42 @@ function buildUrl(path) {
   return `${trimSlashEnd(basePath)}/${cleanPath}`;
 }
 
-async function request(method, path, body) {
+// Get JWT token from localStorage
+function getAuthToken() {
+  return localStorage.getItem("authToken");
+}
+
+// Set JWT token in localStorage
+export function setAuthToken(token) {
+  if (token) {
+    localStorage.setItem("authToken", token);
+  } else {
+    localStorage.removeItem("authToken");
+  }
+}
+
+// Clear authentication
+export function clearAuth() {
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("user");
+}
+
+async function request(method, path, body, options = {}) {
   const url = buildUrl(path);
+  const headers = {
+    "Content-Type": "application/json",
+    ...options.headers,
+  };
+
+  // Add JWT token if available and not explicitly excluded
+  const token = getAuthToken();
+  if (token && !options.skipAuth) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(url, {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers,
     credentials: "include",
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -35,6 +66,15 @@ async function request(method, path, body) {
     : null;
 
   if (!res.ok) {
+    // Handle 401 Unauthorized - token expired or invalid
+    if (res.status === 401) {
+      clearAuth();
+      // Optionally redirect to login
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    }
+
     const err = new Error(data?.message || data?.error || "Request failed");
     err.response = { status: res.status, data };
     throw err;
@@ -42,10 +82,55 @@ async function request(method, path, body) {
   return data;
 }
 
+// Multipart form data request (for file uploads)
+async function uploadRequest(method, path, formData) {
+  const url = buildUrl(path);
+  const headers = {};
+
+  // Add JWT token if available
+  const token = getAuthToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, {
+    method,
+    headers,
+    credentials: "include",
+    body: formData,
+  });
+
+  const text = await res.text();
+  const data = text
+    ? (() => {
+        try {
+          return JSON.parse(text);
+        } catch {
+          return { message: text };
+        }
+      })()
+    : null;
+
+  if (!res.ok) {
+    if (res.status === 401) {
+      clearAuth();
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    }
+
+    const err = new Error(data?.message || data?.error || "Upload failed");
+    err.response = { status: res.status, data };
+    throw err;
+  }
+  return data;
+}
+
 export const api = {
-  get: (path) => request("GET", path),
-  post: (path, body) => request("POST", path, body),
-  put: (path, body) => request("PUT", path, body),
-  patch: (path, body) => request("PATCH", path, body),
-  delete: (path) => request("DELETE", path),
+  get: (path, options) => request("GET", path, null, options),
+  post: (path, body, options) => request("POST", path, body, options),
+  put: (path, body, options) => request("PUT", path, body, options),
+  patch: (path, body, options) => request("PATCH", path, body, options),
+  delete: (path, options) => request("DELETE", path, null, options),
+  upload: (path, formData) => uploadRequest("POST", path, formData),
 };

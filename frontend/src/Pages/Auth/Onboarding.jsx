@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "../../styles/Onboarding.css";
-import { api } from "../../lib/api";
+import { authService } from "../../services/authService";
 import signInImage from "../../assets/sign_in.jpg";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
@@ -9,35 +9,35 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 const passwordStrengthRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
 
 const Onboarding = () => {
-  // Form values
-  const [name, setName] = useState("");
+  // Form values - matching backend RegisterRequest DTO
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState("USER");
+  const [position, setPosition] = useState("");
+  const [sectionId, setSectionId] = useState("");
 
   // UI states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   // Field validation states
-  const [nameValid, setNameValid] = useState(null);
+  const [usernameValid, setUsernameValid] = useState(null);
   const [emailValid, setEmailValid] = useState(null);
-  const [emailCheckLoading, setEmailCheckLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0); // 0-4 strength
   const [passwordsMatch, setPasswordsMatch] = useState(null);
 
-  const emailCheckTimerRef = useRef(null);
   const navigate = useNavigate();
 
-  // Validate name in real-time
+  // Validate username in real-time
   useEffect(() => {
-    if (name === "") {
-      setNameValid(null);
+    if (username === "") {
+      setUsernameValid(null);
       return;
     }
-    setNameValid(name.trim().length >= 2);
-  }, [name]);
+    setUsernameValid(username.trim().length >= 3);
+  }, [username]);
 
   // Validate email in real-time
   useEffect(() => {
@@ -45,32 +45,7 @@ const Onboarding = () => {
       setEmailValid(null);
       return;
     }
-
-    const isFormatValid = emailRegex.test(email.trim());
-    setEmailValid(isFormatValid ? "checking" : false);
-
-    // Debounced email existence check
-    if (isFormatValid) {
-      setEmailCheckLoading(true);
-      clearTimeout(emailCheckTimerRef.current);
-
-      emailCheckTimerRef.current = setTimeout(async () => {
-        try {
-          // Check if email already exists
-          const response = await api.get(
-            `auth/check-email?email=${encodeURIComponent(email.trim())}`
-          );
-          setEmailValid(!response.data.exists);
-        } catch (err) {
-          // If endpoint doesn't exist, assume email is valid
-          setEmailValid(true);
-        } finally {
-          setEmailCheckLoading(false);
-        }
-      }, 500);
-    }
-
-    return () => clearTimeout(emailCheckTimerRef.current);
+    setEmailValid(emailRegex.test(email.trim()));
   }, [email]);
 
   // Calculate password strength
@@ -105,9 +80,9 @@ const Onboarding = () => {
   };
 
   const validate = () => {
-    const n = name.trim();
+    const u = username.trim();
     const e = email.trim();
-    if (n.length < 2) return "Please enter your full name.";
+    if (u.length < 3) return "Username must be at least 3 characters.";
     if (!emailRegex.test(e)) return "Please enter a valid email.";
     if (password.length < 8) return "Password must be at least 8 characters.";
     if (password !== confirmPassword) return "Passwords do not match.";
@@ -131,13 +106,6 @@ const Onboarding = () => {
     );
   };
 
-  // Auto-format name with proper capitalization
-  const handleNameChange = (e) => {
-    const input = e.target.value;
-    // Auto-capitalize first letter of each word
-    setName(input.replace(/\b\w/g, (l) => l.toUpperCase()));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -148,15 +116,18 @@ const Onboarding = () => {
     }
     setLoading(true);
     try {
-      await api.post("auth/register", {
-        name: name.trim(),
+      // Match backend RegisterRequest DTO
+      await authService.register({
+        username: username.trim(),
         email: email.trim(),
         password,
-        role,
+        role: role || undefined,
+        position: position || undefined,
+        sectionId: sectionId || undefined,
       });
-      navigate("/login", {
+      // After successful registration, authService stores token automatically
+      navigate("/dashboard", {
         replace: true,
-        state: { registeredEmail: email.trim() },
       });
     } catch (err) {
       setError(extractError(err));
@@ -171,7 +142,7 @@ const Onboarding = () => {
 
   const isDisabled =
     loading ||
-    !nameValid ||
+    !usernameValid ||
     emailValid !== true ||
     passwordStrength < 2 ||
     !passwordsMatch;
@@ -207,41 +178,36 @@ const Onboarding = () => {
           {error && <div className="error-message">{error}</div>}
 
           <form className="signup-form" onSubmit={handleSubmit}>
-            <label htmlFor="name">
-              Full Name
-              {nameValid !== null && (
+            <label htmlFor="username">
+              Username
+              {usernameValid !== null && (
                 <span
-                  className={nameValid ? "valid-text" : "invalid-text"}
-                  style={{ color: nameValid ? "#1c5d34" : "#cd6161" }}
+                  className={usernameValid ? "valid-text" : "invalid-text"}
+                  style={{ color: usernameValid ? "#1c5d34" : "#cd6161" }}
                 >
-                  {nameValid ? "✓" : "✗ Min 2 characters"}
+                  {usernameValid ? "✓" : "✗ Min 3 characters"}
                 </span>
               )}
             </label>
             <input
               type="text"
-              id="name"
-              placeholder="Enter your full name"
-              value={name}
-              onChange={handleNameChange}
-              autoComplete="name"
-              className={nameValid === false ? "invalid-input" : ""}
+              id="username"
+              placeholder="Enter your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
+              className={usernameValid === false ? "invalid-input" : ""}
               required
             />
 
             <label htmlFor="email">
               Email
-              {emailCheckLoading && (
-                <span className="checking-text">Checking...</span>
-              )}
-              {!emailCheckLoading && emailValid !== null && (
+              {emailValid !== null && (
                 <span
-                  className={
-                    emailValid === true ? "valid-text" : "invalid-text"
-                  }
-                  style={{ color: emailValid === true ? "#1c5d34" : "#cd6161" }}
+                  className={emailValid ? "valid-text" : "invalid-text"}
+                  style={{ color: emailValid ? "#1c5d34" : "#cd6161" }}
                 >
-                  {emailValid === true ? "✓" : "✗"}
+                  {emailValid ? "✓" : "✗"}
                 </span>
               )}
             </label>

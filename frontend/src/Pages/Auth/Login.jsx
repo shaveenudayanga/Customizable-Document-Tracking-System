@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/Login.css";
-import { api } from "../../lib/api";
+import { authService } from "../../services/authService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle, faFacebookF } from "@fortawesome/free-brands-svg-icons";
-import loginImage from "../../assets/login.jpg"; // <-- FIX: Import the image
+import loginImage from "../../assets/login.jpg";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -18,21 +18,13 @@ const Login = () => {
     setError("");
     setLoading(true);
     try {
-      const data = await api.post("auth/login", { email, password });
-      if (data && (data.accessToken || data.token)) {
-        localStorage.setItem("accessToken", data.accessToken || data.token);
-        if (data.refreshToken)
-          localStorage.setItem("refreshToken", data.refreshToken);
-        // Set user role after login (expects 'role' from backend, fallback to 'user')
-        if (data.role) {
-          localStorage.setItem("role", data.role); // expects 'admin' or 'user' from backend
-        } else {
-          localStorage.setItem("role", "user");
-        }
+      const response = await authService.login({ username, password });
+      if (response && response.token) {
+        // authService already stores the token and user data
+        navigate("/dashboard");
       }
-      navigate("/dashboard");
     } catch (err) {
-      setError(err?.message || "Login failed");
+      setError(err?.message || "Login failed. Please check your credentials.");
     } finally {
       setLoading(false);
     }
@@ -58,12 +50,12 @@ const Login = () => {
           {error && <div className="error-message">{error}</div>}
 
           <form className="login-form" onSubmit={handleSubmit}>
-            <label>Email</label>
+            <label>Username</label>
             <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              placeholder="Enter your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
 
@@ -80,12 +72,7 @@ const Login = () => {
               Forgot password?
             </a>
 
-            <button
-              type="submit"
-              className="login-btn"
-              disabled={loading}
-              onClick={() => navigate("/adminusermanagement")}
-            >
+            <button type="submit" className="login-btn" disabled={loading}>
               {loading ? "Logging in..." : "Log In"}
             </button>
           </form>

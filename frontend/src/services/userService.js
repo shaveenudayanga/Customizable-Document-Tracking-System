@@ -1,67 +1,70 @@
 import { api } from "../lib/api.js";
+import { authService } from "./authService.js";
 
-// User Service - Replace hard-coded user data with API calls
+/**
+ * User Service
+ * Handles user-related operations beyond authentication
+ * Uses authService for authentication operations
+ */
 export const userService = {
-  // Get current user profile
+  /**
+   * Get current user profile
+   * Uses authService to fetch from backend
+   * @returns {Promise<Object>} User profile
+   */
   async getCurrentUser() {
     try {
-      return await api.get("/users/me");
+      return await authService.getProfile();
     } catch (error) {
       console.error("Error fetching current user:", error);
-      return this.getMockCurrentUser();
+      // Return cached user if API fails
+      return authService.getCurrentUser();
     }
   },
 
-  // Get all users (admin only)
-  async getAllUsers() {
-    try {
-      return await api.get("/users");
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      return this.getMockUsers();
-    }
+  /**
+   * Get cached current user without API call
+   * @returns {Object|null} Cached user object
+   */
+  getCachedCurrentUser() {
+    return authService.getCurrentUser();
   },
 
-  // Update user profile
-  async updateUser(id, userData) {
-    try {
-      return await api.put(`/users/${id}`, userData);
-    } catch (error) {
-      console.error("Error updating user:", error);
-      throw error;
-    }
+  /**
+   * Check if user is authenticated
+   * @returns {boolean}
+   */
+  isAuthenticated() {
+    return authService.isAuthenticated();
   },
 
-  // Mock data fallbacks
-  getMockCurrentUser() {
-    return {
-      id: "user1",
-      name: "Sadish",
-      email: "sadish@doctutrace.com",
-      role: "admin",
-      department: "IT",
-      avatar: "/path/to/avatar.jpg",
-    };
+  /**
+   * Login user
+   * @param {Object} credentials
+   * @param {string} credentials.username
+   * @param {string} credentials.password
+   * @returns {Promise<Object>}
+   */
+  async login(credentials) {
+    return await authService.login(credentials);
   },
 
-  getMockUsers() {
-    return [
-      {
-        id: "user1",
-        name: "Alice Johnson",
-        email: "alice@company.com",
-        role: "user",
-        department: "Sales",
-        status: "active",
-      },
-      {
-        id: "user2",
-        name: "Bob Smith",
-        email: "bob@company.com",
-        role: "user",
-        department: "Marketing",
-        status: "active",
-      },
-    ];
+  /**
+   * Register new user
+   * @param {Object} userData - Registration data
+   * @returns {Promise<Object>}
+   */
+  async register(userData) {
+    return await authService.register(userData);
   },
+
+  /**
+   * Logout current user
+   */
+  logout() {
+    authService.logout();
+  },
+
+  // Additional user management methods can be added here
+  // when backend provides endpoints for user CRUD operations
 };
