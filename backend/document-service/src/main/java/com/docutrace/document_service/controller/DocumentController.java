@@ -98,7 +98,7 @@ public class DocumentController {
     // Update a document's statuses. Expects JSON body: { "statuses": ["DEPARTMENT_REVIEWED", "APPROVED"] }
     public ResponseEntity<DocumentResponse> updateDocumentStatus(@PathVariable Long documentId,
                                                                   @Valid @RequestBody DocumentStatusUpdateRequest request) {
-        DocumentResponse updated = documentService.updateStatus(documentId, request.statuses());
+    DocumentResponse updated = documentService.updateStatus(documentId, request);
         return ResponseEntity.ok(updated);
     }
 

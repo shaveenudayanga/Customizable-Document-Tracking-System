@@ -15,6 +15,7 @@ public record DocumentResponse(
         String description,
         UUID ownerUserId,
         List<String> statuses,
+        String processInstanceId,
         String qrPath,
         String fileDir,
         OffsetDateTime createdAt,

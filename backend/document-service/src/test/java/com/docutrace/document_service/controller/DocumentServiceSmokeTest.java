@@ -83,6 +83,7 @@ class DocumentServiceSmokeTest {
         assertThat(documentId).isNotNull();
         assertThat(createdDocument.qrPath()).isEqualTo("/api/documents/" + documentId + "/qrcode");
         assertThat(createdDocument.fileDir()).isEqualTo("/api/documents/" + documentId + "/files");
+        assertThat(createdDocument.processInstanceId()).isNull();
 
         // GET document by id
         ResponseEntity<DocumentResponse> getResponse = restTemplate.getForEntity(
@@ -98,6 +99,7 @@ class DocumentServiceSmokeTest {
         assertThat(fetched.statuses()).containsExactly("DEPARTMENT_PENDING", "APPROVAL_PENDING");
         assertThat(fetched.qrPath()).isEqualTo(createdDocument.qrPath());
         assertThat(fetched.fileDir()).isEqualTo("/api/documents/" + documentId + "/files");
+        assertThat(fetched.processInstanceId()).isNull();
         assertThat(fetched.createdAt()).isNotNull();
         assertThat(fetched.updatedAt()).isNotNull();
 

@@ -56,6 +56,9 @@ public class Document {
     @Column(name = "file_dir", length = 512)
     private String fileDir;
 
+    @Column(name = "process_instance_id", length = 128)
+    private String processInstanceId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 

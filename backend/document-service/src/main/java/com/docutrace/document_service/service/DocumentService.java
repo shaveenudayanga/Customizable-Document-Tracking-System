@@ -19,6 +19,7 @@ import org.springframework.web.util.UriUtils;
 import com.docutrace.document_service.config.StorageProperties;
 import com.docutrace.document_service.dto.DocumentCreateRequest;
 import com.docutrace.document_service.dto.DocumentResponse;
+import com.docutrace.document_service.dto.DocumentStatusUpdateRequest;
 import com.docutrace.document_service.dto.FileUploadResponse;
 import com.docutrace.document_service.entity.Document;
 import com.docutrace.document_service.mapper.DocumentMapper;
@@ -133,21 +134,23 @@ public class DocumentService {
     }
 
     private DocumentResponse toResponse(Document document) {
-        DocumentResponse base = documentMapper.toResponse(document);
-        String qrUrl = buildQrUrl(document.getId());
-        String filesUrl = buildFilesUrl(document.getId());
-        return new DocumentResponse(
-                base.id(),
-                base.title(),
-                base.documentType(),
-                base.description(),
-                base.ownerUserId(),
-        base.statuses() == null ? List.of() : List.copyOf(base.statuses()),
-                qrUrl,
-                filesUrl,
-                base.createdAt(),
-                base.updatedAt()
-        );
+    DocumentResponse base = documentMapper.toResponse(document);
+    String qrUrl = buildQrUrl(document.getId());
+    String filesUrl = buildFilesUrl(document.getId());
+    List<String> statuses = base.statuses() == null ? List.of() : List.copyOf(base.statuses());
+    return new DocumentResponse(
+        base.id(),
+        base.title(),
+        base.documentType(),
+        base.description(),
+        base.ownerUserId(),
+        statuses,
+        base.processInstanceId(),
+        qrUrl,
+        filesUrl,
+        base.createdAt(),
+        base.updatedAt()
+    );
     }
 
     private String buildQrUrl(Long documentId) {
@@ -195,9 +198,12 @@ public class DocumentService {
     /**
      * Update the department and approval statuses of an existing document.
      */
-    public DocumentResponse updateStatus(Long documentId, List<String> statuses) {
+    public DocumentResponse updateStatus(Long documentId, DocumentStatusUpdateRequest request) {
         Document document = findDocument(documentId);
-        document.setStatus(encodeStatuses(statuses));
+        document.setStatus(encodeStatuses(request.statuses()));
+        if (request.processInstanceId() != null && !request.processInstanceId().isBlank()) {
+            document.setProcessInstanceId(request.processInstanceId().trim());
+        }
         Document saved = documentRepository.save(document);
         return toResponse(saved);
     }

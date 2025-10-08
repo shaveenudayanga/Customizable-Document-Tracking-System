@@ -19,6 +19,7 @@ public interface DocumentMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "processInstanceId", ignore = true)
     Document toEntity(DocumentCreateRequest request);
 
     @Mapping(target = "statuses", expression = "java(splitStatuses(document.getStatus()))")
