@@ -1,6 +1,11 @@
 package com.soc.notificationservice.notifications.domain;
 
 import com.soc.notificationservice.notifications.ApplicationProperties;
+import com.soc.notificationservice.notifications.domain.models.DocumentApprovedEvent;
+import com.soc.notificationservice.notifications.domain.models.DocumentCreatedEvent;
+import com.soc.notificationservice.notifications.domain.models.DocumentErrorEvent;
+import com.soc.notificationservice.notifications.domain.models.DocumentRejectedEvent;
+import com.soc.notificationservice.notifications.domain.models.DocumentUpdatedEvent;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,8 +28,7 @@ public class NotificationService {
     // Order-related notification methods removed as this service now handles
     // document-tracking notifications. Keep document notification methods below.
 
-    public void sendDocumentCreatedNotification(
-            com.sivalabs.bookstore.notifications.domain.models.DocumentCreatedEvent event) {
+    public void sendDocumentCreatedNotification(DocumentCreatedEvent event) {
         String message =
                 """
                 ===================================================
@@ -42,8 +46,7 @@ public class NotificationService {
         sendEmail(event.ownerEmail(), "Document Created Notification", message);
     }
 
-    public void sendDocumentUpdatedNotification(
-            com.sivalabs.bookstore.notifications.domain.models.DocumentUpdatedEvent event) {
+    public void sendDocumentUpdatedNotification(DocumentUpdatedEvent event) {
         String message =
                 """
                 ===================================================
@@ -61,8 +64,7 @@ public class NotificationService {
         sendEmail(event.ownerEmail(), "Document Updated Notification", message);
     }
 
-    public void sendDocumentApprovedNotification(
-            com.sivalabs.bookstore.notifications.domain.models.DocumentApprovedEvent event) {
+    public void sendDocumentApprovedNotification(DocumentApprovedEvent event) {
         String message =
                 """
                 ===================================================
@@ -80,8 +82,7 @@ public class NotificationService {
         sendEmail(event.ownerEmail(), "Document Approved Notification", message);
     }
 
-    public void sendDocumentRejectedNotification(
-            com.sivalabs.bookstore.notifications.domain.models.DocumentRejectedEvent event) {
+    public void sendDocumentRejectedNotification(DocumentRejectedEvent event) {
         String message =
                 """
                 ===================================================
@@ -100,8 +101,7 @@ public class NotificationService {
         sendEmail(event.ownerEmail(), "Document Rejected Notification", message);
     }
 
-    public void sendDocumentErrorEventNotification(
-            com.sivalabs.bookstore.notifications.domain.models.DocumentErrorEvent event) {
+    public void sendDocumentErrorEventNotification(DocumentErrorEvent event) {
         String message =
                 """
                 ===================================================
