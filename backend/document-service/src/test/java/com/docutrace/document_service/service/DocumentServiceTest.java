@@ -28,6 +28,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import com.docutrace.document_service.config.StorageProperties;
 import com.docutrace.document_service.dto.DocumentCreateRequest;
 import com.docutrace.document_service.dto.DocumentResponse;
+import com.docutrace.document_service.dto.DocumentStatusUpdateRequest;
 import com.docutrace.document_service.dto.FileUploadResponse;
 import com.docutrace.document_service.entity.Document;
 import com.docutrace.document_service.mapper.DocumentMapper;
@@ -160,11 +161,14 @@ class DocumentServiceTest {
         when(documentRepository.findById(42L)).thenReturn(Optional.of(document));
         when(documentRepository.save(any(Document.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        List<String> newStatuses = List.of("DEPARTMENT_REVIEWED", "APPROVED");
+    List<String> newStatuses = List.of("DEPARTMENT_REVIEWED", "APPROVED");
+    DocumentStatusUpdateRequest request = new DocumentStatusUpdateRequest(newStatuses, "PROC-123");
 
-        DocumentResponse response = documentService.updateStatus(42L, newStatuses);
+    DocumentResponse response = documentService.updateStatus(42L, request);
 
         assertEquals(newStatuses, response.statuses());
-        assertEquals("DEPARTMENT_REVIEWED|APPROVED", document.getStatus());
+    assertEquals("DEPARTMENT_REVIEWED|APPROVED", document.getStatus());
+    assertEquals("PROC-123", document.getProcessInstanceId());
+    assertEquals("PROC-123", response.processInstanceId());
     }
 }
