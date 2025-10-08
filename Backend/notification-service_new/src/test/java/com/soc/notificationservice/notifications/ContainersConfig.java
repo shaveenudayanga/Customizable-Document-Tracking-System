@@ -26,8 +26,8 @@ public class ContainersConfig {
     @Bean(destroyMethod = "close")
     @ServiceConnection
     GenericContainer<?> mailhog() {
-        GenericContainer<?> mailhogContainer = new GenericContainer<>(DockerImageName.parse("mailhog/mailhog:v1.0.1"))
-                .withExposedPorts(1025);
+        GenericContainer<?> mailhogContainer =
+                new GenericContainer<>(DockerImageName.parse("mailhog/mailhog:v1.0.1")).withExposedPorts(1025);
         return mailhogContainer;
     }
 

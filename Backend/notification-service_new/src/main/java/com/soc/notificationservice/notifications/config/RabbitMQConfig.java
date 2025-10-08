@@ -31,46 +31,14 @@ class RabbitMQConfig {
         return new DirectExchange(properties.documentEventsExchange());
     }
 
+    // Workflow Exchange
     @Bean
-    Queue newOrdersQueue() {
-        return QueueBuilder.durable(properties.newOrdersQueue()).build();
+    DirectExchange workflowExchange() {
+        return new DirectExchange(properties.workflowEventsExchange());
     }
 
-    @Bean
-    Binding newOrdersQueueBinding() {
-        return BindingBuilder.bind(newOrdersQueue()).to(exchange()).with(properties.newOrdersQueue());
-    }
-
-    @Bean
-    Queue deliveredOrdersQueue() {
-        return QueueBuilder.durable(properties.deliveredOrdersQueue()).build();
-    }
-
-    @Bean
-    Binding deliveredOrdersQueueBinding() {
-        return BindingBuilder.bind(deliveredOrdersQueue()).to(exchange()).with(properties.deliveredOrdersQueue());
-    }
-
-    @Bean
-    Queue cancelledOrdersQueue() {
-        return QueueBuilder.durable(properties.cancelledOrdersQueue()).build();
-    }
-
-    @Bean
-    Binding cancelledOrdersQueueBinding() {
-        return BindingBuilder.bind(cancelledOrdersQueue()).to(exchange()).with(properties.cancelledOrdersQueue());
-    }
-
-    @Bean
-    Queue errorOrdersQueue() {
-        return QueueBuilder.durable(properties.errorOrdersQueue()).build();
-    }
-
-    @Bean
-    Binding errorOrdersQueueBinding() {
-        return BindingBuilder.bind(errorOrdersQueue()).to(exchange()).with(properties.errorOrdersQueue());
-    }
-
+   
+    
     // Document queues and bindings
     @Bean
     Queue documentCreatedQueue() {
@@ -128,6 +96,53 @@ class RabbitMQConfig {
     @Bean
     Binding documentErrorQueueBinding() {
         return BindingBuilder.bind(documentErrorQueue()).to(documentExchange()).with(properties.documentErrorQueue());
+    }
+
+    // Workflow queues and bindings
+    @Bean
+    Queue workflowStartedQueue() {
+        return QueueBuilder.durable(properties.workflowStartedQueue()).build();
+    }
+
+    @Bean
+    Binding workflowStartedQueueBinding() {
+        return BindingBuilder.bind(workflowStartedQueue())
+                .to(workflowExchange())
+                .with(properties.workflowStartedQueue());
+    }
+
+    @Bean
+    Queue taskCompletedQueue() {
+        return QueueBuilder.durable(properties.taskCompletedQueue()).build();
+    }
+
+    @Bean
+    Binding taskCompletedQueueBinding() {
+        return BindingBuilder.bind(taskCompletedQueue()).to(workflowExchange()).with(properties.taskCompletedQueue());
+    }
+
+    @Bean
+    Queue workflowCompletedQueue() {
+        return QueueBuilder.durable(properties.workflowCompletedQueue()).build();
+    }
+
+    @Bean
+    Binding workflowCompletedQueueBinding() {
+        return BindingBuilder.bind(workflowCompletedQueue())
+                .to(workflowExchange())
+                .with(properties.workflowCompletedQueue());
+    }
+
+    @Bean
+    Queue workflowRejectedQueue() {
+        return QueueBuilder.durable(properties.workflowRejectedQueue()).build();
+    }
+
+    @Bean
+    Binding workflowRejectedQueueBinding() {
+        return BindingBuilder.bind(workflowRejectedQueue())
+                .to(workflowExchange())
+                .with(properties.workflowRejectedQueue());
     }
 
     @Bean

@@ -16,4 +16,10 @@ public record ApplicationProperties(
         String documentUpdatedQueue,
         String documentApprovedQueue,
         String documentRejectedQueue,
-        String documentErrorQueue) {}
+        String documentErrorQueue,
+        // Workflow events properties
+        String workflowEventsExchange,
+        String workflowStartedQueue,
+        String taskCompletedQueue,
+        String workflowCompletedQueue,
+        String workflowRejectedQueue) {}

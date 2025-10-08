@@ -6,6 +6,10 @@ import com.soc.notificationservice.notifications.domain.models.DocumentCreatedEv
 import com.soc.notificationservice.notifications.domain.models.DocumentErrorEvent;
 import com.soc.notificationservice.notifications.domain.models.DocumentRejectedEvent;
 import com.soc.notificationservice.notifications.domain.models.DocumentUpdatedEvent;
+import com.soc.notificationservice.notifications.domain.models.TaskCompletedEvent;
+import com.soc.notificationservice.notifications.domain.models.WorkflowCompletedEvent;
+import com.soc.notificationservice.notifications.domain.models.WorkflowRejectedEvent;
+import com.soc.notificationservice.notifications.domain.models.WorkflowStartedEvent;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,6 +122,124 @@ public class NotificationService {
                         .formatted(event.documentId(), event.reason());
         log.info("\n{}", message);
         sendEmail(properties.supportEmail(), "Document Processing Failure Notification", message);
+    }
+
+    // ================= Workflow Notifications =================
+    public void sendWorkflowStartedNotification(WorkflowStartedEvent event) {
+        String recipient = event.ownerEmail() != null && !event.ownerEmail().isBlank()
+                ? event.ownerEmail()
+                : properties.supportEmail();
+        String message =
+                """
+        ===================================================
+        Workflow Started Notification
+        ----------------------------------------------------
+        Hello,
+        A workflow has been started for document id: %s.
+        Initiator: %s
+        Pipeline Instance Id: %s
+        Process Instance Id: %s
+
+        Thanks,
+        Document Tracking Team
+        ===================================================
+        """
+                        .formatted(
+                                event.documentId(),
+                                event.initiator(),
+                                event.pipelineInstanceId(),
+                                event.processInstanceId());
+        log.info("\n{}", message);
+        sendEmail(recipient, "Workflow Started", message);
+    }
+
+    public void sendTaskCompletedNotification(TaskCompletedEvent event) {
+        String recipient = event.ownerEmail() != null && !event.ownerEmail().isBlank()
+                ? event.ownerEmail()
+                : properties.supportEmail();
+        String decision = Boolean.TRUE.equals(event.approved()) ? "APPROVED" : "REVIEWED";
+        String notes = (event.notes() == null || event.notes().isBlank()) ? "N/A" : event.notes();
+        String message =
+                """
+        ===================================================
+        Workflow Task Completed Notification
+        ----------------------------------------------------
+        Hello,
+        A workflow task has been completed for document id: %s.
+        Task: %s (%s)
+        Completed By: %s
+        Decision: %s
+        Notes: %s
+
+        Thanks,
+        Document Tracking Team
+        ===================================================
+        """
+                        .formatted(
+                                event.documentId(),
+                                event.taskName(),
+                                event.taskId(),
+                                event.completedBy(),
+                                decision,
+                                notes);
+        log.info("\n{}", message);
+        sendEmail(recipient, "Workflow Task Completed", message);
+    }
+
+    public void sendWorkflowCompletedNotification(WorkflowCompletedEvent event) {
+        String recipient = event.ownerEmail() != null && !event.ownerEmail().isBlank()
+                ? event.ownerEmail()
+                : properties.supportEmail();
+        String message =
+                """
+        ===================================================
+        Workflow Completed Notification
+        ----------------------------------------------------
+        Hello,
+        The workflow has been completed for document id: %s.
+        Completed By: %s
+        Pipeline Instance Id: %s
+        Process Instance Id: %s
+
+        Thanks,
+        Document Tracking Team
+        ===================================================
+        """
+                        .formatted(
+                                event.documentId(),
+                                event.completedBy(),
+                                event.pipelineInstanceId(),
+                                event.processInstanceId());
+        log.info("\n{}", message);
+        sendEmail(recipient, "Workflow Completed", message);
+    }
+
+    public void sendWorkflowRejectedNotification(WorkflowRejectedEvent event) {
+        String recipient = event.ownerEmail() != null && !event.ownerEmail().isBlank()
+                ? event.ownerEmail()
+                : properties.supportEmail();
+        String message =
+                """
+        ===================================================
+        Workflow Rejected Notification
+        ----------------------------------------------------
+        Hello,
+        The workflow has been rejected for document id: %s.
+        Rejected By: %s
+        Pipeline Instance Id: %s
+        Process Instance Id: %s
+
+        Thanks,
+        Document Tracking Team
+        ===================================================
+        """
+                        .formatted(
+                                event.documentId(),
+                                event.rejectedBy(),
+                                event.pipelineInstanceId(),
+                                event.processInstanceId());
+        log.info("\n{}", message);
+        sendEmail(recipient, "Workflow Rejected", message);
     }
 
     private void sendEmail(String recipient, String subject, String content) {
