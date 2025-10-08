@@ -7,17 +7,21 @@ import com.docutrace.workflow_service.event.WorkflowEventPublisher;
 import com.docutrace.workflow_service.event.WorkflowEventType;
 import com.docutrace.workflow_service.exception.BadRequestException;
 import com.docutrace.workflow_service.exception.ResourceNotFoundException;
+import com.docutrace.workflow_service.integration.DocumentServiceClient;
 import com.docutrace.workflow_service.repository.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.camunda.bpm.engine.*;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,6 +35,9 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class WorkflowService {
+
+    private static final Logger log = LoggerFactory.getLogger(WorkflowService.class);
+    private static final List<String> DEFAULT_DOCUMENT_STATUSES = List.of("DEPARTMENT_PENDING", "APPROVAL_PENDING");
     
     private final RepositoryService repositoryService;
     private final RuntimeService runtimeService;
@@ -41,6 +48,7 @@ public class WorkflowService {
     private final DepartmentRepository departmentRepository;
     private final WorkflowEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
+    private final DocumentServiceClient documentServiceClient;
 
     @Transactional
     public TemplateResponse createTemplate(CreateTemplateRequest request) throws Exception {
@@ -172,6 +180,8 @@ public class WorkflowService {
         instanceRepo.save(instance);
 
         runtimeService.setVariable(processInstance.getProcessInstanceId(), "pipelineInstanceId", instance.getId());
+
+        propagateProcessInstanceLink(request.documentId(), processInstance.getProcessInstanceId());
 
         Map<String, Object> eventPayload = new HashMap<>();
         if (templateId != null) {
@@ -485,4 +495,25 @@ public class WorkflowService {
         }
         return false;
     }
+
+    private void propagateProcessInstanceLink(Long documentId, String processInstanceId) {
+        List<String> statuses = DEFAULT_DOCUMENT_STATUSES;
+        try {
+            DocumentServiceClient.DocumentSnapshot snapshot = documentServiceClient.getDocument(documentId);
+            if (snapshot != null && snapshot.statuses() != null && snapshot.statuses().size() == 2) {
+                statuses = snapshot.statuses();
+            }
+        } catch (HttpClientErrorException.NotFound notFound) {
+            log.info("Document {} not found when linking process. Using default statuses.", documentId);
+        } catch (Exception ex) {
+            log.warn("Failed to fetch document {} details before linking process", documentId, ex);
+        }
+
+        try {
+            documentServiceClient.updateDocumentStatus(documentId, statuses, processInstanceId);
+        } catch (Exception ex) {
+            log.warn("Failed to update document {} with process instance {}", documentId, processInstanceId, ex);
+        }
+    }
 }
+
