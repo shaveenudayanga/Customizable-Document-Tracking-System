@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: tracking-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tracking_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+server:
+  port: 8084
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
