@@ -1,0 +1,102 @@
+# ================================
+# Docker Ignore for Entire Project
+# ================================
+
+# Git and version control
+.git
+.gitignore
+.gitattributes
+.github/
+
+# Documentation
+README.md
+*.md
+docs/
+LICENSE
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.iml
+*.iws
+*.ipr
+.settings/
+.project
+.classpath
+.factorypath
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Environment and secrets
+.env
+.env.*
+*.secret
+*.key
+*.pem
+*.p12
+*.jks
+
+# Development tools and configs
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile
+.dockerignore
+
+# Build artifacts
+**/target/
+**/build/
+**/dist/
+**/out/
+
+# Node.js
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+
+# Test files
+**/src/test/
+**/*test*
+**/*Test*
+**/coverage/
+
+# Logs
+logs/
+*.log
+
+# Database files
+*.db
+*.mv.db
+*.trace.db
+
+# Kubernetes development files
+k8s/
+*.yaml
+*.yml
+!**/application.yml
+!**/application-*.yml
+
+# Scripts and utilities
+scripts/
+**/postman_collection.json
+**/postman_environment*.json
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+
+# Cache directories
+.cache/
+.npm/
+.gradle/
+.m2/
+
+# Temporary directories
+tmp/
+temp/

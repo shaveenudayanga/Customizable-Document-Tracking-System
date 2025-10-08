@@ -1,0 +1,342 @@
+name: Code Quality & Security
+
+on:
+  push:
+    branches: [main, develop, feature/*]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run security scans weekly on Sundays at 3 AM UTC
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'temurin'
+
+jobs:
+  # ================================
+  # Code Quality Analysis
+  # ================================
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+          
+      - name: Run Checkstyle
+        working-directory: backend/user-service
+        run: |
+          ./mvnw checkstyle:check || echo "Checkstyle completed with issues"
+          
+      - name: Run PMD
+        working-directory: backend/user-service
+        run: |
+          ./mvnw pmd:check || echo "PMD completed with issues"
+          
+      - name: Run SpotBugs
+        working-directory: backend/user-service
+        run: |
+          ./mvnw compile spotbugs:check || echo "SpotBugs completed with issues"
+          
+      - name: Generate JaCoCo Test report
+        working-directory: backend/user-service
+        run: |
+          ./mvnw test jacoco:report
+          
+      - name: Upload code quality reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-quality-reports
+          path: |
+            backend/user-service/target/checkstyle-result.xml
+            backend/user-service/target/pmd.xml
+            backend/user-service/target/spotbugsXml.xml
+            backend/user-service/target/site/jacoco/
+          retention-days: 7
+
+  # ================================
+  # SonarCloud Analysis
+  # ================================
+  sonarcloud:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+          
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+          
+      - name: Run tests and generate coverage
+        working-directory: backend/user-service
+        run: |
+          ./mvnw clean verify jacoco:report
+          
+      - name: SonarCloud Scan
+        working-directory: backend/user-service
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          ./mvnw sonar:sonar \
+            -Dsonar.projectKey=docutrace-user-service \
+            -Dsonar.organization=shaveenudayanga \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=$SONAR_TOKEN
+
+  # ================================
+  # Security Vulnerability Scanning
+  # ================================
+  security-scan:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+          
+      - name: Run OWASP Dependency Check
+        working-directory: backend/user-service
+        run: |
+          ./mvnw org.owasp:dependency-check-maven:check \
+            -DfailBuildOnCVSS=8 \
+            -DsuppressionsFilename=dependency-check-suppressions.xml \
+            -DretireJsAnalyzerEnabled=false
+            
+      - name: Upload OWASP Dependency Check results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-dependency-check
+          path: backend/user-service/target/dependency-check-report.html
+          retention-days: 30
+          
+  # ================================
+  # CodeQL Analysis
+  # ================================
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+      
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['java']
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+          
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+          
+      - name: Build project
+        working-directory: backend/user-service
+        run: |
+          ./mvnw clean compile -DskipTests
+          
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
+
+  # ================================
+  # License Scanning
+  # ================================
+  license-scan:
+    name: License Compliance Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+          
+      - name: Generate dependency tree
+        working-directory: backend/user-service
+        run: |
+          ./mvnw dependency:tree -DoutputFile=dependency-tree.txt
+          ./mvnw project-info-reports:dependencies
+          
+      - name: License check
+        working-directory: backend/user-service
+        run: |
+          ./mvnw license:check || echo "License check completed"
+          
+      - name: Upload license reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-reports
+          path: |
+            backend/user-service/dependency-tree.txt
+            backend/user-service/target/site/dependencies.html
+          retention-days: 7
+
+  # ================================
+  # Docker Security Scan
+  # ================================
+  docker-security:
+    name: Docker Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: backend/user-service
+          file: backend/user-service/Dockerfile
+          push: false
+          tags: user-service:security-scan
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'user-service:security-scan'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+          
+      - name: Run Trivy vulnerability scanner (table format)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'user-service:security-scan'
+          format: 'table'
+          output: 'trivy-results.txt'
+          
+      - name: Upload Trivy scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-security-scan
+          path: trivy-results.txt
+          retention-days: 30
+
+  # ================================
+  # Secret Scanning
+  # ================================
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Run TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # ================================
+  # Security Report
+  # ================================
+  security-report:
+    name: Security Report
+    runs-on: ubuntu-latest
+    needs: [security-scan, docker-security, secret-scan]
+    if: always()
+    
+    steps:
+      - name: Download security artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: security-results
+          
+      - name: Generate security report
+        run: |
+          echo "# Security Scan Report" > security-report.md
+          echo "" >> security-report.md
+          echo "## Scan Summary" >> security-report.md
+          echo "- **Date**: $(date)" >> security-report.md
+          echo "- **Branch**: ${{ github.ref }}" >> security-report.md
+          echo "- **Commit**: ${{ github.sha }}" >> security-report.md
+          echo "" >> security-report.md
+          
+          echo "## Available Reports" >> security-report.md
+          find security-results -type f | while read file; do
+            echo "- \`$file\`" >> security-report.md
+          done
+          
+          cat security-report.md
+          
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: security-report.md
+          retention-days: 30

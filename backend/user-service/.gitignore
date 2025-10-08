@@ -1,0 +1,43 @@
+# ================================
+# User Service Specific Ignores
+# ================================
+
+# Service-specific environment files
+.env.user-service
+.env.user-service.*
+
+# Service-specific build artifacts
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Service-specific logs
+user-service.log
+user-service.*.log
+
+# Service-specific test reports
+surefire-reports/
+failsafe-reports/
+
+# Service-specific H2 database files
+userdb.mv.db
+userdb.trace.db
+testdb.mv.db
+testdb.trace.db
+
+# Service-specific secrets
+jwks/
+private-keys/
+user-service-secrets.yaml
+
+# Service-specific generated files
+src/main/resources/application-generated.yml
+
+# Service-specific maven wrapper (if needed)
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+
+# Service-specific development tools
+.vscode/settings.json
+.idea/workspace.xml
+.idea/tasks.xml

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Select Registration Type</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            padding: 40px;
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #333333;
+            margin-bottom: 10px;
+            font-size: 30px;
+        }
+        .subtitle {
+            color: #666666;
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+        .role-cards {
+            display: grid;
+            gap: 20px;
+        }
+        .role-card {
+            border: 1px solid #e6e6ff;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: left;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            background: #f9f9ff;
+        }
+        .role-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.25);
+        }
+        .role-card h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #4c51bf;
+        }
+        .role-card p {
+            font-size: 14px;
+            color: #555555;
+            line-height: 1.5;
+        }
+        .back-link {
+            margin-top: 30px;
+            font-size: 14px;
+        }
+        .back-link a {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Choose Account Type</h1>
+        <p class="subtitle">Select the registration form that matches your role.</p>
+
+        <div class="role-cards">
+            <a class="role-card" href="register-admin.html">
+                <h2>Administrator</h2>
+                <p>Manage the entire document tracking system. Requires your job position and optional section identifier.</p>
+            </a>
+            <a class="role-card" href="register-staff.html">
+                <h2>Staff Member</h2>
+                <p>Handle day-to-day document operations. Provide your job position and optional section identifier.</p>
+            </a>
+            <a class="role-card" href="register-user.html">
+                <h2>External User</h2>
+                <p>Access shared documents and updates. No job position or section details required.</p>
+            </a>
+        </div>
+
+        <div class="back-link">
+            <a href="index.html">← Back to home</a>
+        </div>
+    </div>
+</body>
+</html>

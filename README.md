@@ -67,3 +67,81 @@ This project is licensed under the MIT License. See [`LICENSE`](./LICENSE) for d
 ---
 
 **Breaking the cycle of bureaucratic delays, one digital workflow at a time.**
+
+## Architecture & Operations
+
+See the high-level multi-tenant architecture, workflows, and operations in `docs/architecture/multi-tenant-overview.md`.
+
+## User Service (Authentication & User Management)
+
+The `user-service` microservice handles registration, authentication (JWT + refresh tokens), and administrative user management.
+
+Note on IDs and relationships:
+- `user-service` uses UUID as the canonical user identifier and owns its database schema.
+- Other services should store user references as UUID strings and must not create cross-service database foreign keys.
+- Cross-service integrity is enforced via APIs/events, not DB-level FKs. See docs/adr/0001-user-ids-and-cross-service-references.md.
+
+### Quick Start (Docker Compose)
+
+```
+cd backend/user-service
+docker compose build
+docker compose up -d
+```
+
+Service will be available at `http://localhost:8080` (default admin endpoints protected).
+
+### API Documentation
+
+Once the service is running locally you can explore the interactive OpenAPI docs at:
+
+* Swagger UI: `http://localhost:8081/swagger-ui/index.html`
+* Raw OpenAPI spec: `http://localhost:8081/v3/api-docs`
+
+### API Endpoints
+
+Public:
+* `POST /api/auth/register` – register user
+* `POST /api/auth/login` – authenticate and receive access + refresh tokens
+* `POST /api/auth/refresh` – refresh access token
+
+Authenticated:
+* `GET /api/users/me` – current user profile
+
+Admin Only:
+* `GET /api/admin/users` – list users
+* `PATCH /api/admin/users/{id}/role` – change role `{ "role": "ADMIN" }`
+* `PATCH /api/admin/users/{id}/active` – activate/deactivate `{ "active": false }`
+* `DELETE /api/admin/users/{id}` – delete user
+
+### Environment Variables (override defaults)
+
+* `POSTGRES_USER`, `POSTGRES_PASSWORD` – database credentials
+* `JWT_SECRET` – strong 256-bit secret (required for production)
+* `SPRING_PROFILES_ACTIVE=prod` – activates docker profile (already set in compose)
+
+### Running Tests
+
+```
+mvn test -f backend/user-service/pom.xml
+```
+
+### Build Jar (local dev)
+
+```
+mvn -f backend/user-service/pom.xml clean package
+java -jar backend/user-service/target/user-service-0.0.1-SNAPSHOT.jar
+```
+
+### Tokens
+
+Access tokens expire (default 30m). Refresh tokens (default 7d) can request new access tokens. Include header:
+
+`Authorization: Bearer <access_token>`
+
+### Notes
+
+* Update `application.yml` production block or environment variables for deployment.
+* Replace sample JWT secret in any non-development environment.
+* Add monitoring endpoints via Spring Actuator (already included) if needed.
+

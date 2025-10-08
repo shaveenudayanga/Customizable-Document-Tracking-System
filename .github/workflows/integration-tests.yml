@@ -1,0 +1,462 @@
+name: Cross-Service Integration Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      services:
+        description: 'Services to test (comma-separated)'
+        required: false
+        default: 'user-service'
+        type: string
+      environment:
+        description: 'Test environment'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+  schedule:
+    # Run integration tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_run:
+    workflows: ["User Service CI/CD"]
+    types: [completed]
+    branches: [main, develop]
+
+env:
+  CLUSTER_NAME: docutrace-integration
+  NAMESPACE: integration-tests
+
+jobs:
+  # ================================
+  # Setup Integration Environment
+  # ================================
+  setup-environment:
+    name: Setup Test Environment
+    runs-on: ubuntu-latest
+    
+    outputs:
+      cluster-ready: ${{ steps.cluster.outputs.ready }}
+      services: ${{ steps.services.outputs.list }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Determine services to test
+        id: services
+        run: |
+          if [ -n "${{ github.event.inputs.services }}" ]; then
+            SERVICES="${{ github.event.inputs.services }}"
+          else
+            SERVICES="user-service"
+          fi
+          echo "list=$SERVICES" >> $GITHUB_OUTPUT
+          echo "Testing services: $SERVICES"
+          
+      - name: Set up Kind cluster
+        id: cluster
+        uses: helm/kind-action@v1.10.0
+        with:
+          cluster_name: ${{ env.CLUSTER_NAME }}
+          wait: 180s
+          config: |
+            kind: Cluster
+            apiVersion: kind.x-k8s.io/v1alpha4
+            nodes:
+            - role: control-plane
+              kubeadmConfigPatches:
+              - |
+                kind: InitConfiguration
+                nodeRegistration:
+                  kubeletExtraArgs:
+                    node-labels: "ingress-ready=true"
+              extraPortMappings:
+              - containerPort: 80
+                hostPort: 80
+                protocol: TCP
+              - containerPort: 443
+                hostPort: 443
+                protocol: TCP
+            - role: worker
+            - role: worker
+            
+      - name: Create namespace
+        run: |
+          kubectl create namespace ${{ env.NAMESPACE }} || true
+          kubectl config set-context --current --namespace=${{ env.NAMESPACE }}
+          
+      - name: Verify cluster readiness
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+          echo "ready=true" >> $GITHUB_OUTPUT
+
+  # ================================
+  # Deploy Infrastructure Services
+  # ================================
+  deploy-infrastructure:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    needs: setup-environment
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Deploy PostgreSQL
+        run: |
+          # Create PostgreSQL deployment
+          cat <<EOF | kubectl apply -f -
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: postgres
+            namespace: ${{ env.NAMESPACE }}
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: postgres
+            template:
+              metadata:
+                labels:
+                  app: postgres
+              spec:
+                containers:
+                - name: postgres
+                  image: postgres:16
+                  env:
+                  - name: POSTGRES_USER
+                    value: testuser
+                  - name: POSTGRES_PASSWORD
+                    value: testpass
+                  - name: POSTGRES_DB
+                    value: docutrace_integration
+                  ports:
+                  - containerPort: 5432
+                  readinessProbe:
+                    exec:
+                      command: ["pg_isready", "-U", "testuser", "-d", "docutrace_integration"]
+                    initialDelaySeconds: 5
+                    periodSeconds: 5
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: postgres
+            namespace: ${{ env.NAMESPACE }}
+          spec:
+            selector:
+              app: postgres
+            ports:
+            - port: 5432
+              targetPort: 5432
+          EOF
+          
+      - name: Deploy Redis
+        run: |
+          # Create Redis deployment
+          cat <<EOF | kubectl apply -f -
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: redis
+            namespace: ${{ env.NAMESPACE }}
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: redis
+            template:
+              metadata:
+                labels:
+                  app: redis
+              spec:
+                containers:
+                - name: redis
+                  image: redis:7-alpine
+                  ports:
+                  - containerPort: 6379
+                  readinessProbe:
+                    exec:
+                      command: ["redis-cli", "ping"]
+                    initialDelaySeconds: 5
+                    periodSeconds: 5
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: redis
+            namespace: ${{ env.NAMESPACE }}
+          spec:
+            selector:
+              app: redis
+            ports:
+            - port: 6379
+              targetPort: 6379
+          EOF
+          
+      - name: Wait for infrastructure to be ready
+        run: |
+          echo "Waiting for PostgreSQL..."
+          kubectl wait --for=condition=ready pod -l app=postgres -n ${{ env.NAMESPACE }} --timeout=300s
+          
+          echo "Waiting for Redis..."
+          kubectl wait --for=condition=ready pod -l app=redis -n ${{ env.NAMESPACE }} --timeout=300s
+          
+          echo "Infrastructure is ready!"
+          kubectl get pods -n ${{ env.NAMESPACE }}
+
+  # ================================
+  # Deploy Application Services
+  # ================================
+  deploy-services:
+    name: Deploy Services
+    runs-on: ubuntu-latest
+    needs: [setup-environment, deploy-infrastructure]
+    
+    strategy:
+      matrix:
+        service: ${{ fromJson(format('["{0}"]', needs.setup-environment.outputs.services)) }}
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Create service secrets
+        run: |
+          kubectl create secret generic ${{ matrix.service }}-secret \
+            --namespace=${{ env.NAMESPACE }} \
+            --from-literal=POSTGRES_USER=testuser \
+            --from-literal=POSTGRES_PASSWORD=testpass \
+            --from-literal=DB_HOST=postgres \
+            --from-literal=REDIS_HOST=redis \
+            --from-literal=REFRESH_HMAC_SECRET=integration-refresh-secret \
+            --from-literal=MAGIC_TOKEN_HMAC_SECRET=integration-magic-secret \
+            --from-literal=JWT_ISSUER=http://integration-${{ matrix.service }} \
+            --from-literal=JWT_AUDIENCE=docutrace-integration \
+            --dry-run=client -o yaml | kubectl apply -f -
+            
+      - name: Deploy ${{ matrix.service }}
+        run: |
+          cd backend/${{ matrix.service }}
+          
+          # Update namespace in k8s manifests
+          sed -i 's/namespace: default/namespace: ${{ env.NAMESPACE }}/g' k8s/*.yaml || true
+          
+          # Skip postgres deployment (already deployed)
+          kubectl apply -f k8s/ -n ${{ env.NAMESPACE }} --exclude=k8s/postgres.yaml || \
+          kubectl apply -f k8s/ -n ${{ env.NAMESPACE }}
+          
+      - name: Wait for ${{ matrix.service }} to be ready
+        run: |
+          kubectl wait --for=condition=ready pod -l app=${{ matrix.service }} \
+            -n ${{ env.NAMESPACE }} --timeout=300s
+            
+          echo "${{ matrix.service }} is ready!"
+          kubectl get pods -l app=${{ matrix.service }} -n ${{ env.NAMESPACE }}
+
+  # ================================
+  # Run Integration Tests
+  # ================================
+  run-integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [setup-environment, deploy-services]
+    
+    strategy:
+      matrix:
+        test-type: [api, health, auth, data-flow]
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js for Newman
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install testing tools
+        run: |
+          npm install -g newman
+          npm install -g @apidevtools/swagger-parser
+          
+      - name: Create test environment
+        run: |
+          mkdir -p test-results
+          
+      - name: Port forward services
+        run: |
+          # Port forward user-service
+          kubectl port-forward svc/user-service 8080:8080 -n ${{ env.NAMESPACE }} &
+          
+          # Wait for port forward to be ready
+          sleep 10
+          
+          # Verify connectivity
+          curl -f http://localhost:8080/actuator/health || exit 1
+          
+      - name: Run ${{ matrix.test-type }} tests
+        id: test-execution
+        run: |
+          case "${{ matrix.test-type }}" in
+            "api")
+              echo "Running API tests..."
+              if [ -f "backend/user-service/postman_collection.json" ]; then
+                newman run backend/user-service/postman_collection.json \
+                  -e backend/user-service/postman_environment.json \
+                  --delay-request 200 \
+                  --timeout-request 15000 \
+                  --bail \
+                  --reporters cli,json \
+                  --reporter-json-export test-results/api-tests.json
+              else
+                echo "No Postman collection found, running basic API tests"
+                curl -f http://localhost:8080/.well-known/openid-configuration
+                curl -f http://localhost:8080/oauth2/jwks
+              fi
+              ;;
+            "health")
+              echo "Running health check tests..."
+              curl -f http://localhost:8080/actuator/health
+              ;;
+            "auth")
+              echo "Running authentication tests..."
+              # Test OIDC discovery
+              curl -f http://localhost:8080/.well-known/openid-configuration
+              # Test JWKS endpoint
+              curl -f http://localhost:8080/oauth2/jwks
+              ;;
+            "data-flow")
+              echo "Running data flow tests..."
+              # Test database connectivity through the service
+              curl -f http://localhost:8080/actuator/health
+              ;;
+          esac
+          
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results-${{ matrix.test-type }}
+          path: test-results/
+          retention-days: 7
+
+  # ================================
+  # Performance Tests
+  # ================================
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: [setup-environment, deploy-services]
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+          
+      - name: Port forward services
+        run: |
+          kubectl port-forward svc/user-service 8080:8080 -n ${{ env.NAMESPACE }} &
+          sleep 10
+          
+      - name: Run performance tests
+        run: |
+          # Create basic k6 performance test
+          cat <<EOF > performance-test.js
+          import http from 'k6/http';
+          import { check } from 'k6';
+          
+          export let options = {
+            stages: [
+              { duration: '30s', target: 10 },
+              { duration: '1m', target: 20 },
+              { duration: '30s', target: 0 },
+            ],
+          };
+          
+          export default function() {
+            let response = http.get('http://localhost:8080/actuator/health');
+            check(response, {
+              'status is 200': (r) => r.status === 200,
+              'response time < 500ms': (r) => r.timings.duration < 500,
+            });
+          }
+          EOF
+          
+          k6 run performance-test.js --out json=performance-results.json
+          
+      - name: Upload performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-test-results
+          path: performance-results.json
+          retention-days: 7
+
+  # ================================
+  # Cleanup
+  # ================================
+  cleanup:
+    name: Cleanup Environment
+    runs-on: ubuntu-latest
+    needs: [run-integration-tests, performance-tests]
+    if: always()
+    
+    steps:
+      - name: Delete Kind cluster
+        run: |
+          kind delete cluster --name ${{ env.CLUSTER_NAME }} || true
+          
+  # ================================
+  # Report Results
+  # ================================
+  report-results:
+    name: Test Report
+    runs-on: ubuntu-latest
+    needs: [run-integration-tests, performance-tests]
+    if: always()
+    
+    steps:
+      - name: Download test artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-test-results
+          
+      - name: Generate test report
+        run: |
+          echo "# Integration Test Results" > test-report.md
+          echo "" >> test-report.md
+          echo "## Test Summary" >> test-report.md
+          echo "- **Trigger**: ${{ github.event_name }}" >> test-report.md
+          echo "- **Branch**: ${{ github.ref }}" >> test-report.md
+          echo "- **Commit**: ${{ github.sha }}" >> test-report.md
+          echo "- **Services**: ${{ needs.setup-environment.outputs.services }}" >> test-report.md
+          echo "" >> test-report.md
+          
+          # List all test artifacts
+          echo "## Test Artifacts" >> test-report.md
+          find all-test-results -name "*.json" -o -name "*.xml" | while read file; do
+            echo "- \`$file\`" >> test-report.md
+          done
+          
+          cat test-report.md
+          
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-report
+          path: test-report.md
+          retention-days: 30

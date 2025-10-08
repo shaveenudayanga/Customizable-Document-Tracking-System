@@ -1,0 +1,471 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.2.3)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        default: false
+        type: boolean
+      draft:
+        description: 'Create as draft release'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/user-service
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'temurin'
+
+jobs:
+  # ================================
+  # Validate Release
+  # ================================
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is-prerelease: ${{ steps.version.outputs.is-prerelease }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            IS_PRERELEASE="${{ github.event.inputs.prerelease }}"
+          else
+            VERSION="${{ github.ref_name }}"
+            # Check if version contains pre-release identifiers
+            if [[ "$VERSION" =~ -(alpha|beta|rc|dev) ]]; then
+              IS_PRERELEASE="true"
+            else
+              IS_PRERELEASE="false"
+            fi
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "is-prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION"
+          echo "Is pre-release: $IS_PRERELEASE"
+          
+      - name: Validate version format
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
+            echo "Invalid version format: $VERSION"
+            echo "Expected format: v1.2.3 or v1.2.3-alpha.1"
+            exit 1
+          fi
+          
+      - name: Check if tag exists
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION already exists"
+            exit 1
+          fi
+
+  # ================================
+  # Build Release Artifacts
+  # ================================
+  build:
+    name: Build Release Artifacts
+    runs-on: ubuntu-latest
+    needs: validate
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+      jar-checksum: ${{ steps.checksum.outputs.jar-checksum }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+          
+      - name: Update version in pom.xml
+        working-directory: backend/user-service
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          # Remove 'v' prefix for Maven version
+          MAVEN_VERSION="${VERSION#v}"
+          ./mvnw versions:set -DnewVersion="$MAVEN_VERSION" -DgenerateBackupPoms=false
+          
+      - name: Build application
+        working-directory: backend/user-service
+        run: |
+          ./mvnw clean package -DskipTests
+          
+      - name: Run tests with coverage
+        working-directory: backend/user-service
+        run: |
+          ./mvnw test jacoco:report
+          
+      - name: Generate checksum
+        id: checksum
+        working-directory: backend/user-service
+        run: |
+          JAR_FILE=$(find target -name "*.jar" -not -name "*-sources.jar" -not -name "*-javadoc.jar" | head -1)
+          JAR_CHECKSUM=$(sha256sum "$JAR_FILE" | cut -d' ' -f1)
+          echo "jar-checksum=$JAR_CHECKSUM" >> $GITHUB_OUTPUT
+          echo "JAR Checksum: $JAR_CHECKSUM"
+          
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: user-service-jar
+          path: backend/user-service/target/*.jar
+          retention-days: 90
+          
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ needs.validate.outputs.version }}
+          path: |
+            backend/user-service/target/surefire-reports/
+            backend/user-service/target/site/jacoco/
+          retention-days: 90
+          
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ needs.validate.outputs.version }}
+            type=raw,value=latest,enable=${{ needs.validate.outputs.is-prerelease == 'false' }}
+          labels: |
+            org.opencontainers.image.title=DocuTrace User Service
+            org.opencontainers.image.description=Multi-tenant user management microservice
+            org.opencontainers.image.vendor=DocuTrace
+            org.opencontainers.image.version=${{ needs.validate.outputs.version }}
+            
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: backend/user-service
+          file: backend/user-service/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            VERSION=${{ needs.validate.outputs.version }}
+            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            VCS_REF=${{ github.sha }}
+
+  # ================================
+  # Security Scan Release
+  # ================================
+  security-scan:
+    name: Security Scan Release
+    runs-on: ubuntu-latest
+    needs: [validate, build]
+    
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ needs.build.outputs.image-tag }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+          
+      - name: Run Trivy vulnerability scanner (table)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ needs.build.outputs.image-tag }}
+          format: 'table'
+          output: 'trivy-results.txt'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+          
+      - name: Upload security scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-${{ needs.validate.outputs.version }}
+          path: trivy-results.txt
+          retention-days: 90
+
+  # ================================
+  # Generate Release Notes
+  # ================================
+  release-notes:
+    name: Generate Release Notes
+    runs-on: ubuntu-latest
+    needs: validate
+    outputs:
+      changelog: ${{ steps.changelog.outputs.changelog }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Generate changelog
+        id: changelog
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          
+          # Get previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "No previous tag found, generating full changelog"
+            COMMIT_RANGE="HEAD"
+          else
+            echo "Previous tag: $PREVIOUS_TAG"
+            COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
+          fi
+          
+          # Generate changelog
+          CHANGELOG=$(cat << 'EOF'
+          ## What's Changed
+          
+          ### 🚀 Features
+          $(git log $COMMIT_RANGE --pretty=format:"- %s (%h)" --grep="feat" --grep="feature" --grep="add" | head -10)
+          
+          ### 🐛 Bug Fixes
+          $(git log $COMMIT_RANGE --pretty=format:"- %s (%h)" --grep="fix" --grep="bug" | head -10)
+          
+          ### 🔧 Improvements
+          $(git log $COMMIT_RANGE --pretty=format:"- %s (%h)" --grep="improve" --grep="enhance" --grep="update" | head -10)
+          
+          ### 🔒 Security
+          $(git log $COMMIT_RANGE --pretty=format:"- %s (%h)" --grep="security" --grep="vuln" | head -5)
+          
+          ### 📚 Documentation
+          $(git log $COMMIT_RANGE --pretty=format:"- %s (%h)" --grep="doc" --grep="readme" | head -5)
+          
+          ### 🧪 Testing
+          $(git log $COMMIT_RANGE --pretty=format:"- %s (%h)" --grep="test" | head -5)
+          
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREVIOUS_TAG...$VERSION
+          EOF
+          )
+          
+          # Clean up empty sections
+          CHANGELOG=$(echo "$CHANGELOG" | sed '/^$/N;/^\n$/d' | sed '/^### [^$]*$/{ N; /\n$/d; }')
+          
+          # Save to file and output
+          echo "$CHANGELOG" > changelog.md
+          cat changelog.md
+          
+          # Set output (escape newlines)
+          {
+            echo 'changelog<<EOF'
+            cat changelog.md
+            echo EOF
+          } >> $GITHUB_OUTPUT
+          
+      - name: Upload changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog-${{ needs.validate.outputs.version }}
+          path: changelog.md
+          retention-days: 90
+
+  # ================================
+  # Create Release
+  # ================================
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [validate, build, security-scan, release-notes]
+    if: always() && needs.validate.result == 'success' && needs.build.result == 'success'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Create tag
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git tag -a "$VERSION" -m "Release $VERSION"
+          git push origin "$VERSION"
+          
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          
+      - name: Prepare release assets
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          mkdir -p release-assets
+          
+          # Copy JAR files
+          if [ -d "release-artifacts/user-service-jar" ]; then
+            cp release-artifacts/user-service-jar/*.jar release-assets/
+          fi
+          
+          # Copy changelog
+          if [ -f "release-artifacts/changelog-$VERSION/changelog.md" ]; then
+            cp "release-artifacts/changelog-$VERSION/changelog.md" release-assets/
+          fi
+          
+          # Copy security scan results
+          if [ -f "release-artifacts/security-scan-$VERSION/trivy-results.txt" ]; then
+            cp "release-artifacts/security-scan-$VERSION/trivy-results.txt" release-assets/
+          fi
+          
+          # Create checksums file
+          cd release-assets
+          find . -name "*.jar" -exec sha256sum {} \; > checksums.txt
+          
+          # Create release info
+          cat << EOF > release-info.txt
+          Release: $VERSION
+          Commit: ${{ github.sha }}
+          Build Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          Docker Image: ${{ needs.build.outputs.image-tag }}
+          Image Digest: ${{ needs.build.outputs.image-digest }}
+          JAR Checksum: ${{ needs.build.outputs.jar-checksum }}
+          
+          Security Scan: ${{ needs.security-scan.result }}
+          Tests: ${{ needs.build.result }}
+          EOF
+          
+          ls -la
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.validate.outputs.version }}
+          name: Release ${{ needs.validate.outputs.version }}
+          body: ${{ needs.release-notes.outputs.changelog }}
+          draft: ${{ github.event.inputs.draft || false }}
+          prerelease: ${{ needs.validate.outputs.is-prerelease }}
+          files: |
+            release-assets/*
+          generate_release_notes: true
+          
+      - name: Update Docker Hub description
+        if: needs.validate.outputs.is-prerelease == 'false'
+        run: |
+          # Update Docker Hub repository description
+          curl -X PATCH "https://hub.docker.com/v2/repositories/${{ github.repository_owner }}/user-service/" \
+            -H "Authorization: JWT ${{ secrets.DOCKER_HUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "full_description": "# DocuTrace User Service\n\nMulti-tenant user management microservice for the DocuTrace document tracking system.\n\n## Version: ${{ needs.validate.outputs.version }}\n\n${{ needs.release-notes.outputs.changelog }}"
+            }' || echo "Failed to update Docker Hub description"
+
+  # ================================
+  # Deploy Release
+  # ================================
+  deploy-release:
+    name: Deploy Release
+    runs-on: ubuntu-latest
+    needs: [validate, build, release]
+    if: needs.validate.outputs.is-prerelease == 'false' && success()
+    
+    steps:
+      - name: Trigger deployment workflow
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'deployment.yml',
+              ref: 'main',
+              inputs: {
+                environment: 'staging',
+                version: '${{ needs.validate.outputs.version }}',
+                force_deploy: 'true'
+              }
+            });
+
+  # ================================
+  # Notify Release
+  # ================================
+  notify:
+    name: Notify Release
+    runs-on: ubuntu-latest
+    needs: [validate, build, release]
+    if: always()
+    
+    steps:
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: "${{ needs.release.result == 'success' && '🎉 NEW RELEASE' || '❌ RELEASE FAILED' }}",
+              attachments: [{
+                color: "${{ needs.release.result == 'success' && 'good' || 'danger' }}",
+                fields: [{
+                  title: "Version",
+                  value: "${{ needs.validate.outputs.version }}",
+                  short: true
+                }, {
+                  title: "Type",
+                  value: "${{ needs.validate.outputs.is-prerelease == 'true' && 'Pre-release' || 'Stable' }}",
+                  short: true
+                }, {
+                  title: "Commit",
+                  value: "${{ github.sha }}",
+                  short: true
+                }, {
+                  title: "Status",
+                  value: "${{ needs.release.result }}",
+                  short: true
+                }],
+                actions: [{
+                  type: "button",
+                  text: "View Release",
+                  url: "https://github.com/${{ github.repository }}/releases/tag/${{ needs.validate.outputs.version }}"
+                }]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
