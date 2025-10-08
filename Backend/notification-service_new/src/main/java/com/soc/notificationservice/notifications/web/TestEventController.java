@@ -74,7 +74,7 @@ public class TestEventController {
         String rejector = body.getOrDefault("rejector", "reviewer");
         String reason = body.getOrDefault("reason", "Insufficient details");
         String ownerEmail = body.getOrDefault("ownerEmail", "owner@example.com");
-        var event = new DocumentRejectedEvent(eventId, documentId, rejector, reason, ownerEmail, LocalDateTime.now());
+    var event = new DocumentRejectedEvent(eventId, documentId, rejector, ownerEmail, reason, LocalDateTime.now());
         rabbitTemplate.convertAndSend(props.documentEventsExchange(), props.documentRejectedQueue(), event);
         return Map.of("status", "published", "eventId", eventId);
     }

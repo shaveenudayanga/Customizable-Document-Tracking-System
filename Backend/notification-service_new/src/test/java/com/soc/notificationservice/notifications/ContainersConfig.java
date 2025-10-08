@@ -1,4 +1,4 @@
-package com.soc.bookstore.notifications;
+package com.soc.notificationservice.notifications;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
