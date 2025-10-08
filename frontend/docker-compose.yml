@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=http://localhost:5000/api
+        - VITE_API_URL=http://localhost:8080/api
         - VITE_DEV_MODE=false
         - VITE_USE_MOCK_FALLBACK=false
     ports:
@@ -38,10 +38,10 @@ services:
     # build: ../backend
     image: docutrace-backend:latest
     ports:
-      - "5000:5000"
+      - "8080:8080"
     environment:
       - NODE_ENV=production
-      - PORT=5000
+      - PORT=8080
     networks:
       - docutrace-network
     restart: unless-stopped

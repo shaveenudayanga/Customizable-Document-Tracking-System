@@ -6,7 +6,7 @@ echo "🚀 Building DocuTrace Frontend Docker Image..."
 
 # Build the Docker image
 docker build -t docutrace-frontend:latest \
-  --build-arg VITE_API_URL=${VITE_API_URL:-http://localhost:5000/api} \
+  --build-arg VITE_API_URL=${VITE_API_URL:-http://localhost:8080/api} \
   --build-arg VITE_DEV_MODE=${VITE_DEV_MODE:-false} \
   --build-arg VITE_USE_MOCK_FALLBACK=${VITE_USE_MOCK_FALLBACK:-false} \
   .
