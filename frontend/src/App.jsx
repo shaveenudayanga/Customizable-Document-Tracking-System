@@ -11,54 +11,54 @@ import {
 import PageShell from "./components/PageShell.jsx";
 
 // Auth Pages
-import Login from "./Pages/Auth/Login.jsx";
-import ForgotPassword from "./Pages/Auth/ForgotPassword.jsx";
-import Onboarding from "./Pages/Auth/Onboarding.jsx";
+import Login from "./pages/Auth/Login.jsx";
+import ForgotPassword from "./pages/Auth/ForgotPassword.jsx";
+import Onboarding from "./pages/Auth/Onboarding.jsx";
 
 // Dashboard
-import Dashboard from "./Pages/Dashboard/Dashboard.jsx";
-import Learnmore from "./Pages/Learnmore/Learnmore.jsx"; // Fixed casing for Learnmore import
+import Dashboard from "./pages/Dashboard/Dashboard.jsx";
+import Learnmore from "./pages/Learnmore/Learnmore.jsx";
 
 // Documents
-import DocumentList from "./Pages/Documents/DocumentList.jsx";
-import DocumentDetails from "./Pages/Documents/DocumentDetails.jsx";
-import NewDocument from "./Pages/Documents/NewDocument.jsx"; // Corrected path to Pages/Documents
-import EditDocument from "./Pages/Documents/EditDocument.jsx";
+import DocumentList from "./pages/Documents/DocumentList.jsx";
+import DocumentDetails from "./pages/Documents/DocumentDetails.jsx";
+import NewDocument from "./pages/Documents/NewDocument.jsx"; // Corrected path to pages/Documents
+import EditDocument from "./pages/Documents/EditDocument.jsx";
 
 // Pipelines
-import PipelineList from "./Pages/Pipelines/PipelineList.jsx";
-import PipelineBuilder from "./Pages/Pipelines/PipelineBuilder.jsx";
+import PipelineList from "./pages/Pipelines/PipelineList.jsx";
+import PipelineBuilder from "./pages/Pipelines/PipelineBuilder.jsx";
 
 // Handover
-import HandoverQueue from "./Pages/Handover/HandoverQueue.jsx";
-import QRVerification from "./Pages/Handover/QRVerification.jsx";
-import HandoverHistory from "./Pages/Handover/HandoverHistory.jsx";
+import HandoverQueue from "./pages/Handover/HandoverQueue.jsx";
+import QRVerification from "./pages/Handover/QRVerification.jsx";
+import HandoverHistory from "./pages/Handover/HandoverHistory.jsx";
 
 // Departments
-import DepartmentManager from "./Pages/Departments/DepartmentManager.jsx";
+import DepartmentManager from "./pages/Departments/DepartmentManager.jsx";
 
 // Notifications
-import Notifications from "./Pages/Notifications/Notifications.jsx";
+import Notifications from "./pages/Notifications/Notifications.jsx";
 
 // Audit
-import AuditLog from "./Pages/Audit/AuditLog.jsx";
+import AuditLog from "./pages/Audit/AuditLog.jsx";
 
 // Profile
-import UserProfile from "./Pages/Profile/UserProfile.jsx";
+import UserProfile from "./pages/Profile/UserProfile.jsx";
 // Corrected: Added the missing import for AdminUserManagement
 import AdminUserManagement from "./Pages/Admin/AdminUserManagement.jsx";
 
 // Settings
-import SystemSettings from "./Pages/Settings/SystemSettings.jsx";
+import SystemSettings from "./pages/Settings/SystemSettings.jsx";
 
 // Help
-import HelpCenter from "./Pages/Help/HelpCenter.jsx";
+import HelpCenter from "./pages/Help/HelpCenter.jsx";
 
 // Bulk
-import BulkOperations from "./Pages/Bulk/BulkOperations.jsx";
+import BulkOperations from "./pages/Bulk/BulkOperations.jsx";
 
 // Mobile
-import MobileLite from "./Pages/MobileLite/MobileLite.jsx";
+import MobileLite from "./pages/MobileLite/MobileLite.jsx";
 
 //learnmore
 
