@@ -24,7 +24,7 @@ services:
   mailhog:
     image: mailhog/mailhog:latest
     ports:
-      - "1025:1025"   # SMTP
+      # No host SMTP port mapping; service will access MailHog over internal network on 1025
       - "8025:8025"   # Web UI
 
   notification-service:

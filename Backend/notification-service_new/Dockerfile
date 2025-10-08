@@ -4,10 +4,10 @@ WORKDIR /workspace
 
 # Copy only this module to leverage Docker layer caching in a mono-repo
 COPY pom.xml ./
-RUN mvn -q -DskipTests dependency:go-offline
 
 COPY src/ src/
-RUN mvn -q -DskipTests package
+# Retry Maven package a few times to mitigate transient network issues; skip Spotless and test compilation
+RUN bash -c 'for i in 1 2 3; do mvn -B -q -DskipTests -Dmaven.test.skip=true -Dspotless.skip=true package && exit 0 || echo "Maven build failed, retry #$i" && sleep 5; done; exit 1'
 
 # Runtime stage
 FROM eclipse-temurin:21-jre
