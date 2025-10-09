@@ -9,6 +9,7 @@ import {
 
 // Components
 import PageShell from "./components/PageShell.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 // Auth Pages
 import Login from "./pages/Auth/Login.jsx";
@@ -93,10 +94,10 @@ const HomeLanding = () => {
   );
 };
 
-// Helper to get user role (replace with real auth logic as needed)
+// Helper to get user role from authService
 const getUserRole = () => {
-  // Example: role stored in localStorage as 'admin' or 'user'
-  return localStorage.getItem("role") || "user";
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  return user.role || "user";
 };
 
 function App() {
@@ -110,36 +111,171 @@ function App() {
 
         {/* Landing page only on initial load */}
         <Route path="/" element={<PageShell />} />
-        {/* All other routes are now top-level and only show when navigated to */}
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="documents" element={<DocumentList />} />
-        <Route path="documents/:id" element={<DocumentDetails />} />
-        <Route path="new-document" element={<NewDocument />} />
-        <Route path="edit-document/:id" element={<EditDocument />} />
-        <Route path="pipelines" element={<PipelineList />} />
-        <Route path="pipelines/builder" element={<PipelineBuilder />} />
-        <Route path="handover/queue" element={<HandoverQueue />} />
-        <Route path="handover/verify" element={<QRVerification />} />
-        <Route path="handover/history" element={<HandoverHistory />} />
-        <Route path="departments" element={<DepartmentManager />} />
-        <Route path="notifications" element={<Notifications />} />
-        <Route path="audit" element={<AuditLog />} />
+        {/* Protected routes - require authentication */}
+        <Route
+          path="dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="documents"
+          element={
+            <ProtectedRoute>
+              <DocumentList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="documents/:id"
+          element={
+            <ProtectedRoute>
+              <DocumentDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="new-document"
+          element={
+            <ProtectedRoute>
+              <NewDocument />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="edit-document/:id"
+          element={
+            <ProtectedRoute>
+              <EditDocument />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="pipelines"
+          element={
+            <ProtectedRoute>
+              <PipelineList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="pipelines/builder"
+          element={
+            <ProtectedRoute>
+              <PipelineBuilder />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="handover/queue"
+          element={
+            <ProtectedRoute>
+              <HandoverQueue />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="handover/verify"
+          element={
+            <ProtectedRoute>
+              <QRVerification />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="handover/history"
+          element={
+            <ProtectedRoute>
+              <HandoverHistory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="departments"
+          element={
+            <ProtectedRoute>
+              <DepartmentManager />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="notifications"
+          element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="audit"
+          element={
+            <ProtectedRoute>
+              <AuditLog />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="profile"
           element={
-            getUserRole() === "admin" ? (
-              <AdminUserManagement />
-            ) : (
-              <UserProfile />
-            )
+            <ProtectedRoute>
+              {getUserRole() === "admin" ? (
+                <AdminUserManagement />
+              ) : (
+                <UserProfile />
+              )}
+            </ProtectedRoute>
           }
         />
-        <Route path="userprofile" element={<UserProfile />} />
-        <Route path="adminusermanagement" element={<AdminUserManagement />} />
-        <Route path="settings" element={<SystemSettings />} />
-        <Route path="help" element={<HelpCenter />} />
-        <Route path="bulk" element={<BulkOperations />} />
-        <Route path="mobile" element={<MobileLite />} />
+        <Route
+          path="userprofile"
+          element={
+            <ProtectedRoute>
+              <UserProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="adminusermanagement"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminUserManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <ProtectedRoute>
+              <SystemSettings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="help"
+          element={
+            <ProtectedRoute>
+              <HelpCenter />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="bulk"
+          element={
+            <ProtectedRoute>
+              <BulkOperations />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="mobile"
+          element={
+            <ProtectedRoute>
+              <MobileLite />
+            </ProtectedRoute>
+          }
+        />
         <Route path="learnmore" element={<Learnmore />} />
 
         {/* Fallback for any unmatched routes */}

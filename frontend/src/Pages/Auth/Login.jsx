@@ -21,7 +21,13 @@ const Login = () => {
       const response = await authService.login({ username, password });
       if (response && response.token) {
         // authService already stores the token and user data
-        navigate("/dashboard");
+        // Redirect based on user role
+        const userRole = response.role || "user";
+        if (userRole === "admin") {
+          navigate("/adminusermanagement");
+        } else {
+          navigate("/dashboard");
+        }
       }
     } catch (err) {
       setError(err?.message || "Login failed. Please check your credentials.");
