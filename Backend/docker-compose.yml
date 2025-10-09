@@ -4,10 +4,13 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ima123
+      POSTGRES_DB: notificationdb
     ports:
       - "35432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d notificationdb"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -41,13 +44,19 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/notificationdb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ima123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_FLYWAY_ENABLED: "true"
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: guest
       SPRING_RABBITMQ_PASSWORD: guest
       MAIL_HOST: mailhog
       MAIL_PORT: 1025
-      MAIL_USERNAME: demo
-      MAIL_PASSWORD: demo
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
+      SERVER_PORT: 1004
     ports:
       - "1004:1004"
+
+volumes:
+  postgres_data:
