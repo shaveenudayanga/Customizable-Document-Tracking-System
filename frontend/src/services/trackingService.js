@@ -1,4 +1,4 @@
-import { api } from "../lib/api.js";
+import { trackingAPI } from "../lib/api.js";
 
 /**
  * Tracking Service
@@ -19,7 +19,7 @@ export const trackingService = {
    */
   async recordScan(eventData) {
     try {
-      return await api.post("/tracking/scan", eventData);
+      return await trackingAPI.post("/tracking/scan", eventData);
     } catch (error) {
       console.error("Error recording scan:", error);
       throw error;
@@ -34,7 +34,7 @@ export const trackingService = {
    */
   async getHistory(documentId) {
     try {
-      return await api.get(`/tracking/history/${documentId}`);
+      return await trackingAPI.get(`/tracking/history/${documentId}`);
     } catch (error) {
       console.error("Error fetching history:", error);
       throw error;
@@ -49,7 +49,7 @@ export const trackingService = {
    */
   async getLatestEvent(documentId) {
     try {
-      return await api.get(`/tracking/latest/${documentId}`);
+      return await trackingAPI.get(`/tracking/latest/${documentId}`);
     } catch (error) {
       console.error("Error fetching latest event:", error);
       throw error;

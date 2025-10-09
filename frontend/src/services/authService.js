@@ -1,4 +1,4 @@
-import { api, setAuthToken, clearAuth } from "../lib/api.js";
+import { userAPI, setAuthToken, clearAuth } from "../lib/api.js";
 
 /**
  * Authentication Service
@@ -20,7 +20,7 @@ export const authService = {
    */
   async register(userData) {
     try {
-      const response = await api.post("/auth/register", userData, {
+      const response = await userAPI.post("/auth/register", userData, {
         skipAuth: true,
       });
 
@@ -54,7 +54,7 @@ export const authService = {
    */
   async login(credentials) {
     try {
-      const response = await api.post("/auth/login", credentials, {
+      const response = await userAPI.post("/auth/login", credentials, {
         skipAuth: true,
       });
 
@@ -94,12 +94,30 @@ export const authService = {
    */
   async getProfile() {
     try {
-      const response = await api.get("/auth/profile");
+      const response = await userAPI.get("/auth/profile");
       // Update cached user data
       this.setCurrentUser(response);
       return response;
     } catch (error) {
       console.error("Error fetching profile:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update user profile
+   * PUT /api/auth/profile
+   * @param {Object} profileData - Updated profile data
+   * @returns {Promise<Object>} Updated user profile
+   */
+  async updateProfile(profileData) {
+    try {
+      const response = await userAPI.put("/auth/profile", profileData);
+      // Update cached user data
+      this.setCurrentUser(response);
+      return response;
+    } catch (error) {
+      console.error("Error updating profile:", error);
       throw error;
     }
   },

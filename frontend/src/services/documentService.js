@@ -1,4 +1,4 @@
-import { api } from "../lib/api.js";
+import { documentAPI } from "../lib/api.js";
 
 /**
  * Document Service
@@ -13,7 +13,7 @@ export const documentService = {
    */
   async getAllDocuments() {
     try {
-      return await api.get("/documents");
+      return await documentAPI.get("/documents");
     } catch (error) {
       console.error("Error fetching documents:", error);
       throw error;
@@ -28,7 +28,7 @@ export const documentService = {
    */
   async getDocumentById(id) {
     try {
-      return await api.get(`/documents/${id}`);
+      return await documentAPI.get(`/documents/${id}`);
     } catch (error) {
       console.error("Error fetching document:", error);
       throw error;
@@ -49,7 +49,7 @@ export const documentService = {
    */
   async createDocument(documentData) {
     try {
-      return await api.post("/documents", documentData);
+      return await documentAPI.post("/documents", documentData);
     } catch (error) {
       console.error("Error creating document:", error);
       throw error;
@@ -73,7 +73,7 @@ export const documentService = {
       if (file) {
         formData.append("file", file);
       }
-      return await api.upload("/documents", formData);
+      return await documentAPI.upload("/documents", formData);
     } catch (error) {
       console.error("Error creating document with file:", error);
       throw error;
@@ -89,7 +89,7 @@ export const documentService = {
    */
   async updateDocumentStatus(documentId, statuses) {
     try {
-      return await api.post(`/documents/${documentId}/status`, { statuses });
+      return await documentAPI.post(`/documents/${documentId}/status`, { statuses });
     } catch (error) {
       console.error("Error updating document status:", error);
       throw error;
@@ -106,13 +106,12 @@ export const documentService = {
   async getDocumentQRCode(documentId, asBase64 = false) {
     try {
       if (asBase64) {
-        return await api.get(`/documents/${documentId}/qrcode`, {
+        return await documentAPI.get(`/documents/${documentId}/qrcode`, {
           headers: { Accept: "application/json" },
         });
       } else {
-        // Return the URL for the image
-        const BASE = import.meta.env.VITE_API_URL || "/api";
-        return `${BASE}/documents/${documentId}/qrcode`;
+        // Return the URL for the image using document service
+        return `http://localhost:8082/api/documents/${documentId}/qrcode`;
       }
     } catch (error) {
       console.error("Error fetching QR code:", error);
@@ -131,7 +130,7 @@ export const documentService = {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      return await api.upload(`/documents/${documentId}/file`, formData);
+      return await documentAPI.upload(`/documents/${documentId}/file`, formData);
     } catch (error) {
       console.error("Error uploading file:", error);
       throw error;
@@ -145,8 +144,7 @@ export const documentService = {
    * @returns {string} Download URL
    */
   getDownloadUrl(documentId) {
-    const BASE = import.meta.env.VITE_API_URL || "/api";
-    return `${BASE}/documents/${documentId}/file`;
+    return `http://localhost:8082/api/documents/${documentId}/file`;
   },
 
   /**
@@ -157,7 +155,7 @@ export const documentService = {
    */
   async listFiles(documentId) {
     try {
-      return await api.get(`/documents/${documentId}/files`);
+      return await documentAPI.get(`/documents/${documentId}/files`);
     } catch (error) {
       console.error("Error listing files:", error);
       throw error;

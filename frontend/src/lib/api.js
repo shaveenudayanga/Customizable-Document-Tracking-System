@@ -1,11 +1,27 @@
+// Multi-service API configuration for different backend services
+const SERVICES = {
+  USER: import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:8081/api",
+  DOCUMENT: import.meta.env.VITE_DOCUMENT_SERVICE_URL || "http://localhost:8082/api", 
+  WORKFLOW: import.meta.env.VITE_WORKFLOW_SERVICE_URL || "http://localhost:8083/api",
+  TRACKING: import.meta.env.VITE_TRACKING_SERVICE_URL || "http://localhost:8084/api",
+  NOTIFICATION: import.meta.env.VITE_NOTIFICATION_SERVICE_URL || "http://localhost:8085/api"
+};
+
 const BASE = import.meta.env.VITE_API_URL || "/api";
 
 const isAbsolute = (u) => /^https?:\/\//i.test(u);
 const trimSlashEnd = (s) => s.replace(/\/+$/, "");
 const trimSlashStart = (s) => s.replace(/^\/+/, "");
 
-function buildUrl(path) {
+function buildUrl(path, service = null) {
   const cleanPath = trimSlashStart(path || "");
+  
+  // If service is specified, use the service-specific URL
+  if (service && SERVICES[service]) {
+    return `${trimSlashEnd(SERVICES[service])}/${cleanPath}`;
+  }
+  
+  // Otherwise use the default base URL
   if (isAbsolute(BASE)) {
     return `${trimSlashEnd(BASE)}/${cleanPath}`;
   }
@@ -35,7 +51,7 @@ export function clearAuth() {
 }
 
 async function request(method, path, body, options = {}) {
-  const url = buildUrl(path);
+  const url = buildUrl(path, options.service);
   const headers = {
     "Content-Type": "application/json",
     ...options.headers,
@@ -83,8 +99,8 @@ async function request(method, path, body, options = {}) {
 }
 
 // Multipart form data request (for file uploads)
-async function uploadRequest(method, path, formData) {
-  const url = buildUrl(path);
+async function uploadRequest(method, path, formData, service = null) {
+  const url = buildUrl(path, service);
   const headers = {};
 
   // Add JWT token if available
@@ -132,5 +148,42 @@ export const api = {
   put: (path, body, options) => request("PUT", path, body, options),
   patch: (path, body, options) => request("PATCH", path, body, options),
   delete: (path, options) => request("DELETE", path, null, options),
-  upload: (path, formData) => uploadRequest("POST", path, formData),
+  upload: (path, formData, service) => uploadRequest("POST", path, formData, service),
+};
+
+// Service-specific API instances
+export const userAPI = {
+  get: (path, options = {}) => request("GET", path, null, { ...options, service: "USER" }),
+  post: (path, body, options = {}) => request("POST", path, body, { ...options, service: "USER" }),
+  put: (path, body, options = {}) => request("PUT", path, body, { ...options, service: "USER" }),
+  delete: (path, options = {}) => request("DELETE", path, null, { ...options, service: "USER" }),
+};
+
+export const documentAPI = {
+  get: (path, options = {}) => request("GET", path, null, { ...options, service: "DOCUMENT" }),
+  post: (path, body, options = {}) => request("POST", path, body, { ...options, service: "DOCUMENT" }),
+  put: (path, body, options = {}) => request("PUT", path, body, { ...options, service: "DOCUMENT" }),
+  delete: (path, options = {}) => request("DELETE", path, null, { ...options, service: "DOCUMENT" }),
+  upload: (path, formData) => uploadRequest("POST", path, formData, "DOCUMENT"),
+};
+
+export const workflowAPI = {
+  get: (path, options = {}) => request("GET", path, null, { ...options, service: "WORKFLOW" }),
+  post: (path, body, options = {}) => request("POST", path, body, { ...options, service: "WORKFLOW" }),
+  put: (path, body, options = {}) => request("PUT", path, body, { ...options, service: "WORKFLOW" }),
+  delete: (path, options = {}) => request("DELETE", path, null, { ...options, service: "WORKFLOW" }),
+};
+
+export const trackingAPI = {
+  get: (path, options = {}) => request("GET", path, null, { ...options, service: "TRACKING" }),
+  post: (path, body, options = {}) => request("POST", path, body, { ...options, service: "TRACKING" }),
+  put: (path, body, options = {}) => request("PUT", path, body, { ...options, service: "TRACKING" }),
+  delete: (path, options = {}) => request("DELETE", path, null, { ...options, service: "TRACKING" }),
+};
+
+export const notificationAPI = {
+  get: (path, options = {}) => request("GET", path, null, { ...options, service: "NOTIFICATION" }),
+  post: (path, body, options = {}) => request("POST", path, body, { ...options, service: "NOTIFICATION" }),
+  put: (path, body, options = {}) => request("PUT", path, body, { ...options, service: "NOTIFICATION" }),
+  delete: (path, options = {}) => request("DELETE", path, null, { ...options, service: "NOTIFICATION" }),
 };

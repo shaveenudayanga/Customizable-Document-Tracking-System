@@ -13,6 +13,7 @@ export { trackingService } from "./trackingService.js";
 export { workflowService } from "./workflowService.js";
 export { pipelineService } from "./pipelineService.js";
 export { departmentService } from "./departmentService.js";
+export { notificationService } from "./notificationService.js";
 
 // Legacy service exports (if any still exist)
 // These can be gradually deprecated

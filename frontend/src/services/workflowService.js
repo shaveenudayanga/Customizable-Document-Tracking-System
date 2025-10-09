@@ -1,4 +1,4 @@
-import { api } from "../lib/api.js";
+import { workflowAPI } from "../lib/api.js";
 
 /**
  * Workflow Service
@@ -22,7 +22,7 @@ export const workflowService = {
    */
   async createTemplate(templateData) {
     try {
-      return await api.post("/workflow/create", templateData);
+      return await workflowAPI.post("/workflow/create", templateData);
     } catch (error) {
       console.error("Error creating template:", error);
       throw error;
@@ -41,7 +41,7 @@ export const workflowService = {
    */
   async startWorkflow(workflowData) {
     try {
-      return await api.post("/workflow/start", workflowData);
+      return await workflowAPI.post("/workflow/start", workflowData);
     } catch (error) {
       console.error("Error starting workflow:", error);
       throw error;
@@ -56,7 +56,7 @@ export const workflowService = {
    */
   async getTasksForDepartment(deptKey) {
     try {
-      return await api.get(`/workflow/tasks?deptKey=${deptKey}`);
+      return await workflowAPI.get(`/workflow/tasks?deptKey=${deptKey}`);
     } catch (error) {
       console.error("Error fetching tasks:", error);
       throw error;
@@ -75,7 +75,7 @@ export const workflowService = {
    */
   async completeTask(taskId, completionData) {
     try {
-      await api.post(`/workflow/tasks/${taskId}/complete`, completionData);
+      await workflowAPI.post(`/workflow/tasks/${taskId}/complete`, completionData);
     } catch (error) {
       console.error("Error completing task:", error);
       throw error;
@@ -90,7 +90,7 @@ export const workflowService = {
    */
   async getBpmnXml(key) {
     try {
-      return await api.get(`/workflow/definitions/${key}/xml`);
+      return await workflowAPI.get(`/workflow/definitions/${key}/xml`);
     } catch (error) {
       console.error("Error fetching BPMN XML:", error);
       throw error;
@@ -105,7 +105,7 @@ export const workflowService = {
    */
   async getWorkflowStatus(documentId) {
     try {
-      return await api.get(`/workflow/documents/${documentId}/status`);
+      return await workflowAPI.get(`/workflow/documents/${documentId}/status`);
     } catch (error) {
       console.error("Error fetching workflow status:", error);
       throw error;
@@ -121,7 +121,7 @@ export const workflowService = {
   async listTemplates(permanent = null) {
     try {
       const query = permanent !== null ? `?permanent=${permanent}` : "";
-      return await api.get(`/workflow/templates${query}`);
+      return await workflowAPI.get(`/workflow/templates${query}`);
     } catch (error) {
       console.error("Error listing templates:", error);
       throw error;
@@ -136,7 +136,7 @@ export const workflowService = {
    */
   async getTemplate(id) {
     try {
-      return await api.get(`/workflow/templates/${id}`);
+      return await workflowAPI.get(`/workflow/templates/${id}`);
     } catch (error) {
       console.error("Error fetching template:", error);
       throw error;
@@ -152,7 +152,7 @@ export const workflowService = {
    */
   async updateTemplate(id, updateData) {
     try {
-      return await api.put(`/workflow/templates/${id}`, updateData);
+      return await workflowAPI.put(`/workflow/templates/${id}`, updateData);
     } catch (error) {
       console.error("Error updating template:", error);
       throw error;
@@ -167,7 +167,7 @@ export const workflowService = {
    */
   async deleteTemplate(id) {
     try {
-      await api.delete(`/workflow/templates/${id}`);
+      await workflowAPI.delete(`/workflow/templates/${id}`);
     } catch (error) {
       console.error("Error deleting template:", error);
       throw error;
