@@ -20,6 +20,16 @@ public class DocumentEventEntity {
     @Column(nullable = false, unique = true)
     private String eventId;
 
+    @Column(name = "event_type")
+    private String eventType;
+
+    @Column(name = "document_id")
+    private String documentId;
+
+    // Store additional payload as JSON or text
+    @Column(name = "data", columnDefinition = "text")
+    private String data;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -30,6 +40,13 @@ public class DocumentEventEntity {
 
     public DocumentEventEntity(String eventId) {
         this.eventId = eventId;
+    }
+
+    public DocumentEventEntity(String eventId, String eventType, String documentId, String data) {
+        this.eventId = eventId;
+        this.eventType = eventType;
+        this.documentId = documentId;
+        this.data = data;
     }
 
     public Long getId() {
@@ -46,6 +63,30 @@ public class DocumentEventEntity {
 
     public void setEventId(String eventId) {
         this.eventId = eventId;
+    }
+
+    public String getEventType() {
+        return eventType;
+    }
+
+    public void setEventType(String eventType) {
+        this.eventType = eventType;
+    }
+
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
+    }
+
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
     }
 
     public LocalDateTime getCreatedAt() {

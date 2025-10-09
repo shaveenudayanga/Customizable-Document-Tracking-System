@@ -17,7 +17,7 @@ WORKDIR /app
 COPY --from=build /workspace/target/*.jar app.jar
 
 # Expose service port (matches server.port in application.properties)
-EXPOSE 8083
+EXPOSE 1004
 
 # Default envs
 ENV JAVA_OPTS="-Xms256m -Xmx512m"

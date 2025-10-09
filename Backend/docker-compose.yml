@@ -38,7 +38,7 @@ services:
       mailhog:
         condition: service_started
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/notificationdb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: ima123
       SPRING_RABBITMQ_HOST: rabbitmq
@@ -50,4 +50,4 @@ services:
       MAIL_USERNAME: demo
       MAIL_PASSWORD: demo
     ports:
-      - "8083:8083"
+      - "1004:1004"

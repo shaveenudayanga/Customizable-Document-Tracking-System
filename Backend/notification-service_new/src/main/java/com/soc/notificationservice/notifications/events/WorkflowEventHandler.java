@@ -4,6 +4,8 @@ import com.soc.notificationservice.notifications.domain.DocumentEventEntity;
 import com.soc.notificationservice.notifications.domain.DocumentEventRepository;
 import com.soc.notificationservice.notifications.domain.NotificationService;
 import com.soc.notificationservice.notifications.domain.models.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -17,11 +19,13 @@ public class WorkflowEventHandler {
 
     private final NotificationService notificationService;
     private final DocumentEventRepository documentEventRepository;
+    private final ObjectMapper objectMapper;
 
     public WorkflowEventHandler(
-            NotificationService notificationService, DocumentEventRepository documentEventRepository) {
+            NotificationService notificationService, DocumentEventRepository documentEventRepository, ObjectMapper objectMapper) {
         this.notificationService = notificationService;
         this.documentEventRepository = documentEventRepository;
+        this.objectMapper = objectMapper;
     }
 
     @RabbitListener(queues = "${notification.workflow-started-queue}")
@@ -31,8 +35,9 @@ public class WorkflowEventHandler {
             return;
         }
         log.info("Received WorkflowStartedEvent for documentId:{}", event.documentId());
-        notificationService.sendWorkflowStartedNotification(event);
-        documentEventRepository.save(new DocumentEventEntity(event.eventId()));
+    notificationService.sendWorkflowStartedNotification(event);
+    documentEventRepository.save(new DocumentEventEntity(event.eventId(),
+        "workflow.started", String.valueOf(event.documentId()), toJson(event)));
     }
 
     @RabbitListener(queues = "${notification.task-completed-queue}")
@@ -42,8 +47,9 @@ public class WorkflowEventHandler {
             return;
         }
         log.info("Received TaskCompletedEvent for documentId:{}", event.documentId());
-        notificationService.sendTaskCompletedNotification(event);
-        documentEventRepository.save(new DocumentEventEntity(event.eventId()));
+    notificationService.sendTaskCompletedNotification(event);
+    documentEventRepository.save(new DocumentEventEntity(event.eventId(),
+        "workflow.task.completed", String.valueOf(event.documentId()), toJson(event)));
     }
 
     @RabbitListener(queues = "${notification.workflow-completed-queue}")
@@ -53,8 +59,9 @@ public class WorkflowEventHandler {
             return;
         }
         log.info("Received WorkflowCompletedEvent for documentId:{}", event.documentId());
-        notificationService.sendWorkflowCompletedNotification(event);
-        documentEventRepository.save(new DocumentEventEntity(event.eventId()));
+    notificationService.sendWorkflowCompletedNotification(event);
+    documentEventRepository.save(new DocumentEventEntity(event.eventId(),
+        "workflow.completed", String.valueOf(event.documentId()), toJson(event)));
     }
 
     @RabbitListener(queues = "${notification.workflow-rejected-queue}")
@@ -65,6 +72,16 @@ public class WorkflowEventHandler {
         }
         log.info("Received WorkflowRejectedEvent for documentId:{}", event.documentId());
         notificationService.sendWorkflowRejectedNotification(event);
-        documentEventRepository.save(new DocumentEventEntity(event.eventId()));
+        documentEventRepository.save(new DocumentEventEntity(event.eventId(),
+                "workflow.rejected", String.valueOf(event.documentId()), toJson(event)));
+    }
+
+    private String toJson(Object event) {
+        try {
+            return objectMapper.writeValueAsString(event);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize event to JSON for persistence: {}", e.getMessage());
+            return null;
+        }
     }
 }

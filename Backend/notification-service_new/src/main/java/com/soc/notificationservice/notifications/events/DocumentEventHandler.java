@@ -8,6 +8,8 @@ import com.soc.notificationservice.notifications.domain.models.DocumentCreatedEv
 import com.soc.notificationservice.notifications.domain.models.DocumentErrorEvent;
 import com.soc.notificationservice.notifications.domain.models.DocumentRejectedEvent;
 import com.soc.notificationservice.notifications.domain.models.DocumentUpdatedEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -21,11 +23,13 @@ public class DocumentEventHandler {
 
     private final NotificationService notificationService;
     private final DocumentEventRepository documentEventRepository;
+    private final ObjectMapper objectMapper;
 
     public DocumentEventHandler(
-            NotificationService notificationService, DocumentEventRepository documentEventRepository) {
+            NotificationService notificationService, DocumentEventRepository documentEventRepository, ObjectMapper objectMapper) {
         this.notificationService = notificationService;
         this.documentEventRepository = documentEventRepository;
+        this.objectMapper = objectMapper;
     }
 
     @RabbitListener(queues = "${notification.document-created-queue}")
@@ -35,8 +39,9 @@ public class DocumentEventHandler {
             return;
         }
         log.info("Received DocumentCreatedEvent for documentId:{}", event.documentId());
-        notificationService.sendDocumentCreatedNotification(event);
-        documentEventRepository.save(new DocumentEventEntity(event.eventId()));
+    notificationService.sendDocumentCreatedNotification(event);
+    documentEventRepository.save(new DocumentEventEntity(event.eventId(),
+        "document.created", event.documentId(), toJson(event)));
     }
 
     @RabbitListener(queues = "${notification.document-updated-queue}")
@@ -46,8 +51,9 @@ public class DocumentEventHandler {
             return;
         }
         log.info("Received DocumentUpdatedEvent for documentId:{}", event.documentId());
-        notificationService.sendDocumentUpdatedNotification(event);
-        documentEventRepository.save(new DocumentEventEntity(event.eventId()));
+    notificationService.sendDocumentUpdatedNotification(event);
+    documentEventRepository.save(new DocumentEventEntity(event.eventId(),
+        "document.updated", event.documentId(), toJson(event)));
     }
 
     @RabbitListener(queues = "${notification.document-approved-queue}")
@@ -57,8 +63,9 @@ public class DocumentEventHandler {
             return;
         }
         log.info("Received DocumentApprovedEvent for documentId:{}", event.documentId());
-        notificationService.sendDocumentApprovedNotification(event);
-        documentEventRepository.save(new DocumentEventEntity(event.eventId()));
+    notificationService.sendDocumentApprovedNotification(event);
+    documentEventRepository.save(new DocumentEventEntity(event.eventId(),
+        "document.approved", event.documentId(), toJson(event)));
     }
 
     @RabbitListener(queues = "${notification.document-rejected-queue}")
@@ -68,8 +75,9 @@ public class DocumentEventHandler {
             return;
         }
         log.info("Received DocumentRejectedEvent for documentId:{}", event.documentId());
-        notificationService.sendDocumentRejectedNotification(event);
-        documentEventRepository.save(new DocumentEventEntity(event.eventId()));
+    notificationService.sendDocumentRejectedNotification(event);
+    documentEventRepository.save(new DocumentEventEntity(event.eventId(),
+        "document.rejected", event.documentId(), toJson(event)));
     }
 
     @RabbitListener(queues = "${notification.document-error-queue}")
@@ -80,6 +88,16 @@ public class DocumentEventHandler {
         }
         log.info("Received DocumentErrorEvent for documentId:{}", event.documentId());
         notificationService.sendDocumentErrorEventNotification(event);
-        documentEventRepository.save(new DocumentEventEntity(event.eventId()));
+        documentEventRepository.save(new DocumentEventEntity(event.eventId(),
+                "document.error", event.documentId(), toJson(event)));
+    }
+
+    private String toJson(Object event) {
+        try {
+            return objectMapper.writeValueAsString(event);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize event to JSON for persistence: {}", e.getMessage());
+            return null;
+        }
     }
 }
