@@ -89,7 +89,9 @@ export const documentService = {
    */
   async updateDocumentStatus(documentId, statuses) {
     try {
-      return await documentAPI.post(`/documents/${documentId}/status`, { statuses });
+      return await documentAPI.post(`/documents/${documentId}/status`, {
+        statuses,
+      });
     } catch (error) {
       console.error("Error updating document status:", error);
       throw error;
@@ -130,7 +132,10 @@ export const documentService = {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      return await documentAPI.upload(`/documents/${documentId}/file`, formData);
+      return await documentAPI.upload(
+        `/documents/${documentId}/file`,
+        formData
+      );
     } catch (error) {
       console.error("Error uploading file:", error);
       throw error;

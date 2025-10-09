@@ -163,7 +163,10 @@ const RecentActivity = ({ activities }) => {
       </div>
 
       <div className="view-all-button-container">
-        <button className="btn-view-all" onClick={() => navigate('/notifications')}>
+        <button
+          className="btn-view-all"
+          onClick={() => navigate("/notifications")}
+        >
           View All Notifications
         </button>
       </div>
@@ -205,7 +208,7 @@ const Dashboard = () => {
           documentService.getAllDocuments().catch(() => []),
           workflowService.getMyTasks().catch(() => []),
           notificationService.getUserNotifications().catch(() => []),
-          userService.getAllUsers().catch(() => [])
+          userService.getAllUsers().catch(() => []),
         ]);
 
         // Set notifications
@@ -214,11 +217,14 @@ const Dashboard = () => {
         if (currentUser.role?.toLowerCase() === "admin") {
           // Calculate admin metrics from real backend data
           const totalDocuments = documents.length;
-          const pendingApprovals = documents.filter(doc => doc.status === "PENDING").length;
+          const pendingApprovals = documents.filter(
+            (doc) => doc.status === "PENDING"
+          ).length;
           const activeUsers = users.length;
-          const overdueDocuments = documents.filter(doc => 
-            doc.status === "REJECTED" || 
-            (doc.dueDate && new Date(doc.dueDate) < new Date())
+          const overdueDocuments = documents.filter(
+            (doc) =>
+              doc.status === "REJECTED" ||
+              (doc.dueDate && new Date(doc.dueDate) < new Date())
           ).length;
 
           setAdminMetrics([
@@ -249,16 +255,26 @@ const Dashboard = () => {
           ]);
 
           // Set pending tasks for admin
-          setPendingTasks(documents.filter(doc => doc.status === "PENDING").slice(0, 5));
+          setPendingTasks(
+            documents.filter((doc) => doc.status === "PENDING").slice(0, 5)
+          );
         } else {
           // Calculate user-specific metrics from real backend data
-          const userDocs = documents.filter(doc => doc.createdBy === currentUser.username);
-          const userTasks = workflows.filter(task => task.assignee === currentUser.username);
-          const documentsForReview = userTasks.filter(task => task.status === "PENDING").length;
-          const documentsInTransit = userDocs.filter(doc => 
-            doc.status !== "APPROVED" && doc.status !== "REJECTED"
+          const userDocs = documents.filter(
+            (doc) => doc.createdBy === currentUser.username
+          );
+          const userTasks = workflows.filter(
+            (task) => task.assignee === currentUser.username
+          );
+          const documentsForReview = userTasks.filter(
+            (task) => task.status === "PENDING"
           ).length;
-          const completedDocuments = userDocs.filter(doc => doc.status === "APPROVED").length;
+          const documentsInTransit = userDocs.filter(
+            (doc) => doc.status !== "APPROVED" && doc.status !== "REJECTED"
+          ).length;
+          const completedDocuments = userDocs.filter(
+            (doc) => doc.status === "APPROVED"
+          ).length;
 
           setUserMetrics([
             {
@@ -288,7 +304,9 @@ const Dashboard = () => {
           ]);
 
           // Set pending tasks for user
-          setPendingTasks(userTasks.filter(task => task.status === "PENDING").slice(0, 5));
+          setPendingTasks(
+            userTasks.filter((task) => task.status === "PENDING").slice(0, 5)
+          );
         }
 
         // Create recent activity from notifications and document events
@@ -296,14 +314,13 @@ const Dashboard = () => {
           id: notif.id || index,
           type: notif.type?.toLowerCase() || "info",
           description: notif.message || notif.content,
-          time: notif.createdAt ? 
-            new Date(notif.createdAt).toLocaleString() : 
-            `${index + 1} hours ago`,
-          user: notif.sender || "System"
+          time: notif.createdAt
+            ? new Date(notif.createdAt).toLocaleString()
+            : `${index + 1} hours ago`,
+          user: notif.sender || "System",
         }));
-        
-        setRecentActivity(activityItems);
 
+        setRecentActivity(activityItems);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         // Fallback to default values
@@ -338,14 +355,26 @@ const Dashboard = () => {
           tasks.map((task) => (
             <div key={task.id} className="table-row">
               <span>{task.id || task.documentId}</span>
-              <span>{task.documentName || task.title || "Untitled Document"}</span>
-              <span className={`status status-${task.status?.toLowerCase() || 'pending'}`}>
+              <span>
+                {task.documentName || task.title || "Untitled Document"}
+              </span>
+              <span
+                className={`status status-${
+                  task.status?.toLowerCase() || "pending"
+                }`}
+              >
                 {task.status || "Pending"}
               </span>
-              <span>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "N/A"}</span>
-              <button 
+              <span>
+                {task.dueDate
+                  ? new Date(task.dueDate).toLocaleDateString()
+                  : "N/A"}
+              </span>
+              <button
                 className="btn-table primary"
-                onClick={() => navigate(`/documents/${task.documentId || task.id}`)}
+                onClick={() =>
+                  navigate(`/documents/${task.documentId || task.id}`)
+                }
               >
                 Review
               </button>
@@ -353,7 +382,10 @@ const Dashboard = () => {
           ))
         ) : (
           <div className="table-row">
-            <span colSpan="5" style={{textAlign: 'center', gridColumn: '1 / -1'}}>
+            <span
+              colSpan="5"
+              style={{ textAlign: "center", gridColumn: "1 / -1" }}
+            >
               No pending tasks
             </span>
           </div>
@@ -379,13 +411,20 @@ const Dashboard = () => {
               <span>{doc.id}</span>
               <span>{doc.createdBy || doc.owner || "Unknown"}</span>
               <span>{doc.title || doc.name || "Untitled Document"}</span>
-              <span>{doc.createdAt ? new Date(doc.createdAt).toLocaleDateString() : "N/A"}</span>
+              <span>
+                {doc.createdAt
+                  ? new Date(doc.createdAt).toLocaleDateString()
+                  : "N/A"}
+              </span>
               <div className="action-buttons">
-                <button 
+                <button
                   className="btn-table success"
                   onClick={async () => {
                     try {
-                      await documentService.updateDocumentStatus(doc.id, "APPROVED");
+                      await documentService.updateDocumentStatus(
+                        doc.id,
+                        "APPROVED"
+                      );
                       // Refresh dashboard data
                       window.location.reload();
                     } catch (error) {
@@ -396,11 +435,14 @@ const Dashboard = () => {
                 >
                   Approve
                 </button>
-                <button 
+                <button
                   className="btn-table danger"
                   onClick={async () => {
                     try {
-                      await documentService.updateDocumentStatus(doc.id, "REJECTED");
+                      await documentService.updateDocumentStatus(
+                        doc.id,
+                        "REJECTED"
+                      );
                       // Refresh dashboard data
                       window.location.reload();
                     } catch (error) {
@@ -416,7 +458,10 @@ const Dashboard = () => {
           ))
         ) : (
           <div className="table-row">
-            <span colSpan="5" style={{textAlign: 'center', gridColumn: '1 / -1'}}>
+            <span
+              colSpan="5"
+              style={{ textAlign: "center", gridColumn: "1 / -1" }}
+            >
               No documents pending approval
             </span>
           </div>
@@ -430,14 +475,16 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="dashboard-wrapper">
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '100vh',
-          fontSize: '1.2rem',
-          color: 'var(--color-text-light)'
-        }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+            fontSize: "1.2rem",
+            color: "var(--color-text-light)",
+          }}
+        >
           Loading dashboard data...
         </div>
       </div>

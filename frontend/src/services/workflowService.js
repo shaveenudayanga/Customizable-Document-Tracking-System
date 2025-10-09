@@ -75,7 +75,10 @@ export const workflowService = {
    */
   async completeTask(taskId, completionData) {
     try {
-      await workflowAPI.post(`/workflow/tasks/${taskId}/complete`, completionData);
+      await workflowAPI.post(
+        `/workflow/tasks/${taskId}/complete`,
+        completionData
+      );
     } catch (error) {
       console.error("Error completing task:", error);
       throw error;

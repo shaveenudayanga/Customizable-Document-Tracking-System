@@ -92,7 +92,7 @@ export const notificationService = {
   async getUnreadCount() {
     try {
       const notifications = await this.getUserNotifications();
-      return notifications.filter(n => !n.read).length;
+      return notifications.filter((n) => !n.read).length;
     } catch (error) {
       console.error("Error getting unread count:", error);
       return 0;
@@ -106,12 +106,12 @@ export const notificationService = {
   subscribeToNotifications(onNotification) {
     // TODO: Implement WebSocket connection for real-time notifications
     console.log("Real-time notifications subscription (to be implemented)");
-    
+
     // For now, we can poll for notifications periodically
     return setInterval(async () => {
       try {
         const notifications = await this.getUserNotifications();
-        const unread = notifications.filter(n => !n.read);
+        const unread = notifications.filter((n) => !n.read);
         if (unread.length > 0) {
           onNotification(unread);
         }
@@ -129,7 +129,7 @@ export const notificationService = {
     if (subscriptionId) {
       clearInterval(subscriptionId);
     }
-  }
+  },
 };
 
 export default notificationService;
