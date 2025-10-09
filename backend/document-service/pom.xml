@@ -53,6 +53,12 @@
 	<!-- Dependencies Section  -->
 	<!-- ===================== -->
 	<dependencies>
+		<!-- Spring AMQP for RabbitMQ messaging -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-amqp</artifactId>
+		</dependency>
+
 		<!-- Spring Boot Actuator for monitoring -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

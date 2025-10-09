@@ -142,9 +142,10 @@ public class DocumentEventPublisher {
 
     private void publishEvent(Object event, String routingKey) {
         try {
-            rabbitTemplate.convertAndSend(documentEventsExchange, routingKey, event);
-            log.info("Published event to exchange '{}' with routing key '{}': {}", 
-                    documentEventsExchange, routingKey, event);
+            String payload = objectMapper.writeValueAsString(event);
+            rabbitTemplate.convertAndSend(documentEventsExchange, routingKey, payload);
+            log.info("Published event to exchange '{}' with routing key '{}': {}",
+                    documentEventsExchange, routingKey, payload);
         } catch (Exception e) {
             log.error("Failed to publish event to exchange '{}' with routing key '{}': {}", 
                     documentEventsExchange, routingKey, event, e);
