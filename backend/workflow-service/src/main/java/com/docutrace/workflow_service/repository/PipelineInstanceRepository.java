@@ -7,4 +7,5 @@ import java.util.Optional;
 public interface PipelineInstanceRepository extends JpaRepository<PipelineInstance, Long> {
     Optional<PipelineInstance> findByProcessInstanceId(String processInstanceId);
     Optional<PipelineInstance> findByDocumentId(Long documentId);
+    boolean existsByTemplateId(Long templateId);
 }

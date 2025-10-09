@@ -121,6 +121,11 @@ public class WorkflowService {
             throw new AccessDeniedException("Unauthorized to delete templates");
         }
 
+        boolean hasActiveInstances = instanceRepo.existsByTemplateId(id);
+        if (hasActiveInstances) {
+            throw new BadRequestException("Cannot delete template with active pipeline instances");
+        }
+
         templateRepo.delete(template);
     }
     

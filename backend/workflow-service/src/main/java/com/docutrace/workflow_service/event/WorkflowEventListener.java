@@ -1,6 +1,6 @@
 package com.docutrace.workflow_service.event;
 
-import com.docutrace.workflow_service.events.WorkflowEventPublisher;
+import com.docutrace.workflow_service.events.WorkflowIntegrationEventPublisher;
 import com.docutrace.workflow_service.integration.TrackingServiceClient;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 public class WorkflowEventListener {
 
     private final TrackingServiceClient trackingServiceClient;
-    private final WorkflowEventPublisher workflowEventPublisher;
+    private final WorkflowIntegrationEventPublisher workflowIntegrationEventPublisher;
 
     @Async
     @EventListener
@@ -43,7 +43,7 @@ public class WorkflowEventListener {
         trackingServiceClient.recordEvent(event.documentId(), "WORKFLOW_STARTED", "Workflow Engine", initiator, "Workflow started", metadata);
         
         // Publish event to notification service
-        workflowEventPublisher.publishWorkflowStarted(
+    workflowIntegrationEventPublisher.publishWorkflowStarted(
             event.documentId(), 
             event.pipelineInstanceId(), 
             event.processInstanceId(), 
@@ -66,7 +66,7 @@ public class WorkflowEventListener {
         trackingServiceClient.recordEvent(event.documentId(), "TASK_COMPLETED", location, completedBy, "Task %s %s".formatted(taskName, statusNote), metadata);
         
         // Publish event to notification service
-        workflowEventPublisher.publishTaskCompleted(
+    workflowIntegrationEventPublisher.publishTaskCompleted(
             event.documentId(), 
             taskId, 
             taskName, 
@@ -84,7 +84,7 @@ public class WorkflowEventListener {
         trackingServiceClient.recordEvent(event.documentId(), "WORKFLOW_COMPLETED", "Workflow Engine", completedBy, "Workflow completed", metadata);
         
         // Publish event to notification service
-        workflowEventPublisher.publishWorkflowCompleted(
+    workflowIntegrationEventPublisher.publishWorkflowCompleted(
             event.documentId(), 
             event.pipelineInstanceId(), 
             event.processInstanceId(), 
@@ -100,7 +100,7 @@ public class WorkflowEventListener {
         trackingServiceClient.recordEvent(event.documentId(), "WORKFLOW_REJECTED", "Workflow Engine", rejectedBy, "Workflow rejected", metadata);
         
         // Publish event to notification service
-        workflowEventPublisher.publishWorkflowRejected(
+    workflowIntegrationEventPublisher.publishWorkflowRejected(
             event.documentId(), 
             event.pipelineInstanceId(), 
             event.processInstanceId(), 
