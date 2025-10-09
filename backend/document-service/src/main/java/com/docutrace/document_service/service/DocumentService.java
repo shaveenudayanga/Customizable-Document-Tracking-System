@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,29 +29,37 @@ import com.docutrace.document_service.repository.DocumentRepository;
 import com.docutrace.document_service.service.exception.DocumentNotFoundException;
 import com.docutrace.document_service.service.exception.FileResourceNotFoundException;
 import com.docutrace.document_service.service.exception.FileStorageException;
+import com.docutrace.document_service.integration.event.DocumentLifecycleEvent;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 @Transactional
 public class DocumentService {
 
     private static final List<String> DEFAULT_STATUSES = List.of("DEPARTMENT_PENDING", "APPROVAL_PENDING");
+    private static final Logger log = LoggerFactory.getLogger(DocumentService.class);
 
     private final DocumentRepository documentRepository;
     private final DocumentMapper documentMapper;
     private final FileStorageService fileStorageService;
     private final QrCodeService qrCodeService;
     private final Path baseStoragePath;
+    private final ApplicationEventPublisher eventPublisher;
 
     public DocumentService(DocumentRepository documentRepository,
                            DocumentMapper documentMapper,
                            FileStorageService fileStorageService,
                            QrCodeService qrCodeService,
-                           StorageProperties storageProperties) {
+                           StorageProperties storageProperties,
+                           ApplicationEventPublisher eventPublisher) {
         this.documentRepository = documentRepository;
         this.documentMapper = documentMapper;
         this.fileStorageService = fileStorageService;
         this.qrCodeService = qrCodeService;
         this.baseStoragePath = storageProperties.getBasePath().toAbsolutePath().normalize();
+        this.eventPublisher = eventPublisher;
     }
 
     public DocumentResponse createDocument(DocumentCreateRequest request) {
@@ -65,8 +75,10 @@ public class DocumentService {
         persisted.setQrPath(qrPath.toString());
         persisted.setFileDir(filesDirectory.toString());
 
-        Document updated = documentRepository.save(persisted);
-        return toResponse(updated);
+    Document updated = documentRepository.save(persisted);
+    DocumentResponse response = toResponse(updated);
+    publishDocumentCreatedEvent(response, qrPath);
+    return response;
     }
 
     @Transactional(readOnly = true)
@@ -153,6 +165,19 @@ public class DocumentService {
     );
     }
 
+    private void publishDocumentCreatedEvent(DocumentResponse response, Path qrPath) {
+        try {
+            byte[] qrBytes = Files.readAllBytes(qrPath);
+            String qrBase64 = Base64.getEncoder().encodeToString(qrBytes);
+            eventPublisher.publishEvent(new DocumentLifecycleEvent(response, qrBase64));
+        } catch (IOException ex) {
+            log.warn("Unable to read QR code bytes for document {}. Integration event will omit QR payload", response.id(), ex);
+            eventPublisher.publishEvent(new DocumentLifecycleEvent(response, null));
+        } catch (Exception ex) {
+            log.error("Failed to publish document lifecycle event for document {}", response.id(), ex);
+        }
+    }
+
     private String buildQrUrl(Long documentId) {
         return "/api/documents/" + documentId + "/qrcode";
     }
@@ -201,8 +226,9 @@ public class DocumentService {
     public DocumentResponse updateStatus(Long documentId, DocumentStatusUpdateRequest request) {
         Document document = findDocument(documentId);
         document.setStatus(encodeStatuses(request.statuses()));
-        if (request.processInstanceId() != null && !request.processInstanceId().isBlank()) {
-            document.setProcessInstanceId(request.processInstanceId().trim());
+        String processInstanceId = request.processInstanceId();
+        if (processInstanceId != null && !processInstanceId.isBlank()) {
+            document.setProcessInstanceId(processInstanceId.trim());
         }
         Document saved = documentRepository.save(document);
         return toResponse(saved);

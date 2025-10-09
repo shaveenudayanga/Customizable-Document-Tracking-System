@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.docutrace.document_service.config.StorageProperties;
 import com.docutrace.document_service.dto.DocumentCreateRequest;
@@ -33,6 +34,7 @@ import com.docutrace.document_service.dto.FileUploadResponse;
 import com.docutrace.document_service.entity.Document;
 import com.docutrace.document_service.mapper.DocumentMapper;
 import com.docutrace.document_service.repository.DocumentRepository;
+import com.docutrace.document_service.integration.event.DocumentLifecycleEvent;
 
 @ExtendWith(MockitoExtension.class)
 class DocumentServiceTest {
@@ -49,6 +51,9 @@ class DocumentServiceTest {
     @Mock
     private QrCodeService qrCodeService;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private DocumentMapper documentMapper;
     private DocumentService documentService;
 
@@ -57,7 +62,7 @@ class DocumentServiceTest {
         documentMapper = Mappers.getMapper(DocumentMapper.class);
         StorageProperties properties = new StorageProperties();
         properties.setBasePath(tempDir);
-        documentService = new DocumentService(documentRepository, documentMapper, fileStorageService, qrCodeService, properties);
+    documentService = new DocumentService(documentRepository, documentMapper, fileStorageService, qrCodeService, properties, eventPublisher);
     }
 
     @Test
@@ -94,6 +99,8 @@ class DocumentServiceTest {
         ArgumentCaptor<Path> qrDirectoryCaptor = ArgumentCaptor.forClass(Path.class);
         verify(qrCodeService).generateDocumentQr(eq(1L), qrDirectoryCaptor.capture());
         assertTrue(qrDirectoryCaptor.getValue().endsWith("1"));
+
+    verify(eventPublisher).publishEvent(any(DocumentLifecycleEvent.class));
     }
 
     @Test

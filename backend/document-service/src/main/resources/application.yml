@@ -43,6 +43,16 @@ springdoc:
 # File Storage Configuration
 storage:
   base-path: /data/docs
+
+integration:
+  workflow:
+    base-url: ${WORKFLOW_SERVICE_BASE_URL:http://localhost:8083}
+    auto-start-enabled: ${WORKFLOW_AUTO_START:true}
+    default-template-id: ${WORKFLOW_DEFAULT_TEMPLATE_ID:}
+  tracking:
+    base-url: ${TRACKING_SERVICE_BASE_URL:http://localhost:8084}
+    register-qr: ${TRACKING_REGISTER_QR:true}
+    emit-submission-events: ${TRACKING_EMIT_SUBMISSION_EVENTS:true}
   
 # Actuator Configuration for Health Checks
 management:

@@ -23,6 +23,15 @@ server:
 document-service:
   base-url: ${DOCUMENT_SERVICE_BASE_URL:http://localhost:8082}
 
+tracking-service:
+  base-url: ${TRACKING_SERVICE_BASE_URL:http://localhost:8084}
+
+user-service:
+  base-url: ${USER_SERVICE_BASE_URL:http://localhost:8081}
+
+notifications:
+  enabled: ${NOTIFICATIONS_ENABLED:true}
+
 # Camunda Configuration
 camunda:
   bpm:
