@@ -3,6 +3,7 @@ package com.docutrace.user_service.service;
 import com.docutrace.user_service.dto.*;
 import com.docutrace.user_service.entity.Role;
 import com.docutrace.user_service.entity.User;
+import com.docutrace.user_service.exception.InvalidCredentialsException;
 import com.docutrace.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -59,10 +60,10 @@ public class UserService {
     
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByUsername(request.username())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(InvalidCredentialsException::new);
         
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new InvalidCredentialsException();
         }
         
         String token = jwtService.generateToken(user.getUsername(), user.getRole().name());
