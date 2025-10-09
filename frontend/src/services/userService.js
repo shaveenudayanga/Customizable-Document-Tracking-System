@@ -65,6 +65,56 @@ export const userService = {
     authService.logout();
   },
 
-  // Additional user management methods can be added here
-  // when backend provides endpoints for user CRUD operations
+  /**
+   * Update user profile
+   * @param {Object} profileData - Updated profile data
+   * @returns {Promise<Object>}
+   */
+  async updateProfile(profileData) {
+    try {
+      const response = await api.put("/auth/profile", profileData);
+
+      if (response) {
+        authService.setCurrentUser({
+          username: response.username,
+          email: response.email,
+          role: response.role,
+          position: response.position,
+          sectionId: response.sectionId,
+        });
+      }
+
+      return response;
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get all users (admin only)
+   * @returns {Promise<Array>}
+   */
+  async getAllUsers() {
+    try {
+      return await api.get("/users");
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get user by ID
+   * @param {number} userId
+   * @returns {Promise<Object>}
+   */
+  async getUserById(userId) {
+    try {
+      return await api.get(`/users/${userId}`);
+    } catch (error) {
+      console.error(`Error fetching user ${userId}:`, error);
+      throw error;
+    }
+  },
 };

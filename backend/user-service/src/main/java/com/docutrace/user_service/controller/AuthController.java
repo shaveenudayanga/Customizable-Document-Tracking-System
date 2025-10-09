@@ -33,6 +33,16 @@ public class AuthController {
         return ResponseEntity.ok(userService.getProfile(username));
     }
 
+    @PutMapping("/profile")
+    public ResponseEntity<UserResponse> updateProfile(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @Valid @RequestBody UpdateProfileRequest request
+    ) {
+        String token = extractBearerToken(authorizationHeader);
+        String username = jwtService.extractUsername(token);
+        return ResponseEntity.ok(userService.updateProfile(username, request));
+    }
+
     private String extractBearerToken(String header) {
         if (header == null || !header.startsWith("Bearer ")) {
             throw new RuntimeException("Invalid authorization header");

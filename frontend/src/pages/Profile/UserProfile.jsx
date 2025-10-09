@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   UserPlus,
   UserX,
@@ -8,10 +8,8 @@ import {
   Mail,
   Loader,
   CheckCircle,
-  AlertCircle,
 } from "lucide-react";
 import "../../styles/UserProfile.css";
-import { userService } from "../../services/userService";
 
 // --- Mock Data ---
 const initialUsers = [
@@ -72,9 +70,6 @@ const InviteUserForm = ({ addInvite }) => {
     setIsSending(true);
     setSentSuccess(false);
 
-    // TODO: Replace with actual API call
-    // await userService.inviteUser({ email, role });
-    
     // Simulate API call delay
     setTimeout(() => {
       const newInvite = {
@@ -190,46 +185,9 @@ const UserRow = ({ user, onDelete }) => {
 
 // --- Main Component: User Management Panel ---
 const UserManagement = () => {
-  const [activeUsers, setActiveUsers] = useState([]);
-  const [pendingInvites, setPendingInvites] = useState([]);
+  const [activeUsers, setActiveUsers] = useState(initialUsers);
+  const [pendingInvites, setPendingInvites] = useState(initialInvites);
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Fetch users from API on component mount
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // TODO: Replace with actual API call when backend endpoint is ready
-      // const users = await userService.getAllUsers();
-      
-      // For now, use mock data as fallback
-      const mockUsers = [
-        {
-          id: 101,
-          name: "System User",
-          email: "user@docutrace.com",
-          role: "USER",
-          status: "Active",
-          dateJoined: new Date().toISOString().slice(0, 10),
-        },
-      ];
-      
-      setActiveUsers(mockUsers);
-      setPendingInvites([]);
-    } catch (err) {
-      console.error("Error loading users:", err);
-      setError("Failed to load users. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const addInvite = (newInvite) => {
     setPendingInvites((prev) => [...prev, newInvite]);

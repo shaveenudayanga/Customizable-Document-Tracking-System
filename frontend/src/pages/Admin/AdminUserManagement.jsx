@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom"; // Ensure Link is imported
 import "../../styles/AdminUserManagement.css";
 import { userService } from "../../services/userService";
 import { departmentService } from "../../services/departmentService";
-// Added Camera to the imports
+// Added Camera and Loader to the imports
 import {
   User,
   Settings,
@@ -13,6 +13,8 @@ import {
   LogOut,
   Camera,
   Loader,
+  AlertCircle,
+  CheckCircle,
 } from "lucide-react";
 
 // --- Component 1: Admin Details Form ---
@@ -30,52 +32,51 @@ const AdminDetailsForm = () => {
   const [department, setDepartment] = useState("");
   const [sectionId, setSectionId] = useState("");
   const [profileImage, setProfileImage] = useState("");
+  const [success, setSuccess] = useState(null);
+  
+  // Department dropdown state
   const [departments, setDepartments] = useState([]);
   const [loadingDepartments, setLoadingDepartments] = useState(false);
 
-  const normalizeDepartmentList = (data) => {
-    if (!data) return [];
-    if (Array.isArray(data)) return data;
-
-    if (data && typeof data === "object") {
-      if (Array.isArray(data.items)) return data.items;
-      if (Array.isArray(data.content)) return data.content;
-      if (Array.isArray(data.data)) return data.data;
-
-      const potentialValues = Object.values(data).filter(
-        (value) => Array.isArray(value)
-      );
-      for (const arr of potentialValues) {
-        if (Array.isArray(arr)) return arr;
-      }
-
-      const objectValues = Object.values(data).filter(
-        (value) => value && typeof value === "object"
-      );
-      if (objectValues.length) {
-        return objectValues;
-      }
-    }
-
-    console.warn("Unable to normalize departments payload", data);
-    return [];
-  };
-
-  // Fetch user profile on component mount
+  // Fetch user profile and departments on component mount
   useEffect(() => {
     loadUserProfile();
     loadDepartments();
   }, []);
 
+  const normalizeDepartments = (data) => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+
+    if (typeof data === "object") {
+      if (Array.isArray(data.items)) return data.items;
+      if (Array.isArray(data.content)) return data.content;
+      if (Array.isArray(data.data)) return data.data;
+
+      const arrayValue = Object.values(data).find((value) => Array.isArray(value));
+      if (Array.isArray(arrayValue)) return arrayValue;
+
+      return Object.values(data).filter((value) => value && typeof value === "object");
+    }
+
+    return [];
+  };
+
   const loadDepartments = async () => {
     try {
       setLoadingDepartments(true);
       const deptList = await departmentService.getAllDepartments();
-      setDepartments(normalizeDepartmentList(deptList));
+      let normalized = normalizeDepartments(deptList);
+      if (!normalized.length) {
+        const fallback = normalizeDepartments(departmentService.getDepartments());
+        normalized = fallback;
+      }
+      setDepartments(normalized);
     } catch (err) {
       console.error("Error loading departments:", err);
-      const fallbackDepts = departmentService.getDepartments();
-      setDepartments(normalizeDepartmentList(fallbackDepts));
+      // Use fallback departments
+      const fallbackDepts = normalizeDepartments(departmentService.getDepartments());
+      setDepartments(fallbackDepts);
     } finally {
       setLoadingDepartments(false);
     }
@@ -85,6 +86,8 @@ const AdminDetailsForm = () => {
     try {
       setLoading(true);
       setError(null);
+      setSuccess(null);
+      // This call automatically includes Authorization header
       const userData = await userService.getCurrentUser();
       
       if (userData) {
@@ -93,6 +96,9 @@ const AdminDetailsForm = () => {
         setRole(userData.role || "USER");
         setPosition(userData.position || "");
         setSectionId(userData.sectionId || "");
+        
+        // Set department - use sectionId as the key for dropdown
+        // The dropdown will show the department name but store the key
         setDepartment(userData.sectionId || "");
         
         // Generate display name from username or email
@@ -151,7 +157,9 @@ const AdminDetailsForm = () => {
     const newEmail = e.target.value;
     setEmail(newEmail);
 
+    // Auto-update profile photo if email is valid
     if (newEmail && newEmail.includes("@") && newEmail.includes(".")) {
+      // Use initials-based avatar
       setProfileImage(generateInitialsAvatar(name, newEmail));
     }
   };
@@ -166,46 +174,71 @@ const AdminDetailsForm = () => {
     try {
       setSaving(true);
       setError(null);
-      
-      // TODO: When backend supports profile update endpoint, call:
-      // await userService.updateProfile({
-      //   position,
-      //   sectionId: department,
-      // });
-      
-      const selectedDept = departments.find(
-        (d) => (d.key || d.id) === department
-      );
-      const deptName = selectedDept ? selectedDept.name : department;
+      setSuccess(null);
 
-      alert(
-        `Profile saved successfully!\n\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPosition: ${position}\nDepartment: ${deptName}`
-      );
+      const payload = {
+        email: email?.trim() || undefined,
+        position: position?.trim() || "",
+        sectionId: department || "",
+      };
+
+      const updatedProfile = await userService.updateProfile(payload);
+
+      if (updatedProfile) {
+        setEmail(updatedProfile.email || "");
+        setPosition(updatedProfile.position || "");
+        setDepartment(updatedProfile.sectionId || "");
+
+        const departmentOptions = normalizeDepartments(departments);
+        const selectedDept = departmentOptions.find((dept) => {
+          const value =
+            dept?.key ?? dept?.id ?? dept?.code ?? dept?.value ?? dept?.name;
+          return value === (updatedProfile.sectionId || "");
+        });
+
+        const deptName = selectedDept
+          ? selectedDept.name || selectedDept.displayName || selectedDept.title
+          : updatedProfile.sectionId;
+
+        setSuccess(
+          deptName
+            ? `Profile updated successfully (Department: ${deptName}).`
+            : "Profile updated successfully."
+        );
+      }
     } catch (err) {
       console.error("Error saving profile:", err);
-      setError("Failed to save profile. Please try again.");
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to save profile. Please try again.";
+      setError(message);
     } finally {
       setSaving(false);
     }
   };
 
+  // Loading state
   if (loading) {
     return (
       <div className="admin-details-card">
-        <div style={{ textAlign: "center", padding: "3rem" }}>
-          <Loader size={48} className="spinner" />
-          <p style={{ marginTop: "1rem", color: "#888" }}>Loading profile...</p>
+        <div className="loading-spinner">
+          <Loader className="spinner" size={40} />
+          <p>Loading profile...</p>
         </div>
       </div>
     );
   }
 
-  if (error && !email) {
+  // Error state
+  if (error && !name) {
     return (
       <div className="admin-details-card">
-        <div style={{ textAlign: "center", padding: "3rem" }}>
-          <p style={{ color: "#ef4444", marginBottom: "1rem" }}>{error}</p>
-          <button onClick={loadUserProfile} className="save-button">
+        <div className="error-message">
+          <AlertCircle size={20} />
+          <p>{error}</p>
+          <button onClick={loadUserProfile} className="retry-btn">
             Retry
           </button>
         </div>
@@ -233,20 +266,22 @@ const AdminDetailsForm = () => {
 
         <div className="profile-info">
           <h2>{name}</h2>
-          <p>{position}</p>
+          <p>{position || role || "System User"}</p>
           <p className="email-link">{email}</p>
         </div>
       </div>
 
-      {error && (
-        <div style={{ 
-          padding: "1rem", 
-          background: "#fee", 
-          color: "#c00", 
-          borderRadius: "8px",
-          marginBottom: "1rem"
-        }}>
-          {error}
+      {error && name && (
+        <div className="error-banner">
+          <AlertCircle size={18} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {success && (
+        <div className="success-banner">
+          <CheckCircle size={18} />
+          <span>{success}</span>
         </div>
       )}
 
@@ -276,16 +311,16 @@ const AdminDetailsForm = () => {
             type="text"
             value={position}
             onChange={(e) => setPosition(e.target.value)}
-            placeholder="Enter position/title"
+            placeholder="e.g., Senior Manager"
           />
         </div>
         <div className="form-field">
           <label>Department</label>
           {(() => {
-            const departmentOptions = normalizeDepartmentList(departments);
-            const getDeptValue = (dept) =>
-              dept?.key ?? dept?.id ?? dept?.code ?? dept?.value ?? dept?.name ?? "";
-            const getDeptName = (dept) =>
+            const departmentOptions = normalizeDepartments(departments);
+            const getOptionValue = (dept, index) =>
+              dept?.key ?? dept?.id ?? dept?.code ?? dept?.value ?? dept?.name ?? `dept-${index}`;
+            const getOptionLabel = (dept) =>
               dept?.name ?? dept?.displayName ?? dept?.title ?? dept?.key ?? dept?.id ?? "Department";
 
             return (
@@ -299,14 +334,14 @@ const AdminDetailsForm = () => {
                   {loadingDepartments
                     ? "Loading departments..."
                     : departmentOptions.length
-                    ? "Select department"
+                    ? "Select Department"
                     : "No departments available"}
                 </option>
                 {departmentOptions.map((dept, index) => {
-                  const value = getDeptValue(dept) || `dept-${index}`;
+                  const value = getOptionValue(dept, index);
                   return (
                     <option key={value} value={value}>
-                      {getDeptName(dept)}
+                      {getOptionLabel(dept)}
                     </option>
                   );
                 })}
@@ -317,11 +352,7 @@ const AdminDetailsForm = () => {
         {/* Row 3 */}
         <div className="form-field">
           <label>Role</label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            disabled
-          >
+          <select value={role} disabled className="role-select">
             <option value="USER">User</option>
             <option value="ADMIN">Admin</option>
             <option value="MANAGER">Manager</option>
@@ -336,13 +367,7 @@ const AdminDetailsForm = () => {
           onClick={handleSaveChanges}
           disabled={saving}
         >
-          {saving ? (
-            <>
-              <Loader size={18} className="spinner" /> Saving...
-            </>
-          ) : (
-            "Save Changes"
-          )}
+          {saving ? "Saving..." : "Save Changes"}
         </button>
       </div>
     </div>

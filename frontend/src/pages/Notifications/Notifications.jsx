@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Bell,
   Clock,
@@ -6,10 +6,58 @@ import {
   XCircle,
   FileText,
   ArrowRight,
-  AlertCircle,
 } from "lucide-react";
 import "../../styles/Notifications.css";
 // Ensure your main CSS file (AdminUserManagement.css) is imported by the parent layout
+
+// Mock Notification Data
+const initialNotifications = [
+  {
+    id: 1,
+    type: "approval",
+    title: "Document A102 Requires Approval",
+    message:
+      "A critical contract document has been uploaded by Jane Doe and is awaiting your review.",
+    time: "5 min ago",
+    read: false,
+  },
+  {
+    id: 2,
+    type: "update",
+    title: "System Update Completed",
+    message:
+      "The nightly database backup and security patch was completed successfully at 2:00 AM.",
+    time: "3 hours ago",
+    read: true,
+  },
+  {
+    id: 3,
+    type: "alert",
+    title: "File T404 Access Denied",
+    message:
+      "Unauthorized access attempt detected on the confidential client file T404.",
+    time: "1 day ago",
+    read: false,
+  },
+  {
+    id: 4,
+    type: "success",
+    title: "New User Registered",
+    message:
+      "A new administrative user, Michael Scott, has successfully registered and requires role assignment.",
+    time: "2 days ago",
+    read: true,
+  },
+  {
+    id: 5,
+    type: "alert",
+    title: "New User Registered",
+    message:
+      "A new administrative user, Michael Scott, has successfully registered and requires role assignment.",
+    time: "2 days ago",
+    read: true,
+  },
+];
 
 // Helper function to map notification type to icon and color
 const getNotificationMetadata = (type) => {
@@ -68,37 +116,7 @@ const NotificationItem = ({ notification, markAsRead }) => {
 
 // --- Main Component: Notification Panel ---
 const NotificationPanel = () => {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Load notifications from API
-  useEffect(() => {
-    loadNotifications();
-  }, []);
-
-  const loadNotifications = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      // TODO: Replace with actual API call when backend endpoint is ready
-      // const response = await fetch('/api/notifications', {
-      //   headers: {
-      //     'Authorization': `Bearer ${localStorage.getItem('token')}`
-      //   }
-      // });
-      // const data = await response.json();
-      // setNotifications(data);
-      
-      // For now, use empty array until API is implemented
-      setNotifications([]);
-    } catch (err) {
-      console.error("Error loading notifications:", err);
-      setError("Failed to load notifications. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [notifications, setNotifications] = useState(initialNotifications);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -106,49 +124,11 @@ const NotificationPanel = () => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
-    // TODO: Update read status on backend
-    // fetch(`/api/notifications/${id}/read`, { method: 'PUT', ... });
   };
 
   const markAllAsRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    // TODO: Update all as read on backend
-    // fetch('/api/notifications/read-all', { method: 'PUT', ... });
   };
-
-  if (loading) {
-    return (
-      <div className="notification-panel-card admin-details-card">
-        <div className="panel-header">
-          <h2 className="panel-title">
-            <Bell size={24} style={{ marginRight: "10px" }} />
-            Notifications
-          </h2>
-        </div>
-        <div className="loading-spinner"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="notification-panel-card admin-details-card">
-        <div className="panel-header">
-          <h2 className="panel-title">
-            <Bell size={24} style={{ marginRight: "10px" }} />
-            Notifications
-          </h2>
-        </div>
-        <div className="error-message">
-          <AlertCircle size={20} />
-          <p>{error}</p>
-          <button onClick={loadNotifications} className="retry-btn">
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="notification-panel-card admin-details-card">
