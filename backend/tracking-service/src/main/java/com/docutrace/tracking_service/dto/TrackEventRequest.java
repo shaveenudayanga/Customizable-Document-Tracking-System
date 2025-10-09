@@ -3,6 +3,7 @@ package com.docutrace.tracking_service.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.Map;
 
 public record TrackEventRequest(
         @NotNull Long documentId,
@@ -12,5 +13,6 @@ public record TrackEventRequest(
         String notes,
         String qrCode,
         BigDecimal latitude,
-        BigDecimal longitude
+        BigDecimal longitude,
+        Map<String, Object> metadata
 ) {}

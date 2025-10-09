@@ -24,6 +24,7 @@ import {
 import "../../styles/Dashboard.css";
 import { userService } from "../../services/userService.js";
 import { documentService } from "../../services/documentService.js";
+import { authService } from "../../services/authService.js";
 
 // =================================================================
 // --- Reusable Sub-Components ---
@@ -157,7 +158,7 @@ const RecentActivity = () => {
 const Dashboard = () => {
   const navigate = useNavigate();
   // State management
-  const [role, setRole] = useState("admin"); // Default to admin for demonstration
+  const [role, setRole] = useState(""); // Will be set from authService
   const [userName, setUserName] = useState("Loading...");
   const [activeTab, setActiveTab] = useState("Home");
   const [userMetrics, setUserMetrics] = useState([]);
@@ -168,20 +169,21 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const currentUser = await userService.getCurrentUser();
-        setUserName(currentUser.name);
-        setRole(currentUser.role);
+        // Get current user from authService
+        const currentUser = authService.getCurrentUser();
 
-        // Set user role in localStorage for consistency
-        localStorage.setItem("role", currentUser.role);
+        if (currentUser) {
+          setUserName(currentUser.username || "User");
+          setRole(currentUser.role?.toLowerCase() || "user");
+        }
 
         // Fetch documents for metrics calculation
         const documents = await documentService.getAllDocuments();
 
-        if (currentUser.role === "user") {
+        if (currentUser.role?.toLowerCase() === "user") {
           // Calculate user-specific metrics
           const userDocs = documents.filter(
-            (doc) => doc.owner === currentUser.name
+            (doc) => doc.owner === currentUser.username
           );
           setUserMetrics([
             {
@@ -253,7 +255,8 @@ const Dashboard = () => {
   }, []);
 
   // Determine the data set to use
-  const metricsData = role === "user" ? userMetrics : adminMetrics;
+  const metricsData =
+    role?.toLowerCase() === "user" ? userMetrics : adminMetrics;
 
   // --- Dynamic Table Content ---
 
@@ -356,7 +359,7 @@ const Dashboard = () => {
                 navigate("/pipelines/builder");
               }}
             />
-            {role === "admin" && (
+            {role?.toLowerCase() === "admin" && (
               <SidebarLink
                 Icon={Users}
                 title="User Management"
@@ -396,7 +399,7 @@ const Dashboard = () => {
           </h1>
           <div className="header-info">
             <span className={`role-badge role-${role}`}>
-              {role.toUpperCase()}
+              {role.toUpperCase() === "ADMIN" ? "Admin" : "Staff"}
             </span>
             <ChevronRight size={18} className="chevron" />
           </div>
@@ -412,7 +415,11 @@ const Dashboard = () => {
         {/* Main Content Blocks (Tables and Activity Log) */}
         <section className="dashboard-content-blocks">
           <div className="primary-block">
-            {role === "user" ? <UserPendingTable /> : <AdminPendingTable />}
+            {role?.toLowerCase() === "user" ? (
+              <UserPendingTable />
+            ) : (
+              <AdminPendingTable />
+            )}
           </div>
 
           <RecentActivity />

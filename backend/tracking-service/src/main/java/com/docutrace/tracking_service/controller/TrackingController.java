@@ -3,6 +3,7 @@ package com.docutrace.tracking_service.controller;
 import com.docutrace.tracking_service.dto.DocumentHistoryResponse;
 import com.docutrace.tracking_service.dto.TrackEventRequest;
 import com.docutrace.tracking_service.dto.TrackEventResponse;
+import com.docutrace.tracking_service.dto.RegisterQrRequest;
 import com.docutrace.tracking_service.service.TrackingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,11 @@ public class TrackingController {
     @PostMapping("/scan")
     public ResponseEntity<TrackEventResponse> recordScan(@Valid @RequestBody TrackEventRequest request) {
         return ResponseEntity.ok(trackingService.recordEvent(request));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<TrackEventResponse> registerQr(@Valid @RequestBody RegisterQrRequest request) {
+        return ResponseEntity.ok(trackingService.registerQr(request));
     }
 
     @GetMapping("/history/{documentId}")

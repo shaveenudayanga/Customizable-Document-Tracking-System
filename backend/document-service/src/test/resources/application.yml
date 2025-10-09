@@ -21,6 +21,13 @@ spring:
 storage:
   base-path: ${java.io.tmpdir}/doc-service-tests
 
+integration:
+  workflow:
+    auto-start-enabled: false
+  tracking:
+    register-qr: false
+    emit-submission-events: false
+
 logging:
   level:
     root: WARN

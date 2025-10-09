@@ -251,6 +251,9 @@ public class WorkflowService {
         variables.put("notes", request.notes());
         variables.put("completedBy", request.userId());
         variables.put("completedAt", LocalDateTime.now());
+        Optional.ofNullable(request.location()).ifPresent(location -> variables.put("location", location));
+        Optional.ofNullable(request.latitude()).ifPresent(lat -> variables.put("latitude", lat));
+        Optional.ofNullable(request.longitude()).ifPresent(lon -> variables.put("longitude", lon));
 
         taskService.complete(taskId, variables);
 
@@ -263,6 +266,31 @@ public class WorkflowService {
         eventPayload.put("approved", request.approved());
         Optional.ofNullable(request.notes()).ifPresent(notes -> eventPayload.put("notes", notes));
         eventPayload.put("completedBy", request.userId());
+        Optional.ofNullable(request.location()).ifPresent(location -> eventPayload.put("location", location));
+        Optional.ofNullable(request.latitude()).ifPresent(lat -> eventPayload.put("latitude", lat));
+        Optional.ofNullable(request.longitude()).ifPresent(lon -> eventPayload.put("longitude", lon));
+
+        List<String> documentStatuses = request.documentStatuses();
+        if (documentStatuses != null && !documentStatuses.isEmpty()) {
+            try {
+                documentServiceClient.updateDocumentStatus(
+                    instance.getDocumentId(),
+                    documentStatuses,
+                    instance.getProcessInstanceId()
+                );
+            } catch (Exception ex) {
+                log.warn("Failed to propagate document status update for document {}", instance.getDocumentId(), ex);
+            }
+            eventPayload.put("documentStatuses", documentStatuses);
+        }
+
+        String initiator = null;
+        try {
+            initiator = (String) runtimeService.getVariable(task.getProcessInstanceId(), "initiator");
+        } catch (Exception ex) {
+            log.debug("Unable to resolve initiator for process {}", task.getProcessInstanceId(), ex);
+        }
+        Optional.ofNullable(initiator).ifPresent(user -> eventPayload.put("initiator", user));
 
         eventPublisher.publish(WorkflowEvent.of(
             WorkflowEventType.TASK_COMPLETED,
@@ -285,7 +313,10 @@ public class WorkflowService {
                 instance.getDocumentId(),
                 instance.getId(),
                 instance.getProcessInstanceId(),
-                Map.of("rejectedBy", request.userId())
+                Map.of(
+                    "rejectedBy", request.userId(),
+                    "initiator", initiator
+                )
             ));
         } else {
             if (updatePipelineInstanceStatusIfFinished(instance)) {
@@ -294,7 +325,10 @@ public class WorkflowService {
                     instance.getDocumentId(),
                     instance.getId(),
                     instance.getProcessInstanceId(),
-                    Map.of("completedBy", request.userId())
+                    Map.of(
+                        "completedBy", request.userId(),
+                        "initiator", initiator
+                    )
                 ));
             }
         }

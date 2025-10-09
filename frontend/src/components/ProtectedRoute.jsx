@@ -15,10 +15,13 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Check role if required
-  if (requiredRole && currentUser?.role !== requiredRole) {
+  // Check role if required (case-insensitive comparison)
+  if (
+    requiredRole &&
+    currentUser?.role?.toLowerCase() !== requiredRole.toLowerCase()
+  ) {
     // Redirect to appropriate page based on their actual role
-    if (currentUser?.role === "admin") {
+    if (currentUser?.role?.toLowerCase() === "admin") {
       return <Navigate to="/adminusermanagement" replace />;
     } else {
       return <Navigate to="/dashboard" replace />;
