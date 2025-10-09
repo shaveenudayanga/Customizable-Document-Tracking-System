@@ -25,6 +25,9 @@ import "../../styles/Dashboard.css";
 import { userService } from "../../services/userService.js";
 import { documentService } from "../../services/documentService.js";
 import { authService } from "../../services/authService.js";
+import { workflowService } from "../../services/workflowService.js";
+import { trackingService } from "../../services/trackingService.js";
+import { notificationService } from "../../services/notificationService.js";
 
 // =================================================================
 // --- Reusable Sub-Components ---
@@ -132,20 +135,37 @@ const ActivityItem = ({ activity }) => {
   );
 };
 
-// 5. Recent Activity Panel (New Secondary Block)
-const RecentActivity = () => {
+// 5. Recent Activity Panel (Updated to use real data)
+const RecentActivity = ({ activities }) => {
   return (
     <div className="secondary-block recent-activity-panel">
       <h3 className="block-title">Recent System Activity</h3>
 
       <div className="activity-list">
-        {activityLog.map((activity) => (
-          <ActivityItem key={activity.id} activity={activity} />
-        ))}
+        {activities && activities.length > 0 ? (
+          activities.map((activity) => (
+            <ActivityItem key={activity.id} activity={activity} />
+          ))
+        ) : (
+          <div className="activity-item">
+            <div className="activity-icon">
+              <Clock size={20} />
+            </div>
+            <div className="activity-content">
+              <div className="activity-description">No recent activity</div>
+              <div className="activity-footer">
+                <Clock size={12} />
+                <span>System ready</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="view-all-button-container">
-        <button className="btn-view-all">View Full Log</button>
+        <button className="btn-view-all" onClick={() => navigate('/notifications')}>
+          View All Notifications
+        </button>
       </div>
     </div>
   );
@@ -164,6 +184,9 @@ const Dashboard = () => {
   const [userMetrics, setUserMetrics] = useState([]);
   const [adminMetrics, setAdminMetrics] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [pendingTasks, setPendingTasks] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
   // Fetch user data and metrics
   useEffect(() => {
@@ -177,75 +200,115 @@ const Dashboard = () => {
           setRole(currentUser.role?.toLowerCase() || "user");
         }
 
-        // Fetch documents for metrics calculation
-        const documents = await documentService.getAllDocuments();
+        // Fetch real data from backend services
+        const [documents, workflows, notifications, users] = await Promise.all([
+          documentService.getAllDocuments().catch(() => []),
+          workflowService.getMyTasks().catch(() => []),
+          notificationService.getUserNotifications().catch(() => []),
+          userService.getAllUsers().catch(() => [])
+        ]);
 
-        if (currentUser.role?.toLowerCase() === "user") {
-          // Calculate user-specific metrics
-          const userDocs = documents.filter(
-            (doc) => doc.owner === currentUser.username
-          );
-          setUserMetrics([
-            {
-              title: "Documents for Review",
-              value: userDocs.filter((doc) => doc.status === "Pending").length,
-              Icon: Eye,
-              colorClass: "primary",
-            },
-            {
-              title: "Documents in Transit",
-              value: userDocs.filter((doc) => doc.currentStep !== "Completed")
-                .length,
-              Icon: Clock,
-              colorClass: "warning",
-            },
-            {
-              title: "Completed Documents",
-              value: userDocs.filter((doc) => doc.status === "Approved").length,
-              Icon: CheckCircle,
-              colorClass: "success",
-            },
-            {
-              title: "Recent Uploads",
-              value: userDocs.length,
-              Icon: FileArchive,
-              colorClass: "info",
-            },
-          ]);
-        } else {
-          // Calculate admin metrics
+        // Set notifications
+        setNotifications(notifications.slice(0, 5)); // Show latest 5
+
+        if (currentUser.role?.toLowerCase() === "admin") {
+          // Calculate admin metrics from real backend data
+          const totalDocuments = documents.length;
+          const pendingApprovals = documents.filter(doc => doc.status === "PENDING").length;
+          const activeUsers = users.length;
+          const overdueDocuments = documents.filter(doc => 
+            doc.status === "REJECTED" || 
+            (doc.dueDate && new Date(doc.dueDate) < new Date())
+          ).length;
+
           setAdminMetrics([
             {
               title: "Total Documents",
-              value: documents.length,
+              value: totalDocuments,
               Icon: FileText,
               colorClass: "primary",
             },
             {
               title: "Pending Approvals",
-              value: documents.filter((doc) => doc.status === "Pending").length,
+              value: pendingApprovals,
               Icon: Send,
               colorClass: "warning",
             },
             {
               title: "Active Users",
-              value: 25, // This would come from userService.getAllUsers().length
+              value: activeUsers,
               Icon: Users,
               colorClass: "success",
             },
             {
               title: "Overdue Documents",
-              value: documents.filter((doc) => doc.status === "Rejected")
-                .length,
+              value: overdueDocuments,
               Icon: FileX,
               colorClass: "danger",
             },
           ]);
+
+          // Set pending tasks for admin
+          setPendingTasks(documents.filter(doc => doc.status === "PENDING").slice(0, 5));
+        } else {
+          // Calculate user-specific metrics from real backend data
+          const userDocs = documents.filter(doc => doc.createdBy === currentUser.username);
+          const userTasks = workflows.filter(task => task.assignee === currentUser.username);
+          const documentsForReview = userTasks.filter(task => task.status === "PENDING").length;
+          const documentsInTransit = userDocs.filter(doc => 
+            doc.status !== "APPROVED" && doc.status !== "REJECTED"
+          ).length;
+          const completedDocuments = userDocs.filter(doc => doc.status === "APPROVED").length;
+
+          setUserMetrics([
+            {
+              title: "Documents for Review",
+              value: documentsForReview,
+              Icon: Eye,
+              colorClass: "primary",
+            },
+            {
+              title: "Documents in Transit",
+              value: documentsInTransit,
+              Icon: Clock,
+              colorClass: "warning",
+            },
+            {
+              title: "Completed Documents",
+              value: completedDocuments,
+              Icon: CheckCircle,
+              colorClass: "success",
+            },
+            {
+              title: "Total Uploads",
+              value: userDocs.length,
+              Icon: FileArchive,
+              colorClass: "info",
+            },
+          ]);
+
+          // Set pending tasks for user
+          setPendingTasks(userTasks.filter(task => task.status === "PENDING").slice(0, 5));
         }
+
+        // Create recent activity from notifications and document events
+        const activityItems = notifications.map((notif, index) => ({
+          id: notif.id || index,
+          type: notif.type?.toLowerCase() || "info",
+          description: notif.message || notif.content,
+          time: notif.createdAt ? 
+            new Date(notif.createdAt).toLocaleString() : 
+            `${index + 1} hours ago`,
+          user: notif.sender || "System"
+        }));
+        
+        setRecentActivity(activityItems);
+
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching dashboard data:", error);
         // Fallback to default values
         setUserName("User");
+        setRole("user");
       } finally {
         setLoading(false);
       }
@@ -260,7 +323,7 @@ const Dashboard = () => {
 
   // --- Dynamic Table Content ---
 
-  const UserPendingTable = () => (
+  const UserPendingTable = ({ tasks }) => (
     <div className="table-block">
       <h3 className="block-title">Pending Tasks (My Actions)</h3>
       <div className="custom-table">
@@ -271,26 +334,35 @@ const Dashboard = () => {
           <span>Due Date</span>
           <span>Action</span>
         </div>
-        {/* Simulated Data */}
-        <div className="table-row">
-          <span>DOC-001</span>
-          <span>Q2 Financial Report</span>
-          <span className="status status-pending">In Transit</span>
-          <span>2025-10-05</span>
-          <button className="btn-table primary">Review</button>
-        </div>
-        <div className="table-row">
-          <span>DOC-002</span>
-          <span>Vendor Contract B</span>
-          <span className="status status-pending">Pending</span>
-          <span>2025-10-07</span>
-          <button className="btn-table primary">Sign</button>
-        </div>
+        {tasks && tasks.length > 0 ? (
+          tasks.map((task) => (
+            <div key={task.id} className="table-row">
+              <span>{task.id || task.documentId}</span>
+              <span>{task.documentName || task.title || "Untitled Document"}</span>
+              <span className={`status status-${task.status?.toLowerCase() || 'pending'}`}>
+                {task.status || "Pending"}
+              </span>
+              <span>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "N/A"}</span>
+              <button 
+                className="btn-table primary"
+                onClick={() => navigate(`/documents/${task.documentId || task.id}`)}
+              >
+                Review
+              </button>
+            </div>
+          ))
+        ) : (
+          <div className="table-row">
+            <span colSpan="5" style={{textAlign: 'center', gridColumn: '1 / -1'}}>
+              No pending tasks
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
 
-  const AdminPendingTable = () => (
+  const AdminPendingTable = ({ documents }) => (
     <div className="table-block">
       <h3 className="block-title">Documents Requiring Approval</h3>
       <div className="custom-table">
@@ -301,32 +373,76 @@ const Dashboard = () => {
           <span>Submission Date</span>
           <span>Action</span>
         </div>
-        {/* Simulated Data */}
-        <div className="table-row">
-          <span>APP-101</span>
-          <span>John Doe</span>
-          <span>Marketing Campaign Plan</span>
-          <span>2025-10-01</span>
-          <div className="action-buttons">
-            <button className="btn-table success">Approve</button>
-            <button className="btn-table danger">Reject</button>
+        {documents && documents.length > 0 ? (
+          documents.map((doc) => (
+            <div key={doc.id} className="table-row">
+              <span>{doc.id}</span>
+              <span>{doc.createdBy || doc.owner || "Unknown"}</span>
+              <span>{doc.title || doc.name || "Untitled Document"}</span>
+              <span>{doc.createdAt ? new Date(doc.createdAt).toLocaleDateString() : "N/A"}</span>
+              <div className="action-buttons">
+                <button 
+                  className="btn-table success"
+                  onClick={async () => {
+                    try {
+                      await documentService.updateDocumentStatus(doc.id, "APPROVED");
+                      // Refresh dashboard data
+                      window.location.reload();
+                    } catch (error) {
+                      console.error("Error approving document:", error);
+                      alert("Failed to approve document");
+                    }
+                  }}
+                >
+                  Approve
+                </button>
+                <button 
+                  className="btn-table danger"
+                  onClick={async () => {
+                    try {
+                      await documentService.updateDocumentStatus(doc.id, "REJECTED");
+                      // Refresh dashboard data
+                      window.location.reload();
+                    } catch (error) {
+                      console.error("Error rejecting document:", error);
+                      alert("Failed to reject document");
+                    }
+                  }}
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="table-row">
+            <span colSpan="5" style={{textAlign: 'center', gridColumn: '1 / -1'}}>
+              No documents pending approval
+            </span>
           </div>
-        </div>
-        <div className="table-row">
-          <span>APP-102</span>
-          <span>Mary Jane</span>
-          <span>Q3 Expense Report</span>
-          <span>2025-10-02</span>
-          <div className="action-buttons">
-            <button className="btn-table success">Approve</button>
-            <button className="btn-table danger">Reject</button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
 
   // --- Render ---
+
+  if (loading) {
+    return (
+      <div className="dashboard-wrapper">
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh',
+          fontSize: '1.2rem',
+          color: 'var(--color-text-light)'
+        }}>
+          Loading dashboard data...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-wrapper">
@@ -415,14 +531,14 @@ const Dashboard = () => {
         {/* Main Content Blocks (Tables and Activity Log) */}
         <section className="dashboard-content-blocks">
           <div className="primary-block">
-            {role?.toLowerCase() === "user" ? (
-              <UserPendingTable />
+            {role?.toLowerCase() === "admin" ? (
+              <AdminPendingTable documents={pendingTasks} />
             ) : (
-              <AdminPendingTable />
+              <UserPendingTable tasks={pendingTasks} />
             )}
           </div>
 
-          <RecentActivity />
+          <RecentActivity activities={recentActivity} />
         </section>
       </main>
     </div>
