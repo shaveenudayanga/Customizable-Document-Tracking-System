@@ -1,0 +1,54 @@
+{
+  "info": {
+    "name": "Notification Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "a6e4a6a3-3c74-4c2d-9c38-1a2b4b9c1f00"
+  },
+  "item": [
+    {
+      "name": "Create Document Event",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eventId\": \"{{eventId}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/document-events",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "document-events"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Document Events",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/document-events",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "document-events"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
