@@ -28,6 +28,7 @@ export const authService = {
       if (response.token) {
         setAuthToken(response.token);
         this.setCurrentUser({
+          userId: response.userId,
           username: response.username,
           email: response.email,
           role: response.role,
@@ -61,6 +62,7 @@ export const authService = {
       if (response.token) {
         setAuthToken(response.token);
         this.setCurrentUser({
+          userId: response.userId,
           username: response.username,
           email: response.email,
           role: response.role,

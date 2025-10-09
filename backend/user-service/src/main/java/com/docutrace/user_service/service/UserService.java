@@ -50,6 +50,7 @@ public class UserService {
         String token = jwtService.generateToken(user.getUsername(), user.getRole().name());
         return new AuthResponse(
                 token,
+                user.getUuid(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getRole().name(),
@@ -69,6 +70,7 @@ public class UserService {
         String token = jwtService.generateToken(user.getUsername(), user.getRole().name());
         return new AuthResponse(
                 token,
+                user.getUuid(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getRole().name(),

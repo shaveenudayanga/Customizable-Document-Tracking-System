@@ -1,21 +1,14 @@
 // src/Pages/Dashboard/NewDocument.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/NewDocument.css";
-// import { api } from "../../lib/api";
+import { documentService } from "../../services/documentService.js";
+import { workflowService } from "../../services/workflowService.js";
+import { authService } from "../../services/authService.js";
 
 // --- Utility Functions ---
 
-// 1. Unique Document ID Generator (Simulating UUID or similar)
-const generateUniqueId = () => {
-  // Generates a short, readable unique code (e.g., DOC-ABC-12345)
-  const prefix = "DOC-";
-  const randomChars = Math.random().toString(36).substring(2, 5).toUpperCase();
-  const randomNumbers = Math.floor(10000 + Math.random() * 90000);
-  return `${prefix}${randomChars}-${randomNumbers}`;
-};
-
-// 2. Mock QR Code Component (Simulating a real library like qrcode.react)
+// Mock QR Code Component (Simulating a real library like qrcode.react)
 const QRCodeMock = ({ value }) => {
   // In a real application, this would render the QR code SVG/Canvas.
   // Here, we display the data it would encode.
@@ -31,7 +24,7 @@ const QRCodeMock = ({ value }) => {
           {value}
         </span>
       </div>
-      <p className="qr-caption">Scan to view document details (Simulated)</p>
+      <p className="qr-caption">Scan to view document details</p>
     </div>
   );
 };
@@ -48,10 +41,79 @@ const NewDocument = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [availablePipelines, setAvailablePipelines] = useState([]);
+  const [loadingPipelines, setLoadingPipelines] = useState(true);
 
   // New State for Generated Data
   const [documentCode, setDocumentCode] = useState("");
   const [qrCodeData, setQrCodeData] = useState("");
+
+  // Check authentication on component mount
+  useEffect(() => {
+    if (!authService.isAuthenticated()) {
+      setError(
+        "Please log in to upload documents. Redirecting to login page..."
+      );
+      setTimeout(() => navigate("/auth/login"), 3000);
+      return;
+    }
+  }, [navigate]);
+
+  // Load available pipelines on component mount
+  useEffect(() => {
+    const loadPipelines = async () => {
+      try {
+        // Check if user is authenticated before making API calls
+        if (!authService.isAuthenticated()) {
+          console.warn("User not authenticated, using default pipelines");
+          setAvailablePipelines([
+            { id: "general", name: "General Approval Workflow" },
+            { id: "review", name: "Document Review Process" },
+            { id: "financial", name: "Financial Approval" },
+          ]);
+          setLoadingPipelines(false);
+          return;
+        }
+
+        setLoadingPipelines(true);
+
+        // Add a timeout to prevent hanging API calls
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("API timeout")), 5000)
+        );
+
+        const apiPromise = workflowService.listTemplates();
+
+        const templates = await Promise.race([apiPromise, timeoutPromise]);
+        setAvailablePipelines(templates || []);
+      } catch (error) {
+        console.error("Error loading pipelines:", error);
+        // Fallback to default pipelines if API fails
+        setAvailablePipelines([
+          { id: "general", name: "General Approval Workflow" },
+          { id: "review", name: "Document Review Process" },
+          { id: "financial", name: "Financial Approval" },
+        ]);
+        // Don't set error state for pipeline loading failure
+        console.warn("Using fallback pipelines due to API error");
+      } finally {
+        setLoadingPipelines(false);
+      }
+    };
+
+    // Only load pipelines if user is authenticated
+    if (authService.isAuthenticated()) {
+      loadPipelines();
+    } else {
+      // Set default pipelines immediately if not authenticated
+      setAvailablePipelines([
+        { id: "general", name: "General Approval Workflow" },
+        { id: "review", name: "Document Review Process" },
+        { id: "financial", name: "Financial Approval" },
+      ]);
+      setLoadingPipelines(false);
+    }
+  }, []);
 
   const handleFileChange = (e) => {
     if (e.target.files.length > 0) {
@@ -73,33 +135,66 @@ const NewDocument = () => {
       return;
     }
 
+    // Get current user for document ownership
+    const currentUser = authService.getCurrentUser();
+    if (!currentUser || !currentUser.userId) {
+      setError("User not authenticated. Please log in again.");
+      return;
+    }
+
     setLoading(true);
     try {
-      // 1. Generate Unique Code
-      const uniqueId = generateUniqueId();
-      setDocumentCode(uniqueId);
+      // Create document metadata
+      const documentMetadata = {
+        title: title,
+        documentType: category,
+        description: description,
+        ownerUserId: currentUser.userId,
+      };
 
-      // In a real scenario, the back-end would return the permanent URL.
-      // We simulate the permanent URL that the QR code will encode.
-      const permanentDocUrl = `${window.location.origin}/view-document/${uniqueId}`;
-      setQrCodeData(permanentDocUrl);
+      // Create document with file upload
+      const createdDocument = await documentService.createDocumentWithFile(
+        documentMetadata,
+        file
+      );
 
-      // --- API Upload Simulation ---
-      // In a real app, send data + uniqueId to the API
+      // Start the selected workflow/pipeline
+      if (pipeline) {
+        try {
+          await workflowService.startWorkflow({
+            documentId: createdDocument.id,
+            templateId: parseInt(pipeline),
+            initiator: currentUser.username,
+          });
+        } catch (workflowError) {
+          console.warn(
+            "Document created but workflow failed to start:",
+            workflowError
+          );
+          // Don't fail the entire operation if workflow fails
+        }
+      }
 
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Store the document code (ID) for display
+      setDocumentCode(`DOC-${createdDocument.id}`);
 
-      console.log("Document creation simulated:", {
-        uniqueId,
-        permanentDocUrl,
-      });
+      // Set QR code data (document view URL)
+      const documentViewUrl = `${window.location.origin}/documents/${createdDocument.id}`;
+      setQrCodeData(documentViewUrl);
 
-      setSuccess(`Document created! Code: ${uniqueId}. Redirecting...`);
+      setSuccess(
+        `Document "${
+          createdDocument.title
+        }" created successfully! Document ID: ${createdDocument.id}${
+          pipeline ? " - Workflow started!" : ""
+        }`
+      );
 
-      setTimeout(() => navigate("/documents"), 2500); // Wait longer to show the generated code
+      // Redirect after showing success message
+      setTimeout(() => navigate("/documents"), 3000);
     } catch (err) {
-      setError(err?.message || "Failed to upload document.");
-      console.error("Upload error:", err);
+      setError(err?.message || "Failed to create document. Please try again.");
+      console.error("Document creation error:", err);
     } finally {
       setLoading(false);
     }
@@ -165,13 +260,18 @@ const NewDocument = () => {
               value={pipeline}
               onChange={(e) => setPipeline(e.target.value)}
               required
+              disabled={loadingPipelines}
             >
-              <option value="">Select Pipeline</option>
-              <option value="Sales">Sales Pipeline</option>
-              <option value="Marketing">Marketing Workflow</option>
-              <option value="Legal">Legal Review</option>
-              <option value="HR">HR Onboarding</option>
-              <option value="Finance">Finance Approval</option>
+              <option value="">
+                {loadingPipelines ? "Loading pipelines..." : "Select Pipeline"}
+              </option>
+              {availablePipelines.map((pipelineTemplate) => (
+                <option key={pipelineTemplate.id} value={pipelineTemplate.id}>
+                  {pipelineTemplate.name}
+                  {pipelineTemplate.documentType &&
+                    ` (${pipelineTemplate.documentType})`}
+                </option>
+              ))}
             </select>
           </div>
 
