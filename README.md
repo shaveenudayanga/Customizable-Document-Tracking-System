@@ -57,8 +57,29 @@ This system addresses the **bureaucratic inefficiencies that plague developing n
 * **Mobile Verification:** Secure handovers via QR codes or hash verification
 * **Multi-Level Organization:** Support for departments, categories, and complex hierarchies
 * **Comprehensive Auditing:** Track every action for compliance and transparency
-* **Notification System:** Automated alerts keep workflows moving
+* **Event-Driven Notification System:** Automated alerts via email, SMS, and web push
 * **API-First Design:** Easy integration with existing systems
+
+## Notification System Integration
+
+The system uses a dedicated **notification-service** that handles all notification delivery through an event-driven architecture using RabbitMQ.
+
+### Key Documents:
+- **[NOTIFICATION_INTEGRATION_GUIDE.md](./backend/NOTIFICATION_INTEGRATION_GUIDE.md)** - Comprehensive integration guide
+- **[NOTIFICATION_INTEGRATION_SUMMARY.md](./NOTIFICATION_INTEGRATION_SUMMARY.md)** - Summary of changes made
+- **[QUICK_START_NOTIFICATIONS.md](./QUICK_START_NOTIFICATIONS.md)** - Quick start guide for developers
+
+### Integration Status:
+- ✅ **Workflow Service**: Fully integrated with RabbitMQ event publishing
+- ✅ **User Service**: Notification code removed (centralized to notification-service)
+- 📝 **Document Service**: Example code provided, ready for integration
+- 📝 **Tracking Service**: Ready for integration if needed
+
+### Services:
+- **notification-service_new** (port 1004): Centralized notification handling
+- **RabbitMQ**: Message broker for event-driven communication
+
+See the integration guides for detailed setup instructions.
 
 ## License
 
