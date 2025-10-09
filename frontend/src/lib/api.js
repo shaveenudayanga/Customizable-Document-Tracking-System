@@ -1,15 +1,12 @@
 // Multi-service API configuration for different backend services
+// Use relative URLs in development to leverage Vite proxy and avoid CORS issues
+// In production, use absolute URLs from environment variables
 const SERVICES = {
-  USER: import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:8081/api",
-  DOCUMENT:
-    import.meta.env.VITE_DOCUMENT_SERVICE_URL || "http://localhost:8082/api",
-  WORKFLOW:
-    import.meta.env.VITE_WORKFLOW_SERVICE_URL || "http://localhost:8083/api",
-  TRACKING:
-    import.meta.env.VITE_TRACKING_SERVICE_URL || "http://localhost:8084/api",
-  NOTIFICATION:
-    import.meta.env.VITE_NOTIFICATION_SERVICE_URL ||
-    "http://localhost:8085/api",
+  USER: import.meta.env.VITE_USER_SERVICE_URL || "/api",
+  DOCUMENT: import.meta.env.VITE_DOCUMENT_SERVICE_URL || "/api",
+  WORKFLOW: import.meta.env.VITE_WORKFLOW_SERVICE_URL || "/api",
+  TRACKING: import.meta.env.VITE_TRACKING_SERVICE_URL || "/api",
+  NOTIFICATION: import.meta.env.VITE_NOTIFICATION_SERVICE_URL || "/api",
 };
 
 const BASE = import.meta.env.VITE_API_URL || "/api";
