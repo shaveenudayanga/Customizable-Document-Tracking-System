@@ -3,7 +3,6 @@ package com.docutrace.user_service.service;
 import com.docutrace.user_service.dto.*;
 import com.docutrace.user_service.entity.Role;
 import com.docutrace.user_service.entity.User;
-import com.docutrace.user_service.exception.InvalidCredentialsException;
 import com.docutrace.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -60,10 +59,10 @@ public class UserService {
     
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByUsername(request.username())
-                .orElseThrow(InvalidCredentialsException::new);
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
         
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new InvalidCredentialsException();
+            throw new RuntimeException("Invalid credentials");
         }
         
         String token = jwtService.generateToken(user.getUsername(), user.getRole().name());
@@ -76,10 +75,32 @@ public class UserService {
                 user.getSectionId()
         );
     }
-    
-    public UserResponse getProfile(String username) {
+
+    public UserResponse updateProfile(String username, UpdateProfileRequest request) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if (StringUtils.hasText(request.email()) && !request.email().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(request.email())) {
+                throw new RuntimeException("Email already exists");
+            }
+            user.setEmail(request.email());
+        }
+        
+        if (StringUtils.hasText(request.position())) {
+            user.setPosition(request.position());
+        } else {
+            user.setPosition(null);
+        }
+        
+        if (StringUtils.hasText(request.sectionId())) {
+            user.setSectionId(request.sectionId());
+        } else {
+            user.setSectionId(null);
+        }
+        
+        userRepository.save(user);
+        
         return new UserResponse(
                 user.getId(),
                 user.getUsername(),
@@ -89,34 +110,10 @@ public class UserService {
                 user.getSectionId()
         );
     }
-
-    public UserResponse updateProfile(String username, UpdateProfileRequest request) {
+    
+    public UserResponse getProfile(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (request.email() != null) {
-            String email = request.email().trim();
-            if (!StringUtils.hasText(email)) {
-                throw new RuntimeException("Email cannot be blank");
-            }
-            if (!email.equalsIgnoreCase(user.getEmail()) && userRepository.existsByEmail(email)) {
-                throw new RuntimeException("Email already in use");
-            }
-            user.setEmail(email);
-        }
-
-        if (request.position() != null) {
-            String position = request.position().trim();
-            user.setPosition(StringUtils.hasText(position) ? position : null);
-        }
-
-        if (request.sectionId() != null) {
-            String sectionId = request.sectionId().trim();
-            user.setSectionId(StringUtils.hasText(sectionId) ? sectionId : null);
-        }
-
-        userRepository.save(user);
-
         return new UserResponse(
                 user.getId(),
                 user.getUsername(),
