@@ -3,29 +3,34 @@
 ## 📊 Current Deployment Status
 
 ### ✅ Services Running Successfully:
+
 - **User Service** (Port 8081) - Authentication & User Management
-- **Document Service** (Port 8082) - Document CRUD Operations  
+- **Document Service** (Port 8082) - Document CRUD Operations
 - **Workflow Service** (Port 8083) - Pipeline & Task Management
 - **Tracking Service** (Port 8084) - Document Tracking & Audit
 - **React Frontend** (Port 5173) - User Interface
 
 ### 🌐 Application Access:
+
 - **Main Application**: http://localhost:5173
 - **API Services**: http://localhost:8081-8084
 
 ## 🛠️ Quick Deployment Commands
 
 ### Start/Restart All Services:
+
 ```bash
 ./deploy.sh
 ```
 
 ### Check System Status:
+
 ```bash
 ./status.sh
 ```
 
 ### Stop All Services:
+
 ```bash
 ./stop.sh
 ```
@@ -104,6 +109,7 @@ npm run dev
 ## 🗄️ Database Setup
 
 ### PostgreSQL Database Creation:
+
 ```sql
 CREATE DATABASE user_db;
 CREATE DATABASE document_db;
@@ -112,6 +118,7 @@ CREATE DATABASE tracking_db;
 ```
 
 ### Connection Strings:
+
 - User Service: `jdbc:postgresql://localhost:5432/user_db`
 - Document Service: `jdbc:postgresql://localhost:5432/document_db`
 - Workflow Service: `jdbc:postgresql://localhost:5432/workflow_db`
@@ -120,11 +127,13 @@ CREATE DATABASE tracking_db;
 ## 🔐 Security Configuration
 
 ### Default Admin User:
+
 - **Username**: `adminuser`
 - **Password**: `AdminPass123`
 - **Role**: `ADMIN`
 
 ### Default Staff User:
+
 - **Username**: `staff`
 - **Password**: `TestPass123`
 - **Role**: `USER`
@@ -132,6 +141,7 @@ CREATE DATABASE tracking_db;
 ## 📊 Monitoring & Logs
 
 ### View Service Logs:
+
 ```bash
 # All logs
 tail -f backend/logs/*.log
@@ -145,6 +155,7 @@ tail -f backend/logs/frontend.log
 ```
 
 ### Health Check Endpoints:
+
 - User Service: http://localhost:8081/api/health
 - Document Service: http://localhost:8082/api/health
 - Workflow Service: http://localhost:8083/api/health
@@ -153,6 +164,7 @@ tail -f backend/logs/frontend.log
 ## 🚨 Troubleshooting
 
 ### Port Conflicts:
+
 ```bash
 # Check what's using a port
 lsof -i :8081
@@ -162,6 +174,7 @@ kill -9 $(lsof -ti:8081)
 ```
 
 ### Service Not Starting:
+
 1. Check logs in `backend/logs/`
 2. Verify PostgreSQL is running
 3. Check database connections
@@ -169,6 +182,7 @@ kill -9 $(lsof -ti:8081)
 5. Verify Node.js version for frontend
 
 ### Database Connection Issues:
+
 ```bash
 # Start PostgreSQL (macOS with Homebrew)
 brew services start postgresql@15

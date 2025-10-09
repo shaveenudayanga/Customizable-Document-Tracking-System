@@ -47,7 +47,7 @@ import AuditLog from "./pages/Audit/AuditLog.jsx";
 // Profile
 import UserProfile from "./pages/Profile/UserProfile.jsx";
 // Corrected: Added the missing import for AdminUserManagement
-import AdminUserManagement from "./pages/Admin/AdminUserManagement.jsx";
+import AdminUserManagement from "./Pages/Admin/AdminUserManagement.jsx";
 
 // Settings
 import SystemSettings from "./pages/Settings/SystemSettings.jsx";

@@ -1,6 +1,6 @@
 # Customizable Document Tracking System - Production Deployment
 
-version: '3.8'
+version: "3.8"
 
 services:
   # PostgreSQL Database
