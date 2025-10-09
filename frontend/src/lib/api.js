@@ -1,15 +1,36 @@
+const DEV = import.meta.env.DEV;
+
+const resolveServiceUrl = (envKey, devPath, prodUrl) => {
+  const override = import.meta.env[envKey];
+  if (override && override.trim() !== "") {
+    return override;
+  }
+  return DEV ? devPath : prodUrl;
+};
+
 // Multi-service API configuration for different backend services
 const SERVICES = {
-  USER: import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:8081/api",
-  DOCUMENT:
-    import.meta.env.VITE_DOCUMENT_SERVICE_URL || "http://localhost:8082/api",
-  WORKFLOW:
-    import.meta.env.VITE_WORKFLOW_SERVICE_URL || "http://localhost:8083/api",
-  TRACKING:
-    import.meta.env.VITE_TRACKING_SERVICE_URL || "http://localhost:8084/api",
-  NOTIFICATION:
-    import.meta.env.VITE_NOTIFICATION_SERVICE_URL ||
-    "http://localhost:8085/api",
+  USER: resolveServiceUrl("VITE_USER_SERVICE_URL", "/api", "http://localhost:8081/api"),
+  DOCUMENT: resolveServiceUrl(
+    "VITE_DOCUMENT_SERVICE_URL",
+    "/api/documents",
+    "http://localhost:8082/api"
+  ),
+  WORKFLOW: resolveServiceUrl(
+    "VITE_WORKFLOW_SERVICE_URL",
+    "/api/workflow",
+    "http://localhost:8083/api"
+  ),
+  TRACKING: resolveServiceUrl(
+    "VITE_TRACKING_SERVICE_URL",
+    "/api/tracking",
+    "http://localhost:8084/api"
+  ),
+  NOTIFICATION: resolveServiceUrl(
+    "VITE_NOTIFICATION_SERVICE_URL",
+    "/api/notifications",
+    "http://localhost:8085/api"
+  ),
 };
 
 const BASE = import.meta.env.VITE_API_URL || "/api";
