@@ -23,15 +23,7 @@ const Login = () => {
         // authService already stores the token and user data
 
         // Check user role and redirect accordingly
-        const userRole = response.role?.toLowerCase();
-
-        if (userRole === "admin") {
-          // Redirect admin users to Admin User Management
-          navigate("/adminusermanagement");
-        } else {
-          // Redirect regular users to dashboard
-          navigate("/dashboard");
-        }
+        navigate("/dashboard");
       }
     } catch (err) {
       setError(err?.message || "Login failed. Please check your credentials.");

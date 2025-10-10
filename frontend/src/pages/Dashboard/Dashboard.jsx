@@ -535,9 +535,9 @@ const Dashboard = () => {
             )}
             <SidebarLink
               Icon={Settings}
-              title="Settings"
+              title="Profile"
               active={activeTab === "Settings"}
-              onClick={() => setActiveTab("Settings")}
+              onClick={() => {setActiveTab("Settings"); navigate("/AdminUserManagement");}}
             />
           </ul>
         </nav>
@@ -561,10 +561,8 @@ const Dashboard = () => {
             Hello, <span className="user-name-highlight">{userName}</span>!
           </h1>
           <div className="header-info">
-            <span className={`role-badge role-${role}`}>
-              {role.toUpperCase() === "ADMIN" ? "Admin" : "Staff"}
-            </span>
-            <ChevronRight size={18} className="chevron" />
+            
+          
           </div>
         </header>
 

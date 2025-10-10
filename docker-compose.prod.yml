@@ -155,7 +155,7 @@ services:
       dockerfile: Dockerfile
     container_name: docutrace-notification-service
     ports:
-      - "1004:1004"
+      - "8085:8085"
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/notification_db
@@ -175,7 +175,7 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:1004/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -197,7 +197,7 @@ services:
       DOCUMENT_SERVICE_URI: http://document-service:8082
       WORKFLOW_SERVICE_URI: http://workflow-service:8083
       TRACKING_SERVICE_URI: http://tracking-service:8084
-      NOTIFICATION_SERVICE_URI: http://notification-service:1004
+  NOTIFICATION_SERVICE_URI: http://notification-service:8085
     depends_on:
       user-service:
         condition: service_healthy

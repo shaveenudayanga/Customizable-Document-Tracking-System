@@ -1,332 +1,246 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
-                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
-                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
-                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
-                  id="Definitions_ServiceOrchestration"
-                  targetNamespace="http://localhost:8083/api/workflow"
-                  exporter="Camunda Modeler"
-                  exporterVersion="5.36.1">
-
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_ServiceOrchestration" targetNamespace="http://localhost:8083/api/workflow" exporter="Camunda Modeler" exporterVersion="5.36.1">
   <bpmn:process id="document_service_orchestration" name="Document Service Orchestration" isExecutable="true" camunda:historyTimeToLive="P30D">
-    
-    <!-- Start: Document Submission -->
     <bpmn:startEvent id="StartEvent_DocumentSubmitted" name="Document Submitted">
       <bpmn:outgoing>Flow_ToDocumentService</bpmn:outgoing>
     </bpmn:startEvent>
-
-    <bpmn:sequenceFlow id="Flow_ToDocumentService" sourceRef="StartEvent_DocumentSubmitted" targetRef="Task_CreateDocument"/>
-
-    <!-- Document Service: Create Document -->
+    <bpmn:sequenceFlow id="Flow_ToDocumentService" sourceRef="StartEvent_DocumentSubmitted" targetRef="Task_CreateDocument" />
     <bpmn:serviceTask id="Task_CreateDocument" name="Create Document" camunda:type="external" camunda:topic="document-service-create">
       <bpmn:incoming>Flow_ToDocumentService</bpmn:incoming>
       <bpmn:outgoing>Flow_ToWorkflowService</bpmn:outgoing>
     </bpmn:serviceTask>
-
-    <bpmn:sequenceFlow id="Flow_ToWorkflowService" sourceRef="Task_CreateDocument" targetRef="Task_StartWorkflow"/>
-
-    <!-- Workflow Service: Start Approval Workflow -->
+    <bpmn:sequenceFlow id="Flow_ToWorkflowService" sourceRef="Task_CreateDocument" targetRef="Task_StartWorkflow" />
     <bpmn:serviceTask id="Task_StartWorkflow" name="Start Approval Workflow" camunda:type="external" camunda:topic="workflow-service-start">
       <bpmn:incoming>Flow_ToWorkflowService</bpmn:incoming>
       <bpmn:outgoing>Flow_ToTrackingService</bpmn:outgoing>
     </bpmn:serviceTask>
-
-    <bpmn:sequenceFlow id="Flow_ToTrackingService" sourceRef="Task_StartWorkflow" targetRef="Task_RegisterQR"/>
-
-    <!-- Tracking Service: Register QR Code -->
+    <bpmn:sequenceFlow id="Flow_ToTrackingService" sourceRef="Task_StartWorkflow" targetRef="Task_RegisterQR" />
     <bpmn:serviceTask id="Task_RegisterQR" name="Register QR Code" camunda:type="external" camunda:topic="tracking-service-register">
       <bpmn:incoming>Flow_ToTrackingService</bpmn:incoming>
       <bpmn:outgoing>Flow_ToNotificationService</bpmn:outgoing>
     </bpmn:serviceTask>
-
-    <bpmn:sequenceFlow id="Flow_ToNotificationService" sourceRef="Task_RegisterQR" targetRef="Task_SendNotification"/>
-
-    <!-- Notification Service: Send Notification -->
+    <bpmn:sequenceFlow id="Flow_ToNotificationService" sourceRef="Task_RegisterQR" targetRef="Task_SendNotification" />
     <bpmn:serviceTask id="Task_SendNotification" name="Send Creation Notification" camunda:type="external" camunda:topic="notification-service-send">
       <bpmn:incoming>Flow_ToNotificationService</bpmn:incoming>
-      <bpmn:outgoing>Flow_ToApprovalGateway</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1njz4fs</bpmn:outgoing>
     </bpmn:serviceTask>
-
-    <bpmn:sequenceFlow id="Flow_ToApprovalGateway" sourceRef="Task_SendNotification" targetRef="Gateway_ApprovalLoop"/>
-
-    <!-- Approval Loop Gateway -->
-    <bpmn:exclusiveGateway id="Gateway_ApprovalLoop" name="More Steps?" default="Flow_ToUserApproval">
-      <bpmn:incoming>Flow_ToApprovalGateway</bpmn:incoming>
-      <bpmn:incoming>Flow_ApprovalComplete</bpmn:incoming>
+    <bpmn:exclusiveGateway id="Gateway_ApprovalLoop" default="Flow_ToUserApproval">
+      <bpmn:incoming>Flow_NotifyApproval</bpmn:incoming>
       <bpmn:outgoing>Flow_ToUserApproval</bpmn:outgoing>
-      <bpmn:outgoing>Flow_AllStepsComplete</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0atuhrg</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-
-    <bpmn:sequenceFlow id="Flow_ToUserApproval" sourceRef="Gateway_ApprovalLoop" targetRef="Task_UserApproval"/>
-    <bpmn:sequenceFlow id="Flow_AllStepsComplete" sourceRef="Gateway_ApprovalLoop" targetRef="Task_FinalizeWorkflow">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${allStepsComplete}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-
-    <!-- User Task: Department Approval -->
     <bpmn:userTask id="Task_UserApproval" name="Department Approval" camunda:candidateGroups="${currentDepartment}">
-      <bpmn:incoming>Flow_ToUserApproval</bpmn:incoming>
+      <bpmn:incoming>Flow_0atuhrg</bpmn:incoming>
+      <bpmn:incoming>Flow_1njz4fs</bpmn:incoming>
       <bpmn:outgoing>Flow_ApprovalDecision</bpmn:outgoing>
     </bpmn:userTask>
-
-    <bpmn:sequenceFlow id="Flow_ApprovalDecision" sourceRef="Task_UserApproval" targetRef="Gateway_ApprovalDecision"/>
-
-    <!-- Decision Gateway: Approved or Rejected -->
-    <bpmn:exclusiveGateway id="Gateway_ApprovalDecision" name="Approved?" default="Flow_Rejected">
+    <bpmn:sequenceFlow id="Flow_ApprovalDecision" sourceRef="Task_UserApproval" targetRef="Gateway_ApprovalDecision" />
+    <bpmn:exclusiveGateway id="Gateway_ApprovalDecision" default="Flow_Rejected">
       <bpmn:incoming>Flow_ApprovalDecision</bpmn:incoming>
       <bpmn:outgoing>Flow_Approved</bpmn:outgoing>
       <bpmn:outgoing>Flow_Rejected</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-
     <bpmn:sequenceFlow id="Flow_Approved" sourceRef="Gateway_ApprovalDecision" targetRef="Task_RecordApproval">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approved == true}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_Rejected" sourceRef="Gateway_ApprovalDecision" targetRef="Task_RecordRejection"/>
-
-    <!-- Tracking Service: Record Approval -->
+    <bpmn:sequenceFlow id="Flow_Rejected" sourceRef="Gateway_ApprovalDecision" targetRef="Task_RecordRejection" />
     <bpmn:serviceTask id="Task_RecordApproval" name="Record Approval Event" camunda:type="external" camunda:topic="tracking-service-event">
       <bpmn:incoming>Flow_Approved</bpmn:incoming>
       <bpmn:outgoing>Flow_NotifyApproval</bpmn:outgoing>
     </bpmn:serviceTask>
-
-    <bpmn:sequenceFlow id="Flow_NotifyApproval" sourceRef="Task_RecordApproval" targetRef="Task_NotifyApproval"/>
-
-    <!-- Notification Service: Notify Approval -->
+    <bpmn:sequenceFlow id="Flow_NotifyApproval" sourceRef="Task_RecordApproval" targetRef="Gateway_ApprovalLoop" />
     <bpmn:serviceTask id="Task_NotifyApproval" name="Notify Approval" camunda:type="external" camunda:topic="notification-service-approval">
-      <bpmn:incoming>Flow_NotifyApproval</bpmn:incoming>
-      <bpmn:outgoing>Flow_ApprovalComplete</bpmn:outgoing>
+      <bpmn:incoming>Flow_ToUserApproval</bpmn:incoming>
+      <bpmn:outgoing>Flow_06bx8qu</bpmn:outgoing>
     </bpmn:serviceTask>
-
-    <bpmn:sequenceFlow id="Flow_ApprovalComplete" sourceRef="Task_NotifyApproval" targetRef="Gateway_ApprovalLoop"/>
-
-    <!-- Tracking Service: Record Rejection -->
     <bpmn:serviceTask id="Task_RecordRejection" name="Record Rejection Event" camunda:type="external" camunda:topic="tracking-service-rejection">
       <bpmn:incoming>Flow_Rejected</bpmn:incoming>
       <bpmn:outgoing>Flow_NotifyRejection</bpmn:outgoing>
     </bpmn:serviceTask>
-
-    <bpmn:sequenceFlow id="Flow_NotifyRejection" sourceRef="Task_RecordRejection" targetRef="Task_NotifyRejection"/>
-
-    <!-- Notification Service: Notify Rejection -->
+    <bpmn:sequenceFlow id="Flow_NotifyRejection" sourceRef="Task_RecordRejection" targetRef="Task_NotifyRejection" />
     <bpmn:serviceTask id="Task_NotifyRejection" name="Notify Rejection" camunda:type="external" camunda:topic="notification-service-rejection">
       <bpmn:incoming>Flow_NotifyRejection</bpmn:incoming>
       <bpmn:outgoing>Flow_ToEndRejected</bpmn:outgoing>
     </bpmn:serviceTask>
-
-    <bpmn:sequenceFlow id="Flow_ToEndRejected" sourceRef="Task_NotifyRejection" targetRef="End_DocumentRejected"/>
-
-    <!-- End: Document Rejected -->
+    <bpmn:sequenceFlow id="Flow_ToEndRejected" sourceRef="Task_NotifyRejection" targetRef="End_DocumentRejected" />
     <bpmn:endEvent id="End_DocumentRejected" name="Document Rejected">
       <bpmn:incoming>Flow_ToEndRejected</bpmn:incoming>
     </bpmn:endEvent>
-
-    <!-- Workflow Service: Finalize Workflow -->
     <bpmn:serviceTask id="Task_FinalizeWorkflow" name="Finalize Workflow" camunda:type="external" camunda:topic="workflow-service-finalize">
-      <bpmn:incoming>Flow_AllStepsComplete</bpmn:incoming>
+      <bpmn:incoming>Flow_06bx8qu</bpmn:incoming>
       <bpmn:outgoing>Flow_ToFinalNotification</bpmn:outgoing>
     </bpmn:serviceTask>
-
-    <bpmn:sequenceFlow id="Flow_ToFinalNotification" sourceRef="Task_FinalizeWorkflow" targetRef="Task_SendFinalNotification"/>
-
-    <!-- Notification Service: Send Final Notification -->
+    <bpmn:sequenceFlow id="Flow_ToFinalNotification" sourceRef="Task_FinalizeWorkflow" targetRef="Task_SendFinalNotification" />
     <bpmn:serviceTask id="Task_SendFinalNotification" name="Send Completion Notification" camunda:type="external" camunda:topic="notification-service-complete">
       <bpmn:incoming>Flow_ToFinalNotification</bpmn:incoming>
       <bpmn:outgoing>Flow_ToEndApproved</bpmn:outgoing>
     </bpmn:serviceTask>
-
-    <bpmn:sequenceFlow id="Flow_ToEndApproved" sourceRef="Task_SendFinalNotification" targetRef="End_DocumentApproved"/>
-
-    <!-- End: Document Approved -->
+    <bpmn:sequenceFlow id="Flow_ToEndApproved" sourceRef="Task_SendFinalNotification" targetRef="End_DocumentApproved" />
     <bpmn:endEvent id="End_DocumentApproved" name="Document Approved">
       <bpmn:incoming>Flow_ToEndApproved</bpmn:incoming>
     </bpmn:endEvent>
-
+    <bpmn:sequenceFlow id="Flow_ToUserApproval" sourceRef="Gateway_ApprovalLoop" targetRef="Task_NotifyApproval" />
+    <bpmn:sequenceFlow id="Flow_0atuhrg" sourceRef="Gateway_ApprovalLoop" targetRef="Task_UserApproval">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${moreApprovalsRequired == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_06bx8qu" sourceRef="Task_NotifyApproval" targetRef="Task_FinalizeWorkflow" />
+    <bpmn:sequenceFlow id="Flow_1njz4fs" sourceRef="Task_SendNotification" targetRef="Task_UserApproval" />
+    <bpmn:textAnnotation id="TextAnnotation_1pfkxco">
+      <bpmn:text>More Steps?</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1hqqtbm" associationDirection="None" sourceRef="Gateway_ApprovalLoop" targetRef="TextAnnotation_1pfkxco" />
+    <bpmn:textAnnotation id="TextAnnotation_0nrk3hp">
+      <bpmn:text>Approved?</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_016garb" associationDirection="None" sourceRef="Gateway_ApprovalDecision" targetRef="TextAnnotation_0nrk3hp" />
   </bpmn:process>
-
-  <!-- BPMN Diagram for visualization -->
   <bpmndi:BPMNDiagram id="BPMNDiagram_ServiceOrchestration">
     <bpmndi:BPMNPlane id="BPMNPlane_ServiceOrchestration" bpmnElement="document_service_orchestration">
-      
-      <!-- Start Event -->
       <bpmndi:BPMNShape id="StartEvent_DocumentSubmitted_di" bpmnElement="StartEvent_DocumentSubmitted">
-        <dc:Bounds x="152" y="102" width="36" height="36"/>
+        <dc:Bounds x="152" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="132" y="145" width="76" height="27"/>
+          <dc:Bounds x="132" y="145" width="76" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-
-      <!-- Document Service Task -->
       <bpmndi:BPMNShape id="Task_CreateDocument_di" bpmnElement="Task_CreateDocument">
-        <dc:Bounds x="240" y="80" width="100" height="80"/>
+        <dc:Bounds x="240" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
-
-      <!-- Workflow Service Task -->
       <bpmndi:BPMNShape id="Task_StartWorkflow_di" bpmnElement="Task_StartWorkflow">
-        <dc:Bounds x="390" y="80" width="100" height="80"/>
+        <dc:Bounds x="390" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
-
-      <!-- Tracking Service Task -->
       <bpmndi:BPMNShape id="Task_RegisterQR_di" bpmnElement="Task_RegisterQR">
-        <dc:Bounds x="540" y="80" width="100" height="80"/>
+        <dc:Bounds x="540" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
-
-      <!-- Notification Service Task -->
       <bpmndi:BPMNShape id="Task_SendNotification_di" bpmnElement="Task_SendNotification">
-        <dc:Bounds x="690" y="80" width="100" height="80"/>
+        <dc:Bounds x="690" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
-
-      <!-- Approval Loop Gateway -->
-      <bpmndi:BPMNShape id="Gateway_ApprovalLoop_di" bpmnElement="Gateway_ApprovalLoop" isMarkerVisible="true">
-        <dc:Bounds x="845" y="95" width="50" height="50"/>
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="836" y="65" width="68" height="14"/>
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-
-      <!-- User Approval Task -->
-      <bpmndi:BPMNShape id="Task_UserApproval_di" bpmnElement="Task_UserApproval">
-        <dc:Bounds x="950" y="80" width="100" height="80"/>
-      </bpmndi:BPMNShape>
-
-      <!-- Approval Decision Gateway -->
-      <bpmndi:BPMNShape id="Gateway_ApprovalDecision_di" bpmnElement="Gateway_ApprovalDecision" isMarkerVisible="true">
-        <dc:Bounds x="1105" y="95" width="50" height="50"/>
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1102" y="65" width="56" height="14"/>
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-
-      <!-- Record Approval -->
-      <bpmndi:BPMNShape id="Task_RecordApproval_di" bpmnElement="Task_RecordApproval">
-        <dc:Bounds x="1210" y="80" width="100" height="80"/>
-      </bpmndi:BPMNShape>
-
-      <!-- Notify Approval -->
       <bpmndi:BPMNShape id="Task_NotifyApproval_di" bpmnElement="Task_NotifyApproval">
-        <dc:Bounds x="820" y="200" width="100" height="80"/>
+        <dc:Bounds x="690" y="200" width="100" height="80" />
       </bpmndi:BPMNShape>
-
-      <!-- Record Rejection -->
-      <bpmndi:BPMNShape id="Task_RecordRejection_di" bpmnElement="Task_RecordRejection">
-        <dc:Bounds x="1080" y="200" width="100" height="80"/>
-      </bpmndi:BPMNShape>
-
-      <!-- Notify Rejection -->
-      <bpmndi:BPMNShape id="Task_NotifyRejection_di" bpmnElement="Task_NotifyRejection">
-        <dc:Bounds x="1080" y="320" width="100" height="80"/>
-      </bpmndi:BPMNShape>
-
-      <!-- End Rejected -->
-      <bpmndi:BPMNShape id="End_DocumentRejected_di" bpmnElement="End_DocumentRejected">
-        <dc:Bounds x="1112" y="442" width="36" height="36"/>
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1103" y="485" width="54" height="27"/>
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-
-      <!-- Finalize Workflow -->
-      <bpmndi:BPMNShape id="Task_FinalizeWorkflow_di" bpmnElement="Task_FinalizeWorkflow">
-        <dc:Bounds x="690" y="200" width="100" height="80"/>
-      </bpmndi:BPMNShape>
-
-      <!-- Final Notification -->
-      <bpmndi:BPMNShape id="Task_SendFinalNotification_di" bpmnElement="Task_SendFinalNotification">
-        <dc:Bounds x="540" y="200" width="100" height="80"/>
-      </bpmndi:BPMNShape>
-
-      <!-- End Approved -->
       <bpmndi:BPMNShape id="End_DocumentApproved_di" bpmnElement="End_DocumentApproved">
-        <dc:Bounds x="402" y="222" width="36" height="36"/>
+        <dc:Bounds x="272" y="222" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="393" y="265" width="54" height="27"/>
+          <dc:Bounds x="264" y="265" width="52" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-
-      <!-- Sequence Flows -->
+      <bpmndi:BPMNShape id="Gateway_ApprovalLoop_di" bpmnElement="Gateway_ApprovalLoop" isMarkerVisible="true">
+        <dc:Bounds x="875" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="839" y="65" width="63" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_UserApproval_di" bpmnElement="Task_UserApproval">
+        <dc:Bounds x="850" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ApprovalDecision_di" bpmnElement="Gateway_ApprovalDecision" isMarkerVisible="true">
+        <dc:Bounds x="1005" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1102" y="65" width="56" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RecordApproval_di" bpmnElement="Task_RecordApproval">
+        <dc:Bounds x="1110" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RecordRejection_di" bpmnElement="Task_RecordRejection">
+        <dc:Bounds x="980" y="200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_NotifyRejection_di" bpmnElement="Task_NotifyRejection">
+        <dc:Bounds x="980" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_DocumentRejected_di" bpmnElement="End_DocumentRejected">
+        <dc:Bounds x="1012" y="442" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1004" y="485" width="52" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_FinalizeWorkflow_di" bpmnElement="Task_FinalizeWorkflow">
+        <dc:Bounds x="540" y="200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SendFinalNotification_di" bpmnElement="Task_SendFinalNotification">
+        <dc:Bounds x="390" y="200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1hqqtbm_di" bpmnElement="Association_1hqqtbm">
+        <di:waypoint x="888" y="253" />
+        <di:waypoint x="834" y="310" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_016garb_di" bpmnElement="Association_016garb">
+        <di:waypoint x="1030" y="95" />
+        <di:waypoint x="1030" y="70" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_ToDocumentService_di" bpmnElement="Flow_ToDocumentService">
-        <di:waypoint x="188" y="120"/>
-        <di:waypoint x="240" y="120"/>
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="240" y="120" />
       </bpmndi:BPMNEdge>
-
       <bpmndi:BPMNEdge id="Flow_ToWorkflowService_di" bpmnElement="Flow_ToWorkflowService">
-        <di:waypoint x="340" y="120"/>
-        <di:waypoint x="390" y="120"/>
+        <di:waypoint x="340" y="120" />
+        <di:waypoint x="390" y="120" />
       </bpmndi:BPMNEdge>
-
       <bpmndi:BPMNEdge id="Flow_ToTrackingService_di" bpmnElement="Flow_ToTrackingService">
-        <di:waypoint x="490" y="120"/>
-        <di:waypoint x="540" y="120"/>
+        <di:waypoint x="490" y="120" />
+        <di:waypoint x="540" y="120" />
       </bpmndi:BPMNEdge>
-
       <bpmndi:BPMNEdge id="Flow_ToNotificationService_di" bpmnElement="Flow_ToNotificationService">
-        <di:waypoint x="640" y="120"/>
-        <di:waypoint x="690" y="120"/>
+        <di:waypoint x="640" y="120" />
+        <di:waypoint x="690" y="120" />
       </bpmndi:BPMNEdge>
-
-      <bpmndi:BPMNEdge id="Flow_ToApprovalGateway_di" bpmnElement="Flow_ToApprovalGateway">
-        <di:waypoint x="790" y="120"/>
-        <di:waypoint x="845" y="120"/>
-      </bpmndi:BPMNEdge>
-
       <bpmndi:BPMNEdge id="Flow_ToUserApproval_di" bpmnElement="Flow_ToUserApproval">
-        <di:waypoint x="895" y="120"/>
-        <di:waypoint x="950" y="120"/>
+        <di:waypoint x="875" y="240" />
+        <di:waypoint x="790" y="240" />
       </bpmndi:BPMNEdge>
-
-      <bpmndi:BPMNEdge id="Flow_AllStepsComplete_di" bpmnElement="Flow_AllStepsComplete">
-        <di:waypoint x="870" y="145"/>
-        <di:waypoint x="870" y="240"/>
-        <di:waypoint x="790" y="240"/>
+      <bpmndi:BPMNEdge id="Flow_1njz4fs_di" bpmnElement="Flow_1njz4fs">
+        <di:waypoint x="790" y="120" />
+        <di:waypoint x="850" y="120" />
       </bpmndi:BPMNEdge>
-
-      <bpmndi:BPMNEdge id="Flow_ApprovalDecision_di" bpmnElement="Flow_ApprovalDecision">
-        <di:waypoint x="1050" y="120"/>
-        <di:waypoint x="1105" y="120"/>
+      <bpmndi:BPMNEdge id="Flow_06bx8qu_di" bpmnElement="Flow_06bx8qu">
+        <di:waypoint x="690" y="240" />
+        <di:waypoint x="640" y="240" />
       </bpmndi:BPMNEdge>
-
-      <bpmndi:BPMNEdge id="Flow_Approved_di" bpmnElement="Flow_Approved">
-        <di:waypoint x="1155" y="120"/>
-        <di:waypoint x="1210" y="120"/>
-      </bpmndi:BPMNEdge>
-
-      <bpmndi:BPMNEdge id="Flow_Rejected_di" bpmnElement="Flow_Rejected">
-        <di:waypoint x="1130" y="145"/>
-        <di:waypoint x="1130" y="200"/>
-      </bpmndi:BPMNEdge>
-
-      <bpmndi:BPMNEdge id="Flow_NotifyApproval_di" bpmnElement="Flow_NotifyApproval">
-        <di:waypoint x="1260" y="160"/>
-        <di:waypoint x="1260" y="240"/>
-        <di:waypoint x="920" y="240"/>
-      </bpmndi:BPMNEdge>
-
-      <bpmndi:BPMNEdge id="Flow_ApprovalComplete_di" bpmnElement="Flow_ApprovalComplete">
-        <di:waypoint x="870" y="280"/>
-        <di:waypoint x="870" y="145"/>
-      </bpmndi:BPMNEdge>
-
-      <bpmndi:BPMNEdge id="Flow_NotifyRejection_di" bpmnElement="Flow_NotifyRejection">
-        <di:waypoint x="1130" y="280"/>
-        <di:waypoint x="1130" y="320"/>
-      </bpmndi:BPMNEdge>
-
-      <bpmndi:BPMNEdge id="Flow_ToEndRejected_di" bpmnElement="Flow_ToEndRejected">
-        <di:waypoint x="1130" y="400"/>
-        <di:waypoint x="1130" y="442"/>
-      </bpmndi:BPMNEdge>
-
       <bpmndi:BPMNEdge id="Flow_ToFinalNotification_di" bpmnElement="Flow_ToFinalNotification">
-        <di:waypoint x="690" y="240"/>
-        <di:waypoint x="640" y="240"/>
+        <di:waypoint x="540" y="240" />
+        <di:waypoint x="490" y="240" />
       </bpmndi:BPMNEdge>
-
       <bpmndi:BPMNEdge id="Flow_ToEndApproved_di" bpmnElement="Flow_ToEndApproved">
-        <di:waypoint x="540" y="240"/>
-        <di:waypoint x="438" y="240"/>
+        <di:waypoint x="390" y="240" />
+        <di:waypoint x="308" y="240" />
       </bpmndi:BPMNEdge>
-
+      <bpmndi:BPMNEdge id="Flow_NotifyApproval_di" bpmnElement="Flow_NotifyApproval">
+        <di:waypoint x="1160" y="160" />
+        <di:waypoint x="1160" y="530" />
+        <di:waypoint x="900" y="530" />
+        <di:waypoint x="900" y="265" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0atuhrg_di" bpmnElement="Flow_0atuhrg">
+        <di:waypoint x="900" y="215" />
+        <di:waypoint x="900" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ApprovalDecision_di" bpmnElement="Flow_ApprovalDecision">
+        <di:waypoint x="950" y="120" />
+        <di:waypoint x="1005" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Approved_di" bpmnElement="Flow_Approved">
+        <di:waypoint x="1055" y="120" />
+        <di:waypoint x="1110" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Rejected_di" bpmnElement="Flow_Rejected">
+        <di:waypoint x="1030" y="145" />
+        <di:waypoint x="1030" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_NotifyRejection_di" bpmnElement="Flow_NotifyRejection">
+        <di:waypoint x="1030" y="280" />
+        <di:waypoint x="1030" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ToEndRejected_di" bpmnElement="Flow_ToEndRejected">
+        <di:waypoint x="1030" y="400" />
+        <di:waypoint x="1030" y="442" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_1pfkxco_di" bpmnElement="TextAnnotation_1pfkxco">
+        <dc:Bounds x="770" y="310" width="100" height="30" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0nrk3hp_di" bpmnElement="TextAnnotation_0nrk3hp">
+        <dc:Bounds x="980" y="40" width="100" height="30" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
-
 </bpmn:definitions>

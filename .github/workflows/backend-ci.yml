@@ -1,0 +1,49 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main, develop, feature/**]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build-test:
+    name: Build & Test Services
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api-gateway
+          - user-service
+          - document-service
+          - workflow-service
+          - tracking-service
+          - notification-service_new
+    env:
+      JAVA_VERSION: '21'
+      JAVA_DISTRIBUTION: 'temurin'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Cache Maven wrapper
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: m2-${{ runner.os }}-${{ hashFiles(format('backend/{0}/pom.xml', matrix.service)) }}
+          restore-keys: |
+            m2-${{ runner.os }}-
+
+      - name: Run Maven verify
+        run: |
+          cd backend/${{ matrix.service }}
+          chmod +x mvnw
+          ./mvnw -B clean verify

@@ -44,7 +44,7 @@ camunda:
     admin-user:
       id: admin
       password: admin
-    auto-deployment-enabled: true
+    auto-deployment-enabled: false
     history-level: full
     database:
       schema-update: true

@@ -50,4 +50,4 @@ services:
       MAIL_USERNAME: demo
       MAIL_PASSWORD: demo
     ports:
-      - "1004:1004"
+      - "8085:8085"
