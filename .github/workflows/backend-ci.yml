@@ -1,49 +1,57 @@
-name: Backend CI
+name: Backend Build & Push
 
 on:
   push:
     branches: [main, develop, feature/**]
-  pull_request:
-    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAMESPACE: ${{ secrets.DOCKERHUB_USERNAME }}
 
 jobs:
-  build-test:
-    name: Build & Test Services
+  build-push:
+    name: Build & Push Backend Images
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
-        service:
-          - api-gateway
-          - user-service
-          - document-service
-          - workflow-service
-          - tracking-service
-          - notification-service_new
-    env:
-      JAVA_VERSION: '21'
-      JAVA_DISTRIBUTION: 'temurin'
+        include:
+          - service: api-gateway
+            image: api-gateway
+          - service: user-service
+            image: user-service
+          - service: document-service
+            image: document-service
+          - service: workflow-service
+            image: workflow-service
+          - service: tracking-service
+            image: tracking-service
+          - service: notification-service_new
+            image: notification-service
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-          java-version: ${{ env.JAVA_VERSION }}
-          cache: maven
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Cache Maven wrapper
-        uses: actions/cache@v4
+      - name: Log in to container registry
+        uses: docker/login-action@v3
         with:
-          path: ~/.m2/repository
-          key: m2-${{ runner.os }}-${{ hashFiles(format('backend/{0}/pom.xml', matrix.service)) }}
-          restore-keys: |
-            m2-${{ runner.os }}-
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Run Maven verify
-        run: |
-          cd backend/${{ matrix.service }}
-          chmod +x mvnw
-          ./mvnw -B clean verify
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: backend/${{ matrix.service }}
+          file: backend/${{ matrix.service }}/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/docutrace-${{ matrix.image }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/docutrace-${{ matrix.image }}:latest

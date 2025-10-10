@@ -55,11 +55,11 @@ src/test/
 **/*Test*
 
 # Development tools
-.mvn/
-mvnw
-mvnw.cmd
-pom.xml
-Dockerfile
+# .mvn/  # Needed for Maven wrapper
+# mvnw   # Needed for Maven wrapper
+# mvnw.cmd  # Needed for Maven wrapper
+# pom.xml  # Needed for build
+# Dockerfile  # Needed if not specified
 docker-compose.yml
 docker-compose.*.yml
 
