@@ -64,7 +64,7 @@ spring:
                 - AuthenticationFilter
 
             - id: notification-service
-              uri: ${NOTIFICATION_SERVICE_URI:http://localhost:1004}
+              uri: ${NOTIFICATION_SERVICE_URI:http://localhost:8085}
               predicates:
                 - Path=/api/notifications/**
               filters:

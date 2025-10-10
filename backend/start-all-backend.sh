@@ -12,6 +12,7 @@ SERVICES=(
   "document-service"
   "tracking-service"
   "workflow-service"
+  "notification-service_new"
 )
 LOG_DIR="${BASE_DIR}/logs"
 PID_DIR="${BASE_DIR}/pids"
