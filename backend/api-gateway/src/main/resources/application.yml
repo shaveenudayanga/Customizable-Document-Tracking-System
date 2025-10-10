@@ -50,8 +50,7 @@ spring:
             - id: workflow-service
               uri: ${WORKFLOW_SERVICE_URI:http://localhost:8083}
               predicates:
-                - Path=/api/workflow/**
-                - Path=/api/pipelines/**
+                - Path=/api/workflow/**,/api/pipelines/**
               filters:
                 - StripPrefix=0
                 - AuthenticationFilter

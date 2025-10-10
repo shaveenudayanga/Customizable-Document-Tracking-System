@@ -128,33 +128,33 @@ const DocumentDetails = () => {
               </div>
               <div className="metadata-item">
                 <strong>Status:</strong>{" "}
-                <span className={`doc-status ${document.status.toLowerCase()}`}>
-                  {document.status}
+                <span className={`doc-status ${(document.status || 'unknown').toLowerCase()}`}>
+                  {document.status || 'Unknown'}
                 </span>
               </div>
               <div className="metadata-item">
-                <strong>Owner:</strong> <span>{document.owner}</span>
+                <strong>Owner:</strong> <span>{document.owner || 'Unknown'}</span>
               </div>
               <div className="metadata-item">
-                <strong>Pipeline:</strong> <span>{document.pipeline}</span>
+                <strong>Pipeline:</strong> <span>{document.pipeline || 'None'}</span>
               </div>
               <div className="metadata-item">
                 <strong>Current Step:</strong>{" "}
-                <span>{document.currentStep}</span>
+                <span>{document.currentStep || 'N/A'}</span>
               </div>
               <div className="metadata-item">
-                <strong>Department:</strong> <span>{document.department}</span>
+                <strong>Department:</strong> <span>{document.department || 'N/A'}</span>
               </div>
               <div className="metadata-item">
-                <strong>Category:</strong> <span>{document.category}</span>
+                <strong>Category:</strong> <span>{document.category || 'N/A'}</span>
               </div>
               <div className="metadata-item">
                 <strong>Created At:</strong>{" "}
-                <span>{new Date(document.createdAt).toLocaleString()}</span>
+                <span>{document.createdAt ? new Date(document.createdAt).toLocaleString() : 'Unknown'}</span>
               </div>
               <div className="metadata-item">
                 <strong>Last Updated:</strong>{" "}
-                <span>{new Date(document.updatedAt).toLocaleString()}</span>
+                <span>{document.updatedAt ? new Date(document.updatedAt).toLocaleString() : 'Unknown'}</span>
               </div>
             </div>
             <div className="description-box">
