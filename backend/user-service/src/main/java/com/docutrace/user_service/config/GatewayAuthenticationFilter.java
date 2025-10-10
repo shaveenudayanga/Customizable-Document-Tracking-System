@@ -39,4 +39,11 @@ public class GatewayAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        // Skip authentication for public endpoints
+        return path.contains("/auth/") || path.contains("/actuator/") || path.contains("/swagger");
+    }
 }
