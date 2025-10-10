@@ -22,9 +22,9 @@ const DocumentList = () => {
         // Apply client-side filtering and sorting
         let filtered = allDocuments.filter(
           (doc) =>
-            doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            doc.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            doc.pipeline.toLowerCase().includes(searchTerm.toLowerCase())
+            (doc.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (doc.owner || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (doc.pipeline || '').toLowerCase().includes(searchTerm.toLowerCase())
         );
 
         if (filterStatus !== "all") {
@@ -105,8 +105,8 @@ const DocumentList = () => {
                 >
                   <div className="doc-card-header">
                     <h3 className="doc-card-title">{doc.title}</h3>
-                    <span className={`doc-status ${doc.status.toLowerCase()}`}>
-                      {doc.status}
+                    <span className={`doc-status ${(doc.status || 'unknown').toLowerCase()}`}>
+                      {doc.status || 'Unknown'}
                     </span>
                   </div>
                   <p className="doc-card-info">Owner: {doc.owner}</p>

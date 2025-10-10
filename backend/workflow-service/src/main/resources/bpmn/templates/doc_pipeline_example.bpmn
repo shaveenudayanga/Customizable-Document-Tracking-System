@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn2:definitions xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  id="Definitions_doc_pipeline_example"
+                  targetNamespace="http://localhost:8083/api/workflow">
+
+  <bpmn2:process id="doc_pipeline_example" name="Document Pipeline: doc_pipeline_example" isExecutable="true" camunda:historyTimeToLive="P7D">
+    <bpmn2:startEvent id="doc_pipeline_example_start" name="Document Submitted"/>
+
+    <bpmn2:sequenceFlow id="doc_pipeline_example_flow_1" sourceRef="doc_pipeline_example_start" targetRef="doc_pipeline_example_step_1"/>
+
+    <bpmn2:userTask id="doc_pipeline_example_step_1" name="finance Review" camunda:candidateGroups="finance">
+      <bpmn2:documentation>Verify invoice details and vendor.</bpmn2:documentation>
+    </bpmn2:userTask>
+
+    <bpmn2:sequenceFlow id="doc_pipeline_example_flow_2" sourceRef="doc_pipeline_example_step_1" targetRef="doc_pipeline_example_step_2"/>
+
+    <bpmn2:userTask id="doc_pipeline_example_step_2" name="hr Review" camunda:candidateGroups="hr">
+      <bpmn2:documentation>Check contract terms (if applicable).</bpmn2:documentation>
+    </bpmn2:userTask>
+
+    <bpmn2:sequenceFlow id="doc_pipeline_example_flow_3" sourceRef="doc_pipeline_example_step_2" targetRef="doc_pipeline_example_step_3"/>
+
+    <bpmn2:userTask id="doc_pipeline_example_step_3" name="admin Review" camunda:candidateGroups="admin">
+      <bpmn2:documentation>Final approval &amp; sign-off.</bpmn2:documentation>
+    </bpmn2:userTask>
+
+    <bpmn2:sequenceFlow id="doc_pipeline_example_flow_end" sourceRef="doc_pipeline_example_step_3" targetRef="doc_pipeline_example_end"/>
+
+    <bpmn2:endEvent id="doc_pipeline_example_end" name="Pipeline Complete"/>
+  </bpmn2:process>
+
+  <!-- Optional DI information (simple placeholder) -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_doc_pipeline_example">
+    <bpmndi:BPMNPlane id="BPMNPlane_doc_pipeline_example" bpmnElement="doc_pipeline_example"/>
+  </bpmndi:BPMNDiagram>
+</bpmn2:definitions>

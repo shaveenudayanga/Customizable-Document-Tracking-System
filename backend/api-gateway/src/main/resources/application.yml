@@ -12,6 +12,7 @@ spring:
                 allowedOrigins:
                   - "http://localhost:3000"
                   - "http://localhost:5173"
+                  - "http://127.0.0.1:5173"
                 allowedMethods:
                   - GET
                   - POST
@@ -24,14 +25,14 @@ spring:
 
           routes:
             - id: auth-service
-              uri: http://localhost:8081
+              uri: ${USER_SERVICE_URI:http://localhost:8081}
               predicates:
                 - Path=/api/auth/**
               filters:
                 - StripPrefix=0
 
             - id: user-service
-              uri: http://localhost:8081
+              uri: ${USER_SERVICE_URI:http://localhost:8081}
               predicates:
                 - Path=/api/users/**
               filters:
@@ -39,7 +40,7 @@ spring:
                 - AuthenticationFilter
 
             - id: document-service
-              uri: http://localhost:8082
+              uri: ${DOCUMENT_SERVICE_URI:http://localhost:8082}
               predicates:
                 - Path=/api/documents/**
               filters:
@@ -47,7 +48,7 @@ spring:
                 - AuthenticationFilter
 
             - id: workflow-service
-              uri: http://localhost:8083
+              uri: ${WORKFLOW_SERVICE_URI:http://localhost:8083}
               predicates:
                 - Path=/api/workflow/**,/api/pipelines/**
               filters:
@@ -55,9 +56,17 @@ spring:
                 - AuthenticationFilter
 
             - id: tracking-service
-              uri: http://localhost:8084
+              uri: ${TRACKING_SERVICE_URI:http://localhost:8084}
               predicates:
                 - Path=/api/tracking/**
+              filters:
+                - StripPrefix=0
+                - AuthenticationFilter
+
+            - id: notification-service
+              uri: ${NOTIFICATION_SERVICE_URI:http://localhost:1004}
+              predicates:
+                - Path=/api/notifications/**
               filters:
                 - StripPrefix=0
                 - AuthenticationFilter
@@ -80,8 +89,8 @@ management:
 
 logging:
   level:
-    org.springframework.cloud.gateway: DEBUG
-    reactor.netty: INFO
+    "[org.springframework.cloud.gateway]": DEBUG
+    "[reactor.netty]": INFO
 
 security:
   jwt:

@@ -15,6 +15,8 @@ import org.camunda.bpm.engine.*;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,6 +40,7 @@ public class WorkflowService {
 
     private static final Logger log = LoggerFactory.getLogger(WorkflowService.class);
     private static final List<String> DEFAULT_DOCUMENT_STATUSES = List.of("DEPARTMENT_PENDING", "APPROVAL_PENDING");
+    private static final Sort PIPELINE_ORDER = Sort.by(Sort.Direction.DESC, "createdAt", "id");
     
     private final RepositoryService repositoryService;
     private final RuntimeService runtimeService;
@@ -119,6 +122,11 @@ public class WorkflowService {
         }
         if (!hasAnyRole("ADMIN", "STAFF")) {
             throw new AccessDeniedException("Unauthorized to delete templates");
+        }
+
+        boolean hasActiveInstances = instanceRepo.existsByTemplateId(id);
+        if (hasActiveInstances) {
+            throw new BadRequestException("Cannot delete template with active pipeline instances");
         }
 
         templateRepo.delete(template);
@@ -350,8 +358,7 @@ public class WorkflowService {
     }
 
     public WorkflowStatusResponse getWorkflowStatus(Long documentId) {
-        PipelineInstance instance = instanceRepo.findByDocumentId(documentId)
-            .orElseThrow(() -> new ResourceNotFoundException("Pipeline instance not found for document " + documentId));
+        PipelineInstance instance = resolveLatestPipelineInstance(documentId);
 
         boolean processActive = runtimeService.createProcessInstanceQuery()
             .processInstanceId(instance.getProcessInstanceId())
@@ -548,6 +555,25 @@ public class WorkflowService {
         } catch (Exception ex) {
             log.warn("Failed to update document {} with process instance {}", documentId, processInstanceId, ex);
         }
+    }
+
+    private PipelineInstance resolveLatestPipelineInstance(Long documentId) {
+        PageRequest pageRequest = PageRequest.of(0, 1, PIPELINE_ORDER);
+
+        Optional<PipelineInstance> activeInstance = instanceRepo
+            .findByDocumentIdAndStatusIn(documentId, List.of("IN_PROGRESS"), pageRequest)
+            .stream()
+            .findFirst();
+
+        if (activeInstance.isPresent()) {
+            return activeInstance.get();
+        }
+
+        return instanceRepo
+            .findByDocumentId(documentId, pageRequest)
+            .stream()
+            .findFirst()
+            .orElseThrow(() -> new ResourceNotFoundException("Pipeline instance not found for document " + documentId));
     }
 }
 

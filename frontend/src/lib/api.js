@@ -1,15 +1,22 @@
-// Multi-service API configuration for different backend services
-// Use relative URLs in development to leverage Vite proxy and avoid CORS issues
-// In production, use absolute URLs from environment variables
-const SERVICES = {
-  USER: import.meta.env.VITE_USER_SERVICE_URL || "/api",
-  DOCUMENT: import.meta.env.VITE_DOCUMENT_SERVICE_URL || "/api",
-  WORKFLOW: import.meta.env.VITE_WORKFLOW_SERVICE_URL || "/api",
-  TRACKING: import.meta.env.VITE_TRACKING_SERVICE_URL || "/api",
-  NOTIFICATION: import.meta.env.VITE_NOTIFICATION_SERVICE_URL || "/api",
+const rawApiUrl = import.meta.env.VITE_API_URL;
+const BASE = rawApiUrl && rawApiUrl.trim() !== "" ? rawApiUrl : "/api";
+
+const resolveServiceUrl = (envKey) => {
+  const override = import.meta.env[envKey];
+  if (override && override.trim() !== "") {
+    return override;
+  }
+  return BASE;
 };
 
-const BASE = import.meta.env.VITE_API_URL || "/api";
+// Multi-service API configuration for different backend services
+const SERVICES = {
+  USER: resolveServiceUrl("VITE_USER_SERVICE_URL"),
+  DOCUMENT: resolveServiceUrl("VITE_DOCUMENT_SERVICE_URL"),
+  WORKFLOW: resolveServiceUrl("VITE_WORKFLOW_SERVICE_URL"),
+  TRACKING: resolveServiceUrl("VITE_TRACKING_SERVICE_URL"),
+  NOTIFICATION: resolveServiceUrl("VITE_NOTIFICATION_SERVICE_URL"),
+};
 
 const isAbsolute = (u) => /^https?:\/\//i.test(u);
 const trimSlashEnd = (s) => s.replace(/\/+$/, "");
@@ -153,6 +160,9 @@ export const api = {
   upload: (path, formData, service) =>
     uploadRequest("POST", path, formData, service),
 };
+
+export const buildServiceUrl = (serviceKey, path = "") =>
+  buildUrl(path, serviceKey);
 
 // Service-specific API instances
 export const userAPI = {
