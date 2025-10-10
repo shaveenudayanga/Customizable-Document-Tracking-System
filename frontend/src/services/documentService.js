@@ -1,4 +1,4 @@
-import { documentAPI } from "../lib/api.js";
+import { documentAPI, buildServiceUrl } from "../lib/api.js";
 
 /**
  * Document Service
@@ -112,8 +112,8 @@ export const documentService = {
           headers: { Accept: "application/json" },
         });
       } else {
-        // Return the URL for the image using document service
-        return `http://localhost:8082/api/documents/${documentId}/qrcode`;
+  // Return the URL for the image using configured service base
+  return buildServiceUrl("DOCUMENT", `/documents/${documentId}/qrcode`);
       }
     } catch (error) {
       console.error("Error fetching QR code:", error);
@@ -149,7 +149,7 @@ export const documentService = {
    * @returns {string} Download URL
    */
   getDownloadUrl(documentId) {
-    return `http://localhost:8082/api/documents/${documentId}/file`;
+    return buildServiceUrl("DOCUMENT", `/documents/${documentId}/file`);
   },
 
   /**

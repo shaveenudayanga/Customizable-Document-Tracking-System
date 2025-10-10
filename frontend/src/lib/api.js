@@ -1,39 +1,22 @@
-const DEV = import.meta.env.DEV;
+const rawApiUrl = import.meta.env.VITE_API_URL;
+const BASE = rawApiUrl && rawApiUrl.trim() !== "" ? rawApiUrl : "/api";
 
-const resolveServiceUrl = (envKey, devPath, prodUrl) => {
+const resolveServiceUrl = (envKey) => {
   const override = import.meta.env[envKey];
   if (override && override.trim() !== "") {
     return override;
   }
-  return DEV ? devPath : prodUrl;
+  return BASE;
 };
 
 // Multi-service API configuration for different backend services
 const SERVICES = {
-  USER: resolveServiceUrl("VITE_USER_SERVICE_URL", "/api", "http://localhost:8081/api"),
-  DOCUMENT: resolveServiceUrl(
-    "VITE_DOCUMENT_SERVICE_URL",
-    "/api/documents",
-    "http://localhost:8082/api"
-  ),
-  WORKFLOW: resolveServiceUrl(
-    "VITE_WORKFLOW_SERVICE_URL",
-    "/api/workflow",
-    "http://localhost:8083/api"
-  ),
-  TRACKING: resolveServiceUrl(
-    "VITE_TRACKING_SERVICE_URL",
-    "/api/tracking",
-    "http://localhost:8084/api"
-  ),
-  NOTIFICATION: resolveServiceUrl(
-    "VITE_NOTIFICATION_SERVICE_URL",
-    "/api/notifications",
-    "http://localhost:8085/api"
-  ),
+  USER: resolveServiceUrl("VITE_USER_SERVICE_URL"),
+  DOCUMENT: resolveServiceUrl("VITE_DOCUMENT_SERVICE_URL"),
+  WORKFLOW: resolveServiceUrl("VITE_WORKFLOW_SERVICE_URL"),
+  TRACKING: resolveServiceUrl("VITE_TRACKING_SERVICE_URL"),
+  NOTIFICATION: resolveServiceUrl("VITE_NOTIFICATION_SERVICE_URL"),
 };
-
-const BASE = import.meta.env.VITE_API_URL || "/api";
 
 const isAbsolute = (u) => /^https?:\/\//i.test(u);
 const trimSlashEnd = (s) => s.replace(/\/+$/, "");
@@ -177,6 +160,9 @@ export const api = {
   upload: (path, formData, service) =>
     uploadRequest("POST", path, formData, service),
 };
+
+export const buildServiceUrl = (serviceKey, path = "") =>
+  buildUrl(path, serviceKey);
 
 // Service-specific API instances
 export const userAPI = {

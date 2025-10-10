@@ -81,6 +81,64 @@ The system uses a dedicated **notification-service** that handles all notificati
 
 See the integration guides for detailed setup instructions.
 
+## Frontend ↔ Backend Integration
+
+The frontend now speaks to every microservice exclusively through the `api-gateway`. Whether you run Vite locally, serve the production bundle via Nginx, or deploy with Docker Compose, all requests flow through the same `/api` surface.
+
+### How the pieces connect
+
+- **Gateway entrypoint:** The gateway listens on port `8080` and owns JWT validation. Routes are defined in `backend/api-gateway/src/main/resources/application.yml`. Each route forwards requests under `/api/{service}` to the corresponding service using environment-provided URIs (for example `DOCUMENT_SERVICE_URI`).
+- **Frontend HTTP helper:** `frontend/src/lib/api.js` centralizes URL building. By default it targets `/api`, so relative fetches automatically pass through the gateway. Optional overrides (for example `VITE_DOCUMENT_SERVICE_URL`) are available for diagnostics but aren’t required in normal flows.
+- **Development proxy:** `frontend/vite.config.js` proxies `/api` to `http://localhost:8080`, so `npm run dev` works with a running gateway without extra setup.
+- **Production static host:** `frontend/nginx.conf` proxies `/api/` traffic from the Nginx container to the `api-gateway` service when serving the built SPA.
+- **Container orchestration:** `docker-compose.prod.yml` builds and runs the gateway, wires every microservice URI through environment variables, and injects `VITE_API_URL=/api` during the frontend build.
+
+### Local development workflow
+
+1. Start the gateway (and any required services):
+	```bash
+	./backend/api-gateway/mvnw spring-boot:run
+	```
+	or run `backend/start-all-backend.sh` for the full stack.
+2. Launch the frontend dev server:
+	```bash
+	cd frontend
+	npm install
+	npm run dev
+	```
+	Vite will proxy `/api` to the gateway automatically.
+
+### Production / Docker Compose workflow
+
+1. Build and start the full stack:
+	```bash
+	docker compose -f docker-compose.prod.yml up --build
+	```
+2. Access the SPA at `http://localhost` (served by the frontend container). All API requests route through the gateway container without additional configuration.
+
+### Environment variables of interest
+
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `VITE_API_URL` | Primary API base for the frontend. Leave unset to use `/api`. | `/api` |
+| `VITE_*_SERVICE_URL` | Optional service-specific overrides for diagnostics. Normally unused. | _undefined_ |
+| `USER_SERVICE_URI`, `DOCUMENT_SERVICE_URI`, etc. | Gateway route targets. Set automatically in Docker Compose, fallback to localhost ports for local dev. | `http://localhost:{port}` |
+| `SECURITY_JWT_SECRET` | Shared JWT secret consumed by the gateway. | `mySecretKeyFor…` |
+
+### Current verification status
+
+- ✅ Frontend HTTP helpers and service clients point to the gateway.
+- ✅ Vite dev proxy and Nginx production proxy send `/api` traffic to the gateway.
+- ✅ Docker Compose builds the gateway and injects service URIs via environment variables.
+- ⚠️ Pending follow-up: gateway currently returns `404` for `/api/workflow/**` when static resource handling runs first—requires route predicate review.
+- ⚠️ Known lint warnings: existing unused-variable issues in the frontend still need cleanup.
+
+## Follow-up Work
+
+- **Gateway routing fix:** Investigate why `/api/workflow/**` requests receive a `404` when served through the gateway (likely path predicate overlap with static resources) and adjust route configuration accordingly.
+- **Frontend lint hygiene:** Resolve outstanding ESLint warnings (mostly unused variables) so CI pipelines stay clean after the integration.
+- **End-to-end smoke test:** Once the above fixes land, run a full workflow (create document → advance pipeline → receive notification) through the SPA to confirm the unified gateway flow.
+
 ## License
 
 This project is licensed under the MIT License. See [`LICENSE`](./LICENSE) for details.
