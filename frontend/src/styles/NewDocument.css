@@ -1,0 +1,336 @@
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: #e0f2f7; /* Very light teal background */
+}
+
+.new-doc-wrapper {
+  min-height: 100vh;
+  padding: 30px;
+  background: linear-gradient(
+    135deg,
+    #d1c4e9,
+    #b3e5fc,
+    #d1c4e9
+  ); /* Light purple to light blue gradient */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.new-doc-container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  width: 100%;
+  max-width: 700px; /* Wider container for forms */
+}
+
+.new-doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.back-button {
+  background: none;
+  border: 1px solid #bbdefb;
+  color: #5e35b1;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: #e3f2fd; /* Light blue */
+  border-color: #673ab7;
+  color: #673ab7;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.new-doc-title {
+  color: #673ab7; /* Deeper purple */
+  font-size: 2rem;
+  margin: 0 20px;
+  flex-grow: 1;
+  text-align: center;
+}
+
+.new-doc-subtitle {
+  color: #757575;
+  font-size: 1rem;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+/* Updated Message Styling */
+.message {
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  text-align: center;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.error-message {
+  background: #ffebee; /* Light red */
+  color: #d32f2f; /* Dark red */
+}
+
+.success-message {
+  background: #e8f5e9; /* Light green */
+  color: #388e3c; /* Dark green */
+}
+
+.generated-code-message {
+  background: #fff3e0; /* Light orange */
+  color: #ef6c00; /* Dark orange */
+}
+
+.new-doc-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #5e35b1; /* Dark purple */
+  font-size: 0.95rem;
+}
+
+.required {
+  color: #d32f2f; /* Red for required indicator */
+  margin-left: 5px;
+}
+
+.new-doc-form input[type="text"],
+.new-doc-form textarea,
+.new-doc-form select {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #bbdefb; /* Light blue border */
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  color: #424242; /* Darker gray text */
+}
+
+.new-doc-form input::placeholder,
+.new-doc-form textarea::placeholder {
+  color: #a78cb3; /* Lighter purple placeholder */
+}
+
+.new-doc-form input:focus,
+.new-doc-form textarea:focus,
+.new-doc-form select:focus {
+  border-color: #673ab7; /* Deeper purple on focus */
+  box-shadow: 0 0 8px rgba(103, 58, 183, 0.3);
+  outline: none;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+/* --- File and QR Row Styling --- */
+.file-and-qr-row {
+  align-items: flex-end; /* Align bottom elements if heights differ */
+}
+
+.file-upload-group {
+  flex: 2; /* Give file upload more space */
+}
+
+.qr-code-preview-group {
+  flex: 1; /* Give QR code panel less space */
+}
+
+/* Custom file upload styling */
+.file-upload-group .file-upload-label {
+  display: block; /* Ensure label is block level */
+  margin-bottom: 8px;
+}
+
+.file-input-hidden {
+  display: none; /* Hide the default file input */
+}
+
+.file-input-display {
+  display: flex;
+  align-items: center;
+  border: 1px solid #bbdefb;
+  border-radius: 8px;
+  padding: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.file-input-display:hover {
+  border-color: #673ab7;
+  box-shadow: 0 0 8px rgba(103, 58, 183, 0.2);
+}
+
+.file-name {
+  flex-grow: 1;
+  padding: 0 8px;
+  color: #616161;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.browse-button {
+  background: #e3f2fd; /* Light blue */
+  color: #5e35b1; /* Dark purple */
+  padding: 8px 15px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.browse-button:hover {
+  background: #bbdefb; /* Slightly darker light blue */
+}
+
+.file-size {
+  font-size: 0.85rem;
+  color: #757575;
+  margin-top: 5px;
+  display: block;
+}
+
+/* --- QR Code Mock Styling --- */
+.qr-mock-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border: 1px dashed #bbdefb;
+  border-radius: 8px;
+  height: 100%;
+  min-height: 120px;
+}
+
+.qr-mock-box {
+  width: 80px;
+  height: 80px;
+  background: #f0f0f0;
+  border: 3px solid white;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 5px;
+  border-radius: 4px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath d='M20 20h40v40H20zM80 20h20v20H80zM120 20h60v60h-60zM20 80h40v40H20zM140 100h20v20h-20zM20 140h60v60H20zM100 140h20v20h-20zM140 140h20v20h-20z' fill='%23673ab7'/%3E%3C/svg%3E");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.qr-caption {
+  font-size: 0.75rem;
+  color: #757575;
+  margin: 0;
+  text-align: center;
+}
+
+.submit-btn {
+  background: linear-gradient(
+    135deg,
+    #673ab7,
+    #3f51b5
+  ); /* Purple to indigo gradient */
+  color: white;
+  padding: 15px 25px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-top: 10px;
+}
+
+.submit-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.submit-btn:disabled {
+  background: #9e9e9e; /* Gray when disabled */
+  cursor: not-allowed;
+  filter: none;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .new-doc-container {
+    padding: 20px;
+  }
+  .new-doc-header {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+  .back-button {
+    margin-bottom: 15px;
+    width: 100%;
+  }
+  .new-doc-title {
+    margin: 10px 0;
+  }
+  .form-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  /* Stack QR and File groups on small screens */
+  .file-and-qr-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .file-upload-group,
+  .qr-code-preview-group {
+    flex: 1;
+  }
+}

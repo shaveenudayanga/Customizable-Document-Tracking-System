@@ -1,0 +1,220 @@
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: #e0f2f7; /* Very light teal background */
+}
+
+.login-wrapper {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  background: linear-gradient(
+    135deg,
+    #d1c4e9,
+    #b3e5fc,
+    #d1c4e9
+  ); /* Light purple to light blue gradient */
+}
+
+.login-card {
+  display: flex;
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 900px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.login-form-section {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.close-btn {
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+
+.login-title {
+  color: #673ab7; /* Deeper purple for title */
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+.login-subtitle {
+  color: #757575; /* Gray subtitle */
+  font-size: 0.9rem;
+  margin-bottom: 25px;
+}
+
+.error-message {
+  background: #ffebee; /* Light red background for error */
+  color: #db5b5b; /* Darker red text */
+  padding: 8px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.login-form label {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #5e35b1; /* Dark purple label */
+}
+
+/* Input fields */
+.login-form input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #bbdefb; /* Light blue border */
+  color: #23234a;
+  background: #fff;
+  font-size: 1rem;
+  transition: all 0.3s ease; /* Smooth transition for border and shadow */
+}
+
+/* Input glow on focus */
+.login-form input:focus {
+  border-color: #673ab7; /* Deeper purple on focus */
+  box-shadow: 0 0 8px #673ab7;
+  outline: none; /* Remove default outline */
+}
+
+.forgot-password {
+  font-size: 0.85rem;
+  color: #5e35b1; /* Dark purple link */
+  text-align: right;
+  text-decoration: none;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+.login-btn {
+  background: linear-gradient(135deg, #5e35b1 80%, #283593 100%);
+  color: #fff;
+  padding: 14px 32px;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.15rem;
+  box-shadow: 0 4px 16px rgba(63, 81, 181, 0.22), 0 0 0 2px #b3e5fc;
+  background-clip: padding-box;
+  transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+  filter: brightness(1.1);
+}
+
+.divider {
+  text-align: center;
+  margin: 20px 0;
+  font-size: 0.85rem;
+  color: #757575; /* Gray divider */
+}
+
+.social-login {
+  display: flex;
+  gap: 10px;
+}
+
+.google-btn,
+.facebook-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #bbdefb; /* Light blue border */
+  background: white;
+  color: #7253b1; /* Dark purple text */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glossy hover effect */
+.google-btn::after,
+.facebook-btn::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(45deg);
+  transition: all 0.5s ease;
+  opacity: 0;
+}
+
+.google-btn:hover::after,
+.facebook-btn:hover::after {
+  opacity: 1;
+  top: -30%;
+  left: -30%;
+}
+
+.google-btn:hover,
+.facebook-btn:hover {
+  background: #714ab4; /* Deeper purple on hover */
+  color: white;
+  border-color: #8869be;
+}
+
+.signup-link {
+  font-size: 0.85rem;
+  margin-top: 20px;
+  text-align: center;
+  color: #757575; /* Gray link text */
+}
+
+.signup-link a {
+  color: #5e35b1; /* Dark purple link */
+}
+
+.login-image-section {
+  flex: 1;
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    #673ab7,
+    #3f51b5
+  ); /* Purple to indigo gradient */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-image-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom right,
+    rgba(103, 58, 183, 0.6),
+    /* Purple with opacity */ rgba(63, 81, 181, 0.6) /* Indigo with opacity */
+  );
+}

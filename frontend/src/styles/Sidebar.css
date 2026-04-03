@@ -1,0 +1,60 @@
+/* Sidebar container */
+.sidebar {
+  width: 220px; /* Fixed sidebar width */
+  height: 100vh; /* Full viewport height */
+  background-color: #1f2937; /* Dark gray-blue background */
+  color: #f9fafb; /* Light text color */
+  padding: 1.5rem 1rem; /* Top/bottom 1.5rem, left/right 1rem */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box; /* Include padding in width */
+}
+
+/* Sidebar title */
+.sidebar-title {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  text-align: center;
+  letter-spacing: 0.1em;
+  color: #38bdf8; /* Light blue accent */
+  user-select: none; /* Prevent text selection */
+}
+
+/* Navigation list */
+.sidebar-nav ul {
+  list-style: none; /* Remove bullet points */
+  padding: 0;
+  margin: 0;
+  flex-grow: 1; /* Take available vertical space */
+}
+
+/* List items spacing */
+.sidebar-nav li {
+  margin-bottom: 1rem;
+}
+
+/* Links style */
+.sidebar-nav a {
+  color: #cbd5e1; /* Light gray-blue text */
+  text-decoration: none;
+  font-weight: 500;
+  display: block;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  cursor: pointer;
+}
+
+/* Hover effect for links */
+.sidebar-nav a:hover {
+  background-color: #334155; /* Slightly lighter dark background */
+  color: #fff; /* White text */
+}
+
+/* Active link highlight */
+.active-link {
+  background-color: #2563eb; /* Bright blue background */
+  color: white;
+  font-weight: 700;
+}

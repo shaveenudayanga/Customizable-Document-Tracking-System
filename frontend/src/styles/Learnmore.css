@@ -1,0 +1,567 @@
+/* --- Global & Setup Styles --- */
+/* Import the IBM Plex Mono font */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap");
+
+/* Keyframes for calm entry animations (RETAINED) */
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes colorPulse {
+  0% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.95;
+    transform: scale(1.05);
+  }
+}
+
+/* Keyframes for subtle glow on footer hover */
+@keyframes subtleGlow {
+  from {
+    box-shadow: 0 0 15px rgba(103, 58, 183, 0.2);
+  }
+  to {
+    box-shadow: 0 0 25px rgba(103, 58, 183, 0.4);
+  }
+}
+
+/* Body and wrapper classes */
+body {
+  margin: 0;
+  font-family: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  /* Applying the main dark gradient to the body */
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(103, 58, 183, 0.7),
+    /* Lighter purple */ rgba(63, 81, 181, 0.9) /* Deeper blue */
+  );
+  /* Text must be light for visibility (Primary Text Color) */
+  color: #f0f0f0;
+  overflow: hidden;
+  height: 100vh;
+}
+
+.learnmore-active {
+  overflow-y: auto !important;
+  height: auto !important;
+}
+
+.landing-wrapper {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(103, 58, 183, 0.7),
+    rgba(63, 81, 181, 0.9)
+  );
+}
+
+/* --- Header Styles --- */
+.landing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 50px;
+  /* Use transparent background to show body gradient */
+  background: rgba(0, 0, 0, 0.1);
+  /* Add subtle blur for glass effect on header */
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  transition: all 0.4s ease-in-out;
+}
+
+.landing-header:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.landing-logo .logo-link {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #f0f0f0; /* Primary Text Color */
+  text-decoration: none;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.landing-logo .logo-link:hover {
+  color: #fff;
+  transform: scale(1.01);
+}
+
+.auth-nav {
+  display: flex;
+  gap: 10px;
+}
+
+.auth-btn {
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  font-size: 0.95rem;
+  box-shadow: none;
+}
+
+/* Login/Signup Buttons */
+.login-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Card Border Light */
+  color: #f0f0f0; /* Primary Text Color */
+}
+
+.login-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+  border-color: #fff;
+}
+
+.signup-btn {
+  background: #f4f4f6; /* Accent Color */
+  color: #6c2add; /* CTA Text Color (Dark purple) */
+  border: 1px solid #f4f4f6;
+}
+
+.signup-btn:hover {
+  background: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(255, 255, 255, 0.3);
+}
+
+/* --- Hero Section --- */
+.hero-section {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.hero-content {
+  position: relative;
+  color: white;
+  max-width: 1000px;
+  padding: 40px;
+  z-index: 1;
+  animation: fadeIn 2s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+  opacity: 0;
+}
+
+.hero-content h1 {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 3.2rem;
+  margin-bottom: 15px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  animation: fadeInSlideUp 2s ease-out 0.5s forwards;
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  margin-bottom: 40px;
+  font-weight: 300;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  animation: fadeInSlideUp 2s ease-out 0.8s forwards;
+}
+
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  animation: fadeIn 2s ease-out 1.2s forwards;
+  opacity: 0;
+}
+
+.cta-btn {
+  padding: 14px 28px;
+  border-radius: 50px;
+  font-weight: 500;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.primary-cta-btn {
+  background-color: #f4f4f6; /* Accent Color */
+  color: #6c2add; /* CTA Text Color (Dark purple) */
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.primary-cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+}
+
+.secondary-cta-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.secondary-cta-btn:hover {
+  transform: translateY(-2px);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* --- Learn More Page Styles --- */
+.learn-more-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(103, 58, 183, 0.7),
+    rgba(63, 81, 181, 0.9)
+  ); /* Match landing page dark gradient */
+  overflow-y: auto;
+}
+
+.content-container {
+  max-width: 1100px;
+  margin: 80px auto;
+  padding: 0 40px 100px 40px;
+  text-align: left;
+  flex-grow: 1;
+  font-family: "IBM Plex Mono", Consolas, monospace;
+}
+
+.content-container h1 {
+  font-size: 3.5rem;
+  color: #f0f0f0; /* Primary Text Color */
+  margin-bottom: 10px;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: -0.05rem;
+  animation: fadeIn 1.2s ease-out;
+}
+
+.subtitle {
+  font-size: 1.3rem;
+  color: #c9c9c9; /* Secondary Text Color */
+  margin-bottom: 40px;
+  text-align: center;
+  font-weight: 400;
+  animation: fadeIn 1.2s ease-out 0.3s forwards;
+  opacity: 0;
+}
+
+/* --- Horizontal Grid for Info Sections --- */
+.info-section-grid {
+  display: flex;
+  gap: 30px;
+  margin-top: 60px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* --- Info Section Cards (CORRECTED Glassmorphism Look) --- */
+.info-section {
+  flex: 1 1 300px;
+  max-width: 380px;
+  margin-bottom: 0;
+  margin-top: 0;
+
+  /* CORRECTED DEFAULT STATE: Ensures readability */
+  background: #b19bd8;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  /* Use a lighter border for contrast, but not fully white */
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Card Border Light */
+  /* Subtle shadow */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+
+  padding: 40px;
+  border-radius: 16px;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.4s ease, background 0.4s ease, border-color 0.4s ease;
+
+  opacity: 0;
+  animation: fadeInSlideUp 1s ease-out forwards;
+}
+
+/* Apply staggered animation delays (RETAINED) */
+.info-section:nth-child(2) {
+  animation-delay: 0.5s;
+}
+.info-section:nth-child(3) {
+  animation-delay: 0.8s;
+}
+.info-section:nth-child(4) {
+  animation-delay: 1.1s;
+}
+
+.info-section:hover {
+  transform: translateY(-8px); /* Deeper, more noticeable lift */
+
+  /* HOVER STATE: Brighter glow/color, still readable */
+  background: #a18ad6;
+  border-color: #fff; /* Fully white border on hover */
+  /* Stronger shadow */
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3), 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.info-section h2 {
+  font-size: 1.7rem;
+  color: #364bb0;
+  border-bottom: 3px solid #b6b6ff;
+  padding-bottom: 12px;
+  margin-bottom: 18px;
+  font-weight: 600;
+}
+
+.info-section p {
+  line-height: 1.75;
+  color: #4a6fa5;
+  font-weight: 500;
+  font-size: 1.08rem;
+}
+
+/* --- CTA Footer Block --- */
+.cta-footer-block {
+  text-align: center;
+  margin-top: 100px;
+  animation: fadeInSlideUp 1s ease-out 1.4s forwards;
+  opacity: 0;
+}
+
+.cta-footer-block h3 {
+  font-size: 1.8rem;
+  color: #f0f0f0; /* Primary Text Color */
+  margin-bottom: 35px;
+  font-weight: 600;
+}
+
+.cta-footer-block .primary-cta-btn {
+  padding: 18px 40px;
+  font-size: 1.2rem;
+  border-radius: 50px;
+  background-color: #f4f4f6; /* Accent Color */
+  color: #6c2add; /* CTA Text Color (Dark purple) */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  font-weight: 700;
+}
+
+.cta-footer-block .primary-cta-btn:hover {
+  transform: scale(1.03) translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  background-color: transparent;
+  color: #f0f0f0;
+}
+
+/* --- Animated Footer Styles --- */
+
+.docutrace-footer {
+  /* Slightly transparent background to continue the dark theme */
+  background-color: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+
+  padding: 18px 120px 10px 120px; /* Reduced height, increased horizontal padding */
+  color: #c9c9c9; /* Secondary Text Color */
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.2);
+
+  /* Animation for subtle, inviting glow */
+  animation: subtleGlow 4s infinite alternate ease-in-out;
+}
+
+.footer-content-wrapper {
+  display: flex;
+  justify-content: space-between;
+  max-width: 1400px; /* Increased width */
+  margin: 0 auto 18px auto;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  gap: 30px;
+}
+
+.footer-logo .logo-link {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f0f0f0; /* Primary Text Color */
+  text-decoration: none;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.footer-logo p {
+  font-size: 0.9rem;
+  color: #c9c9c9; /* Secondary Text Color */
+}
+
+.footer-links,
+.footer-social {
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+}
+
+.footer-links h4,
+.footer-social h4 {
+  font-size: 1rem;
+  color: #f0f0f0; /* Primary Text Color */
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.footer-links a {
+  color: #c9c9c9; /* Secondary Text Color */
+  text-decoration: none;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: #f0f0f0; /* Primary Text Color */
+  transform: translateX(5px); /* Subtle slide animation on hover */
+}
+
+.footer-social .social-icons a {
+  font-size: 1.5rem;
+  margin-right: 15px;
+  transition: transform 0.3s ease;
+  color: #f0f0f0; /* Primary Text Color */
+  text-decoration: none;
+}
+
+.footer-social .social-icons a:hover {
+  transform: scale(1.2) translateY(-2px); /* Pop and lift on hover */
+  color: #f4f4f6; /* Accent Color */
+}
+
+.footer-bottom {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.footer-bottom .legal-links a {
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  margin: 0 5px;
+  transition: color 0.3s ease;
+}
+
+.footer-bottom .legal-links a:hover {
+  color: #f0f0f0; /* Primary Text Color */
+}
+
+/* --- Responsive adjustments (RETAINED) --- */
+
+/* Tablet/Laptop - Two columns */
+@media (max-width: 1100px) {
+  .content-container {
+    max-width: 900px;
+  }
+}
+@media (max-width: 950px) {
+  .info-section-grid {
+    gap: 20px;
+  }
+  .info-section {
+    flex: 1 1 45%;
+    max-width: none;
+  }
+  .content-container h1 {
+    font-size: 3rem;
+  }
+}
+
+/* Mobile - Single column (vertical stack) */
+@media (max-width: 768px) {
+  .landing-header {
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px 15px;
+  }
+  .info-section-grid {
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 30px;
+  }
+  .info-section {
+    flex: 1 1 100%;
+    padding: 30px 20px;
+  }
+  .content-container {
+    margin: 30px auto;
+    padding: 0 15px 60px 15px;
+  }
+  .content-container h1 {
+    font-size: 2.5rem;
+  }
+  .subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+  }
+  .cta-footer-block .primary-cta-btn {
+    width: 90%;
+    padding: 15px 0;
+  }
+
+  /* Responsive Adjustments for Footer */
+  .docutrace-footer {
+    padding: 30px 15px 15px 15px;
+  }
+
+  .footer-content-wrapper {
+    flex-direction: column;
+    gap: 30px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-links,
+  .footer-social {
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  .footer-bottom p {
+    order: 2; /* Move copyright below links on mobile */
+  }
+  .footer-social .social-icons a {
+    margin: 0 10px;
+  }
+}
