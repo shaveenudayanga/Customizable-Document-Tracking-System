@@ -64,6 +64,14 @@ This system addresses the **bureaucratic inefficiencies that plague developing n
 
 This project is licensed under the MIT License. See [`LICENSE`](./LICENSE) for details.
 
+# Team
+
+## Back-end
+- Shaveen Udayanga 
+- Imasha 
+## Front-end
+- Sadish Nanayakkara
+
 ---
 
 **Breaking the cycle of bureaucratic delays, one digital workflow at a time.**
